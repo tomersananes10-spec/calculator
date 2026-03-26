@@ -427,6 +427,17 @@ input[type="range"]{-webkit-appearance:none;width:100%;height:5px;background:tra
       </div>
     </div>
 
+    <!-- Costs -->
+    <div class="s-section">
+      <div class="s-head"><div class="s-icon">🎓</div><div class="s-label">עלויות חד-פעמיות</div></div>
+      <div class="field-label" style="margin-bottom:3px">הכשרה ג'וניור (₪ לאנליסט)</div>
+      <input class="input" id="training-input" type="number" value="15000" min="0">
+      <div class="input-hint">ברירת מחדל: ₪15,000 · אפס למומחה</div>
+      <div class="field-label" style="margin-top:8px;margin-bottom:3px">ציוד ורישיונות (₪ לאנליסט)</div>
+      <input class="input" id="equipment-input" type="number" value="12000" min="0">
+      <div class="input-hint">ברירת מחדל: ₪12,000</div>
+    </div>
+
   </aside>
 
   <!-- ══════ RESULTS (left) ══════ -->
@@ -594,7 +605,7 @@ const DEFAULTS = { junior:{global:22000,hourly:180}, expert:{global:38000,hourly
 const SALARY_HINTS = { junior:"ברירת מחדל: ג'וניור יועץ חיצוני", expert:'ברירת מחדל: מומחה יועץ חיצוני' };
 const TRAINING_COST=15000, EQUIPMENT_COST=12000, VAT=1.18, MONTHLY_HOURS=176, MAX_COUNT=10;
 
-const state = { seniority:'junior', comp:'global', scope:100, period:12, salary:22000, matching:true, matchingMode:'pct', matchingVal:30, count:1 };
+const state = { seniority:'junior', comp:'global', scope:100, period:12, salary:22000, matching:true, matchingMode:'pct', matchingVal:30, count:1, trainingCost:15000, equipmentCost:12000 };
 
 const _frames={}, _vals={};
 function animNum(id,end,fmtFn){
@@ -614,8 +625,8 @@ function animNum(id,end,fmtFn){
 function calcCost(months){
   const scope=state.scope/100, n=state.count;
   const gross12=state.comp==='hourly' ? state.salary*MONTHLY_HOURS*scope*12 : state.salary*scope*12;
-  const training=(state.seniority==='junior')?TRAINING_COST*months/12:0;
-  const equipment=EQUIPMENT_COST*months/12;
+  const training=(state.seniority==='junior')?state.trainingCost*months/12:0;
+  const equipment=state.equipmentCost*months/12;
   const grossP=gross12*months/12*n, vatP=grossP*(VAT-1);
   const trainT=training*n, equipT=equipment*n;
   const total=grossP+vatP+trainT+equipT;
@@ -744,6 +755,14 @@ function initListeners(){
     if(v>0){state.salary=v;hint.style.color='var(--blue-light)';updateUI();}
     else{hint.textContent='⚠ הכנס ערך גדול מ-0';hint.style.color='#DC2626';}
   });
+  document.getElementById('training-input').addEventListener('input',e=>{
+    const v=Number(e.target.value);
+    if(v>=0){state.trainingCost=v;updateUI();}
+  });
+  document.getElementById('equipment-input').addEventListener('input',e=>{
+    const v=Number(e.target.value);
+    if(v>=0){state.equipmentCost=v;updateUI();}
+  });
   document.getElementById('matching-sw').addEventListener('click',()=>{
     state.matching=!state.matching;
     const sw=document.getElementById('matching-sw');
@@ -759,7 +778,7 @@ function initListeners(){
 }
 
 function shareLink(){
-  const p=new URLSearchParams({seniority:state.seniority,comp:state.comp,scope:state.scope,period:state.period,salary:state.salary,matching:state.matching?'1':'0',matchingMode:state.matchingMode,matchingVal:state.matchingVal,count:state.count});
+  const p=new URLSearchParams({seniority:state.seniority,comp:state.comp,scope:state.scope,period:state.period,salary:state.salary,matching:state.matching?'1':'0',matchingMode:state.matchingMode,matchingVal:state.matchingVal,count:state.count,trainingCost:state.trainingCost,equipmentCost:state.equipmentCost});
   const url=location.href.split('#')[0]+'#'+p.toString();
   if(navigator.clipboard)navigator.clipboard.writeText(url).then(()=>alert('הקישור הועתק ללוח!'));
   else prompt('העתק את הקישור:',url);
@@ -779,12 +798,16 @@ function loadFromURL(){
     if(['pct','abs'].includes(p.get('matchingMode')))      state.matchingMode=p.get('matchingMode');
     const mv=+p.get('matchingVal');if(!isNaN(mv)&&mv>=0)  state.matchingVal=mv;
     const cnt=+p.get('count');if(cnt>=1&&cnt<=MAX_COUNT)   state.count=Math.round(cnt);
+    const tr=+p.get('trainingCost');  if(!isNaN(tr)&&tr>=0)  state.trainingCost=tr;
+    const eq=+p.get('equipmentCost'); if(!isNaN(eq)&&eq>=0)  state.equipmentCost=eq;
     syncSeg('seg-seniority',state.seniority);
     syncSeg('seg-comp',state.comp);
     syncSeg('seg-period',String(state.period));
     document.getElementById('scope-slider').value=state.scope;
     document.getElementById('salary-input').value=state.salary;
     document.getElementById('matching-val').value=state.matchingVal;
+    document.getElementById('training-input').value=state.trainingCost;
+    document.getElementById('equipment-input').value=state.equipmentCost;
     const sw=document.getElementById('matching-sw');
     sw.classList.toggle('on',state.matching);sw.classList.toggle('off',!state.matching);
     if(state.matchingMode==='abs'){
