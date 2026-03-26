@@ -56,6 +56,10 @@ input[type="range"]{-webkit-appearance:none;width:100%;height:6px;background:tra
 .matching-chip{background:var(--blue-pale);border:1px solid var(--blue-mid);border-radius:8px;padding:9px 12px;font-size:11px;font-weight:500;color:var(--blue);display:flex;align-items:center;gap:7px}
 .validation-msg{font-size:10px;color:#DC2626;margin-top:4px;display:none}
 .validation-msg.show{display:block}
+.seg-btn.seg-disabled{opacity:0.35;cursor:not-allowed;pointer-events:none}
+.scope-arrow{width:28px;height:28px;border:1px solid var(--border2);background:var(--surface);border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0;transition:all 0.15s;line-height:1}
+.scope-arrow:hover{background:var(--blue-pale);border-color:var(--blue-mid);color:var(--blue)}
+.scope-arrow:disabled{opacity:0.3;cursor:not-allowed}
 .results{padding:30px 32px;background:var(--bg);overflow-y:auto}
 .res-header{margin-bottom:26px}
 .res-tag{display:inline-flex;align-items:center;gap:6px;background:var(--blue-pale);border:1px solid var(--blue-mid);border-radius:20px;padding:4px 12px;margin-bottom:10px;font-size:11px;font-weight:500;color:var(--blue)}
@@ -119,57 +123,30 @@ input[type="range"]{-webkit-appearance:none;width:100%;height:6px;background:tra
 <div class="layout">
 
   <aside class="sidebar">
-    <div class="sec-label">סוג התקשרות</div>
-    <div class="field">
-      <div class="seg" id="seg-type">
-        <div class="seg-btn on" data-value="civil">עובד מדינה</div>
-        <div class="seg-btn" data-value="consultant">יועץ חיצוני</div>
-      </div>
-    </div>
-
-    <div class="sec-label">פרופיל</div>
-    <div class="field">
-      <div class="field-label">רמת מומחיות</div>
-      <div class="seg" id="seg-seniority">
-        <div class="seg-btn on" data-value="junior">ג'וניור</div>
-        <div class="seg-btn" data-value="expert">מומחה (220)</div>
-      </div>
-    </div>
-    <div class="field">
-      <div class="field-label">מודל תגמול</div>
-      <div class="seg" id="seg-comp">
-        <div class="seg-btn on" data-value="global">שכר גלובלי</div>
-        <div class="seg-btn" data-value="hourly" id="btn-hourly">שכר שעתי</div>
-      </div>
-    </div>
-
-    <div class="sec-label">היקף ותקופה</div>
-    <div class="field">
-      <div class="slider-top">
-        <div class="field-label">היקף משרה</div>
-        <div class="slider-num"><span id="scope-display">100</span><span>%</span></div>
-      </div>
-      <div class="range-wrap">
-        <div class="range-fill" id="scope-fill"></div>
-        <div class="range-dot" id="scope-dot"></div>
-        <input type="range" id="scope-slider" min="25" max="100" step="25" value="100">
-      </div>
-      <div class="range-ticks"><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
-    </div>
-    <div class="field">
-      <div class="field-label">תקופת חישוב (מודגש)</div>
-      <div class="seg" id="seg-period">
-        <div class="seg-btn" data-value="6">חצי שנה</div>
-        <div class="seg-btn on" data-value="12">שנה</div>
-        <div class="seg-btn" data-value="24">שנתיים</div>
-      </div>
-    </div>
-
     <div class="sec-label">שכר בסיס</div>
     <div class="field">
       <div class="field-label" id="salary-label">שכר ברוטו (₪ / חודש)</div>
       <input class="input" id="salary-input" type="number" value="18500" min="1">
       <div class="input-hint" id="salary-hint">↑ ברירת מחדל: ג'וניור עובד מדינה</div>
+    </div>
+
+    <div class="field">
+      <div class="slider-top">
+        <div class="field-label">היקף משרה</div>
+        <div class="slider-num"><span id="scope-display">100</span><span>%</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <button class="scope-arrow" id="scope-btn-dec" onclick="changeScope(-1)" title="הקטן היקף">‹</button>
+        <div style="flex:1;">
+          <div class="range-wrap">
+            <div class="range-fill" id="scope-fill"></div>
+            <div class="range-dot" id="scope-dot"></div>
+            <input type="range" id="scope-slider" min="25" max="100" step="25" value="100">
+          </div>
+        </div>
+        <button class="scope-arrow" id="scope-btn-inc" onclick="changeScope(1)" title="הגדל היקף">›</button>
+      </div>
+      <div class="range-ticks"><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
     </div>
 
     <div class="sec-label">מימון</div>
@@ -188,6 +165,37 @@ input[type="range"]{-webkit-appearance:none;width:100%;height:6px;background:tra
         <span style="font-size:12px;color:var(--blue);">% מימון מערך הדיגיטל</span>
       </div>
       <div class="validation-msg" id="matching-validation">הכנס אחוז בין 1 ל-100</div>
+    </div>
+
+    <div class="sec-label">פרופיל</div>
+    <div class="field">
+      <div class="seg" id="seg-type">
+        <div class="seg-btn on" data-value="civil">עובד מדינה</div>
+        <div class="seg-btn" data-value="consultant">יועץ חיצוני</div>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">רמת מומחיות</div>
+      <div class="seg" id="seg-seniority">
+        <div class="seg-btn on" data-value="junior">ג'וניור</div>
+        <div class="seg-btn" data-value="expert">מומחה (220)</div>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">מודל תגמול</div>
+      <div class="seg" id="seg-comp">
+        <div class="seg-btn on" data-value="global">שכר גלובלי</div>
+        <div class="seg-btn seg-disabled" data-value="hourly" id="btn-hourly">שכר שעתי</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">תקופת חישוב (מודגש)</div>
+      <div class="seg" id="seg-period">
+        <div class="seg-btn" data-value="6">חצי שנה</div>
+        <div class="seg-btn on" data-value="12">שנה</div>
+        <div class="seg-btn" data-value="24">שנתיים</div>
+      </div>
     </div>
   </aside>
 
@@ -429,14 +437,10 @@ function updateUI() {
   // Disable hourly for civil servants
   const hourlyBtn = document.getElementById('btn-hourly');
   if (state.type === 'civil') {
-    hourlyBtn.style.opacity       = '0.35';
-    hourlyBtn.style.cursor        = 'not-allowed';
-    hourlyBtn.style.pointerEvents = 'none';
+    hourlyBtn.classList.add('seg-disabled');
     if (state.comp === 'hourly') { state.comp = 'global'; syncSeg('seg-comp', 'global'); }
   } else {
-    hourlyBtn.style.opacity       = '1';
-    hourlyBtn.style.cursor        = 'pointer';
-    hourlyBtn.style.pointerEvents = 'auto';
+    hourlyBtn.classList.remove('seg-disabled');
   }
 
   // Matching pct field disabled when toggle off
@@ -465,12 +469,24 @@ function syncSeg(segId, value) {
   });
 }
 
+function changeScope(direction) {
+  const steps = [25, 50, 75, 100];
+  const idx = steps.indexOf(state.scope);
+  const next = steps[Math.max(0, Math.min(steps.length - 1, idx + direction))];
+  if (next === state.scope) return;
+  state.scope = next;
+  document.getElementById('scope-slider').value = next;
+  document.getElementById('scope-btn-dec').disabled = (next === 25);
+  document.getElementById('scope-btn-inc').disabled = (next === 100);
+  updateUI();
+}
+
 // ── LISTENERS ─────────────────────────────────────────────
 function initListeners() {
   ['seg-type','seg-seniority','seg-comp','seg-period'].forEach(segId => {
     document.getElementById(segId).addEventListener('click', e => {
       const btn = e.target.closest('.seg-btn');
-      if (!btn || btn.style.pointerEvents === 'none') return;
+      if (!btn || btn.classList.contains('seg-disabled')) return;
       const keyMap = { 'seg-type':'type','seg-seniority':'seniority','seg-comp':'comp','seg-period':'period' };
       const key = keyMap[segId];
       state[key] = key === 'period' ? Number(btn.dataset.value) : btn.dataset.value;
@@ -487,6 +503,8 @@ function initListeners() {
 
   document.getElementById('scope-slider').addEventListener('input', e => {
     state.scope = Number(e.target.value);
+    document.getElementById('scope-btn-dec').disabled = (state.scope === 25);
+    document.getElementById('scope-btn-inc').disabled = (state.scope === 100);
     updateUI();
   });
 
@@ -577,6 +595,8 @@ function loadFromURL() {
 // ── INIT ──────────────────────────────────────────────────
 loadFromURL();
 initListeners();
+document.getElementById('scope-btn-dec').disabled = (state.scope === 25);
+document.getElementById('scope-btn-inc').disabled = (state.scope === 100);
 updateUI();
 </script>
 </body>
