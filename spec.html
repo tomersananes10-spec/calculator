@@ -572,14 +572,14 @@ body{font-family:'Assistant',sans-serif;background:var(--bg);color:var(--text);f
 שעות_חודשיות = 176 × היקף_משרה<br>
 <span class="cmt">        ↑ 22 ימי עבודה × 8 שעות = 176 שעות ב-100% משרה</span><br>
 עלות_חודשית  = תעריף_שעתי × שעות_חודשיות<br>
-עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.17<br>
-<span class="cmt">        ↑ מע"מ 17% חל על יועץ חיצוני</span><br>
+עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.18<br>
+<span class="cmt">        ↑ מע"מ 18% חל על יועץ חיצוני</span><br>
 עלות_משרד   = עלות_לתקופה × (1 − אחוז_מאצ'ינג)
       </div>
       <div class="formula-vars">
         <div class="formula-var"><div class="var-name">176</div><div class="var-desc">שעות חודשיות ב-100% משרה (22 ימים × 8 שעות)</div></div>
         <div class="formula-var"><div class="var-name">תעריף_שעתי</div><div class="var-desc">ערך שדה 1 (₪/שעה)</div></div>
-        <div class="formula-var"><div class="var-name">1.17</div><div class="var-desc">מקדם מע"מ (17%)</div></div>
+        <div class="formula-var"><div class="var-name">1.18</div><div class="var-desc">מקדם מע"מ (18%)</div></div>
       </div>
     </div>
   </div>
@@ -595,7 +595,7 @@ body{font-family:'Assistant',sans-serif;background:var(--bg);color:var(--text);f
       <div class="formula-eq">
 עלות_חודשית = שכר_בסיס × היקף_משרה<br>
 <span class="cmt">        ↑ אין מקדם מעביד — הוצאות סוציאליות על חשבון הספק</span><br>
-עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.17<br>
+עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.18<br>
 <span class="cmt">        ↑ מע"מ חל גם על יועץ בחוזה גלובלי</span><br>
 עלות_משרד   = עלות_לתקופה × (1 − אחוז_מאצ'ינג)
       </div>
@@ -786,7 +786,7 @@ body{font-family:'Assistant',sans-serif;background:var(--bg);color:var(--text);f
       <tr>
         <td><strong>מע"מ</strong></td>
         <td><span class="tag tag-gray">לא חל</span></td>
-        <td>עלות_לפני_מע"מ × 17%</td>
+        <td>עלות_לפני_מע"מ × 18%</td>
       </tr>
       <tr>
         <td><strong>הכשרה</strong></td>
@@ -1005,7 +1005,7 @@ body{font-family:'Assistant',sans-serif;background:var(--bg);color:var(--text);f
   <div class="callout info" style="margin-top:16px">
     <div class="callout-icon">💡</div>
     <div><strong>קבועים נוספים:</strong>
-      עלויות מעביד = 28% · מע"מ = 17% · ימי עבודה חודשיים = 22 · שעות יום = 8 · הכשרה ג'וניור = ₪15,000 · ציוד ורישיונות = ₪12,000
+      עלויות מעביד = 28% · מע"מ = 18% · ימי עבודה חודשיים = 22 · שעות יום = 8 · הכשרה ג'וניור = ₪15,000 · ציוד ורישיונות = ₪12,000
     </div>
   </div>
 </div>
@@ -1176,8 +1176,8 @@ function downloadWord() {
 שעות_חודשיות = 176 × היקף_משרה<br>
 &nbsp;&nbsp;&nbsp;&nbsp;↑ 22 ימי עבודה × 8 שעות = 176 שעות ב-100% משרה<br>
 עלות_חודשית  = תעריף_שעתי × שעות_חודשיות<br>
-עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.17<br>
-&nbsp;&nbsp;&nbsp;&nbsp;↑ מע"מ 17% חל על יועץ חיצוני<br>
+עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.18<br>
+&nbsp;&nbsp;&nbsp;&nbsp;↑ מע"מ 18% חל על יועץ חיצוני<br>
 עלות_משרד   = עלות_לתקופה × (1 − אחוז_מאצ'ינג)
 </div>
 
@@ -1185,7 +1185,7 @@ function downloadWord() {
 <div class="formula-box">
 עלות_חודשית = שכר_בסיס × היקף_משרה<br>
 &nbsp;&nbsp;&nbsp;&nbsp;↑ אין מקדם מעביד — הוצאות סוציאליות על חשבון הספק<br>
-עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.17<br>
+עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.18<br>
 עלות_משרד   = עלות_לתקופה × (1 − אחוז_מאצ'ינג)
 </div>
 
@@ -1215,7 +1215,7 @@ function downloadWord() {
   <tr><th>רכיב עלות</th><th>עובד מדינה</th><th>יועץ חיצוני</th></tr>
   <tr><td><strong>שכר ברוטו</strong></td><td>שכר_בסיס × scope% × 12</td><td>עלות לפני מע"מ</td></tr>
   <tr><td><strong>עלות מעביד</strong></td><td>שכר_ברוטו × 28%</td><td>לא רלוונטי</td></tr>
-  <tr><td><strong>מע"מ</strong></td><td>לא חל</td><td>עלות_לפני_מע"מ × 17%</td></tr>
+  <tr><td><strong>מע"מ</strong></td><td>לא חל</td><td>עלות_לפני_מע"מ × 18%</td></tr>
   <tr><td><strong>הכשרה</strong></td><td>₪15,000 × חודשים÷12 (ג'וניור בלבד)</td><td>₪0</td></tr>
   <tr><td><strong>ציוד ורישיונות</strong></td><td>₪12,000 × חודשים÷12</td><td>₪0</td></tr>
 </table>
@@ -1284,7 +1284,7 @@ function downloadWord() {
   <tr><td>יועץ חיצוני</td><td>ג'וניור</td><td>₪22,000</td><td>₪180</td></tr>
   <tr><td>יועץ חיצוני</td><td>מומחה (220)</td><td>₪38,000</td><td>₪350</td></tr>
 </table>
-<div class="info-box">💡 <strong>קבועים:</strong> עלויות מעביד = 28% · מע"מ = 17% · ימי עבודה חודשיים = 22 · שעות יום = 8 · הכשרה ג'וניור = ₪15,000 · ציוד ורישיונות = ₪12,000</div>
+<div class="info-box">💡 <strong>קבועים:</strong> עלויות מעביד = 28% · מע"מ = 18% · ימי עבודה חודשיים = 22 · שעות יום = 8 · הכשרה ג'וניור = ₪15,000 · ציוד ורישיונות = ₪12,000</div>
 
 <!-- ═══ SECTION 8 ═══ -->
 <h2>סעיף 8 — מגבלות ו-Validation</h2>
