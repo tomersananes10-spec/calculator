@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחשבון עלויות · אנליסט עסקי ממשלתי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#2563EB;--blue-light:#3B82F6;--blue-pale:#EFF6FF;--blue-mid:#DBEAFE;
+  --green:#059669;--green-light:#D1FAE5;
+  --amber:#D97706;--amber-light:#FEF3C7;
+  --text:#0F172A;--text2:#475569;--text3:#94A3B8;
+  --bg:#F8FAFC;--surface:#FFFFFF;--border:#E2E8F0;--border2:#CBD5E1;
+}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);min-height:100vh;color:var(--text);direction:rtl}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:14px;position:sticky;top:0;z-index:50;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.topbar-logo{width:32px;height:32px;background:linear-gradient(135deg,#2563EB,#3B82F6);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;box-shadow:0 2px 8px rgba(37,99,235,0.3)}
+.topbar-title{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
+.topbar-sep{width:1px;height:18px;background:var(--border)}
+.topbar-crumb{font-size:12px;color:var(--text3)}
+.topbar-spacer{flex:1}
+.topbar-badge{display:flex;align-items:center;gap:6px;background:var(--blue-pale);border:1px solid var(--blue-mid);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:500;color:var(--blue)}
+.badge-dot{width:6px;height:6px;background:var(--blue-light);border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.layout{display:grid;grid-template-columns:292px 1fr;min-height:calc(100vh - 56px)}
+.sidebar{background:var(--surface);border-left:1px solid var(--border);padding:24px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:20px}
+.sec-label{font-size:10px;font-weight:600;letter-spacing:1.3px;text-transform:uppercase;color:var(--text3);padding-bottom:10px;border-bottom:1px solid var(--border)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field-label{font-size:12px;font-weight:500;color:var(--text2)}
+.seg{display:flex;background:#F1F5F9;border:1px solid var(--border);border-radius:10px;padding:3px;gap:2px}
+.seg-btn{flex:1;text-align:center;padding:7px 6px;border-radius:7px;font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;transition:all 0.15s;white-space:nowrap;user-select:none}
+.seg-btn.on{background:var(--surface);color:var(--blue);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid var(--blue-mid)}
+.input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:9px 13px;font-size:13px;font-weight:500;color:var(--text);font-family:inherit;direction:rtl;transition:border-color 0.15s,box-shadow 0.15s}
+.input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.input:disabled{opacity:0.4;cursor:not-allowed}
+.input-hint{font-size:10px;color:var(--blue-light)}
+.slider-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.slider-num{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.5px}
+.slider-num span{font-size:14px;font-weight:400;color:var(--text3)}
+.range-wrap{position:relative;height:6px;background:#E2E8F0;border-radius:3px;margin-bottom:6px;direction:ltr;}
+.range-fill{position:absolute;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--blue-light))}
+.range-dot{position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:-6px;border:2px solid var(--blue);box-shadow:0 1px 4px rgba(0,0,0,0.15)}
+input[type="range"]{-webkit-appearance:none;width:100%;height:6px;background:transparent;outline:none;cursor:pointer;position:absolute;top:0;left:0;opacity:0;z-index:2}
+.range-ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--text3)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;border:1px solid var(--border);border-radius:10px;padding:11px 14px;cursor:pointer}
+.toggle-left{display:flex;flex-direction:column;gap:2px}
+.toggle-name{font-size:12px;font-weight:500;color:var(--text)}
+.toggle-desc{font-size:10px;color:var(--text3)}
+.sw{width:36px;height:20px;background:var(--blue);border-radius:10px;position:relative;flex-shrink:0;box-shadow:0 2px 6px rgba(37,99,235,0.3);cursor:pointer;transition:background 0.2s}
+.sw-k{width:14px;height:14px;background:white;border-radius:50%;position:absolute;right:3px;top:3px;transition:right 0.2s}
+.sw.off{background:#CBD5E1;box-shadow:none}
+.sw.off .sw-k{right:19px}
+.matching-chip{background:var(--blue-pale);border:1px solid var(--blue-mid);border-radius:8px;padding:9px 12px;font-size:11px;font-weight:500;color:var(--blue);display:flex;align-items:center;gap:7px}
+.validation-msg{font-size:10px;color:#DC2626;margin-top:4px;display:none}
+.validation-msg.show{display:block}
+.results{padding:30px 32px;background:var(--bg);overflow-y:auto}
+.res-header{margin-bottom:26px}
+.res-tag{display:inline-flex;align-items:center;gap:6px;background:var(--blue-pale);border:1px solid var(--blue-mid);border-radius:20px;padding:4px 12px;margin-bottom:10px;font-size:11px;font-weight:500;color:var(--blue)}
+.res-h{font-size:24px;font-weight:800;color:var(--text);letter-spacing:-0.7px;line-height:1.2}
+.res-h em{color:var(--blue);font-style:normal}
+.res-sub{font-size:13px;color:var(--text2);margin-top:5px}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:all 0.2s}
+.kpi.hero{background:linear-gradient(135deg,#2563EB 0%,#3B82F6 100%);border:none;box-shadow:0 6px 24px rgba(37,99,235,0.25)}
+.kpi-period{font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.kpi.hero .kpi-period{color:rgba(255,255,255,0.6)}
+.kpi-amt{font-size:28px;font-weight:800;color:var(--text);letter-spacing:-1px;line-height:1;transition:all 0.15s}
+.kpi.hero .kpi-amt{color:white}
+.kpi-lbl{font-size:11px;color:var(--text3);margin-top:4px}
+.kpi.hero .kpi-lbl{color:rgba(255,255,255,0.55)}
+.kpi-bar{height:3px;background:var(--blue-mid);border-radius:2px;margin-top:14px}
+.kpi.hero .kpi-bar{background:rgba(255,255,255,0.25)}
+.kpi-bar-fill{height:100%;border-radius:2px;background:var(--blue)}
+.kpi.hero .kpi-bar-fill{background:rgba(255,255,255,0.8)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.panel-ttl{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--text);margin-bottom:16px}
+.panel-ico{width:28px;height:28px;border-radius:8px;background:var(--blue-pale);border:1px solid var(--blue-mid);display:flex;align-items:center;justify-content:center;font-size:13px}
+.stack{height:12px;border-radius:6px;overflow:hidden;display:flex;margin-bottom:12px}
+.sa{background:linear-gradient(90deg,#2563EB,#3B82F6)}
+.sb{background:linear-gradient(90deg,#059669,#10B981)}
+.legend{display:flex;gap:14px}
+.li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.ls{width:8px;height:8px;border-radius:2px}
+.cbars{display:flex;flex-direction:column;gap:11px}
+.cbr{display:flex;align-items:center;gap:10px}
+.cbl{font-size:11px;color:var(--text3);width:54px;flex-shrink:0}
+.cbt{flex:1;height:7px;background:#F1F5F9;border-radius:4px;overflow:hidden}
+.cbf{height:100%;border-radius:4px;transition:width 0.2s}
+.cbv{font-size:12px;font-weight:600;color:var(--text2);width:42px;text-align:right;flex-shrink:0;transition:all 0.15s}
+.alerts{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.alert{display:flex;gap:11px;border-radius:12px;padding:13px 15px;font-size:12px;line-height:1.55}
+.alert.warn{background:var(--amber-light);border:1px solid #FCD34D;color:#78350F}
+.alert.info{background:var(--blue-pale);border:1px solid var(--blue-mid);color:#1E40AF}
+.al-ic{font-size:15px;flex-shrink:0;margin-top:1px}
+.actions{display:flex;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all 0.15s}
+.btn-p{background:var(--blue);color:white;box-shadow:0 3px 12px rgba(37,99,235,0.3)}
+.btn-p:hover{background:#1D4ED8;box-shadow:0 4px 18px rgba(37,99,235,0.4);transform:translateY(-1px)}
+.btn-s{background:white;color:var(--text2);border:1px solid var(--border2)}
+.btn-s:hover{background:#F8FAFC;color:var(--text)}
+@media print{.topbar{position:static}.sidebar{display:none}.layout{grid-template-columns:1fr}.actions{display:none}.results{padding:16px}}
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="topbar-logo">📊</div>
+  <div class="topbar-title">מחשבון עלויות</div>
+  <div class="topbar-sep"></div>
+  <span class="topbar-crumb">אנליסט עסקי ממשלתי</span>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-badge"><div class="badge-dot"></div>חישוב פעיל</div>
+</nav>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sec-label">סוג התקשרות</div>
+    <div class="field">
+      <div class="seg" id="seg-type">
+        <div class="seg-btn on" data-value="civil">עובד מדינה</div>
+        <div class="seg-btn" data-value="consultant">יועץ חיצוני</div>
+      </div>
+    </div>
+
+    <div class="sec-label">פרופיל</div>
+    <div class="field">
+      <div class="field-label">רמת מומחיות</div>
+      <div class="seg" id="seg-seniority">
+        <div class="seg-btn on" data-value="junior">ג'וניור</div>
+        <div class="seg-btn" data-value="expert">מומחה (220)</div>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">מודל תגמול</div>
+      <div class="seg" id="seg-comp">
+        <div class="seg-btn on" data-value="global">שכר גלובלי</div>
+        <div class="seg-btn" data-value="hourly" id="btn-hourly">שכר שעתי</div>
+      </div>
+    </div>
+
+    <div class="sec-label">היקף ותקופה</div>
+    <div class="field">
+      <div class="slider-top">
+        <div class="field-label">היקף משרה</div>
+        <div class="slider-num"><span id="scope-display">100</span><span>%</span></div>
+      </div>
+      <div class="range-wrap">
+        <div class="range-fill" id="scope-fill"></div>
+        <div class="range-dot" id="scope-dot"></div>
+        <input type="range" id="scope-slider" min="25" max="100" step="25" value="100">
+      </div>
+      <div class="range-ticks"><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+    </div>
+    <div class="field">
+      <div class="field-label">תקופת חישוב (מודגש)</div>
+      <div class="seg" id="seg-period">
+        <div class="seg-btn" data-value="6">חצי שנה</div>
+        <div class="seg-btn on" data-value="12">שנה</div>
+        <div class="seg-btn" data-value="24">שנתיים</div>
+      </div>
+    </div>
+
+    <div class="sec-label">שכר בסיס</div>
+    <div class="field">
+      <div class="field-label" id="salary-label">שכר ברוטו (₪ / חודש)</div>
+      <input class="input" id="salary-input" type="number" value="18500" min="1">
+      <div class="input-hint" id="salary-hint">↑ ברירת מחדל: ג'וניור עובד מדינה</div>
+    </div>
+
+    <div class="sec-label">מימון</div>
+    <div class="toggle-row" id="matching-toggle-row">
+      <div class="toggle-left">
+        <div class="toggle-name">מאצ'ינג דיגיטל לאומי</div>
+        <div class="toggle-desc">מימון חלקי בשנה הראשונה</div>
+      </div>
+      <div class="sw on" id="matching-sw"><div class="sw-k"></div></div>
+    </div>
+    <div id="matching-pct-wrap">
+      <div class="matching-chip" style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+        ⚡
+        <input class="input" id="matching-pct" type="number" value="30" min="1" max="100"
+               style="width:64px;padding:4px 8px;font-size:13px;display:inline-block;">
+        <span style="font-size:12px;color:var(--blue);">% מימון מערך הדיגיטל</span>
+      </div>
+      <div class="validation-msg" id="matching-validation">הכנס אחוז בין 1 ל-100</div>
+    </div>
+  </aside>
+
+  <main class="results">
+    <div class="res-header">
+      <div class="res-tag" id="summary-tag">⚙ עובד מדינה · ג'וניור · 100% משרה</div>
+      <div class="res-h">עלות שנתית: <em id="hero-amount">₪0</em></div>
+      <div class="res-sub" id="summary-sub">מחשב...</div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi" id="kpi-6">
+        <div class="kpi-period">6 חודשים</div>
+        <div class="kpi-amt" id="kpi-amt-6">₪0</div>
+        <div class="kpi-lbl">עלות המשרד</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-6" style="width:33%"></div></div>
+      </div>
+      <div class="kpi hero" id="kpi-12">
+        <div class="kpi-period">שנה · פוקוס</div>
+        <div class="kpi-amt" id="kpi-amt-12">₪0</div>
+        <div class="kpi-lbl">עלות המשרד</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-12" style="width:66%"></div></div>
+      </div>
+      <div class="kpi" id="kpi-24">
+        <div class="kpi-period">שנתיים</div>
+        <div class="kpi-amt" id="kpi-amt-24">₪0</div>
+        <div class="kpi-lbl">עלות המשרד</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-24" style="width:100%"></div></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-ttl"><div class="panel-ico">📊</div>פירוק עלות שנתית</div>
+        <div class="stack">
+          <div class="sa" id="stack-ministry" style="flex:70"></div>
+          <div class="sb" id="stack-digital" style="flex:30"></div>
+        </div>
+        <div class="legend">
+          <div class="li"><div class="ls" style="background:#2563EB"></div>
+            משרד: <span id="legend-ministry">₪0</span> (<span id="legend-ministry-pct">70</span>%)
+          </div>
+          <div class="li"><div class="ls" style="background:#059669"></div>
+            דיגיטל: <span id="legend-digital">₪0</span> (<span id="legend-digital-pct">30</span>%)
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-ttl"><div class="panel-ico">💰</div>רכיבי עלות</div>
+        <div class="cbars">
+          <div class="cbr">
+            <div class="cbl">שכר ברוטו</div>
+            <div class="cbt"><div class="cbf" id="bar-gross" style="background:#2563EB;width:0%"></div></div>
+            <div class="cbv" id="val-gross">₪0</div>
+          </div>
+          <div class="cbr">
+            <div class="cbl" id="lbl-overhead">עלות מעביד</div>
+            <div class="cbt"><div class="cbf" id="bar-overhead" style="background:#3B82F6;width:0%"></div></div>
+            <div class="cbv" id="val-overhead">₪0</div>
+          </div>
+          <div class="cbr" id="row-training">
+            <div class="cbl">הכשרה</div>
+            <div class="cbt"><div class="cbf" id="bar-training" style="background:#93C5FD;width:0%"></div></div>
+            <div class="cbv" id="val-training">₪0</div>
+          </div>
+          <div class="cbr" id="row-equipment">
+            <div class="cbl">ציוד</div>
+            <div class="cbt"><div class="cbf" id="bar-equipment" style="background:#BFDBFE;width:0%"></div></div>
+            <div class="cbv" id="val-equipment">₪0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alerts" id="alerts-container"></div>
+
+    <div class="actions">
+      <button class="btn btn-p" onclick="exportPDF()">⬇ הורד PDF</button>
+      <button class="btn btn-s" onclick="shareLink()">🔗 שתף קישור</button>
+    </div>
+  </main>
+
+</div>
+
+<script>
+// ── CONSTANTS ─────────────────────────────────────────────
+const DEFAULTS = {
+  civil:      { junior: { global: 18500 }, expert: { global: 28000 } },
+  consultant: {
+    junior: { global: 22000, hourly: 180 },
+    expert: { global: 38000, hourly: 350 }
+  }
+};
+const SALARY_HINTS = {
+  civil:      { junior: "ברירת מחדל: ג'וניור עובד מדינה", expert: 'ברירת מחדל: מומחה עובד מדינה' },
+  consultant: { junior: "ברירת מחדל: ג'וניור יועץ חיצוני", expert: 'ברירת מחדל: מומחה יועץ חיצוני' }
+};
+const TRAINING_COST  = 15000;
+const EQUIPMENT_COST = 12000;
+const EMPLOYER_MULT  = 0.28;
+const VAT            = 1.17;
+const MONTHLY_HOURS  = 176;
+
+// ── STATE ─────────────────────────────────────────────────
+const state = {
+  type:        'civil',
+  seniority:   'junior',
+  comp:        'global',
+  scope:       100,
+  period:      12,
+  salary:      18500,
+  matching:    true,
+  matchingPct: 30
+};
+
+// ── CALCULATION ───────────────────────────────────────────
+function calcCost(months) {
+  const scope       = state.scope / 100;
+  const matchFactor = state.matching ? (1 - state.matchingPct / 100) : 1;
+  let gross12, overhead12, vat12;
+
+  // Training and equipment: prorated for period
+  const training  = (state.seniority === 'junior') ? TRAINING_COST  * months / 12 : 0;
+  const equipment = EQUIPMENT_COST * months / 12;
+
+  if (state.type === 'civil') {
+    gross12    = state.salary * scope * 12;
+    overhead12 = gross12 * EMPLOYER_MULT;
+    vat12      = 0;
+  } else if (state.comp === 'hourly') {
+    const hours = MONTHLY_HOURS * scope;
+    gross12     = state.salary * hours * 12;
+    overhead12  = 0;
+    vat12       = gross12 * (VAT - 1);
+  } else {
+    gross12    = state.salary * scope * 12;
+    overhead12 = 0;
+    vat12      = gross12 * (VAT - 1);
+  }
+
+  const grossPeriod    = gross12 * months / 12;
+  const overheadPeriod = overhead12 * months / 12;
+  const vatPeriod      = vat12 * months / 12;
+  const totalPeriod    = grossPeriod + overheadPeriod + vatPeriod + training + equipment;
+  const ministryCost   = totalPeriod * matchFactor;
+  const digitalCost    = totalPeriod - ministryCost;
+
+  return {
+    gross:    Math.round(grossPeriod),
+    overhead: Math.round(overheadPeriod + vatPeriod),
+    training: Math.round(training),
+    equipment:Math.round(equipment),
+    total:    Math.round(totalPeriod),
+    ministry: Math.round(ministryCost),
+    digital:  Math.round(digitalCost)
+  };
+}
+
+// ── FORMATTERS ────────────────────────────────────────────
+function fmt(n)  { return '₪' + Math.round(n).toLocaleString('he-IL'); }
+function fmtK(n) {
+  if (n >= 1000000) return '₪' + (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return '₪' + Math.round(n / 1000) + 'K';
+  return fmt(n);
+}
+
+// ── UI UPDATE ─────────────────────────────────────────────
+function updateUI() {
+  const r6  = calcCost(6);
+  const r12 = calcCost(12);
+  const r24 = calcCost(24);
+
+  // Summary header
+  const typeLabel = state.type === 'civil' ? 'עובד מדינה' : 'יועץ חיצוני';
+  const senLabel  = state.seniority === 'junior' ? "ג'וניור" : 'מומחה';
+  document.getElementById('summary-tag').textContent =
+    `⚙ ${typeLabel} · ${senLabel} · ${state.scope}% משרה`;
+  document.getElementById('hero-amount').textContent = fmtK(r12.ministry);
+  document.getElementById('summary-sub').textContent = state.matching
+    ? `לאחר מאצ'ינג ${state.matchingPct}% — עלות מלאה: ${fmtK(r12.total)}`
+    : `עלות מלאה (ללא מאצ'ינג): ${fmtK(r12.total)}`;
+
+  // KPI cards — always show 3, hero = selected period
+  const rMap = { 6: r6, 12: r12, 24: r24 };
+  const maxMinistry = Math.max(r6.ministry, r12.ministry, r24.ministry) || 1;
+  [6, 12, 24].forEach(p => {
+    document.getElementById(`kpi-amt-${p}`).textContent = fmtK(rMap[p].ministry);
+    const card = document.getElementById(`kpi-${p}`);
+    card.className = 'kpi' + (p === state.period ? ' hero' : '');
+    const barFill = document.getElementById(`kpi-bar-${p}`);
+    if (barFill) barFill.style.width = Math.round(rMap[p].ministry / maxMinistry * 100) + '%';
+  });
+
+  // Cost breakdown bars (relative to annual total)
+  const maxVal = r12.total || 1;
+  function barW(v) { return Math.max(3, Math.round(v / maxVal * 100)) + '%'; }
+  document.getElementById('bar-gross').style.width     = barW(r12.gross);
+  document.getElementById('bar-overhead').style.width  = barW(r12.overhead);
+  document.getElementById('bar-training').style.width  = barW(r12.training);
+  document.getElementById('bar-equipment').style.width = barW(r12.equipment);
+  document.getElementById('val-gross').textContent     = fmtK(r12.gross);
+  document.getElementById('val-overhead').textContent  = fmtK(r12.overhead);
+  document.getElementById('val-training').textContent  = fmtK(r12.training);
+  document.getElementById('val-equipment').textContent = fmtK(r12.equipment);
+
+  // Overhead label: מעביד or מע"מ
+  document.getElementById('lbl-overhead').textContent =
+    state.type === 'civil' ? 'עלות מעביד' : 'מע"מ';
+
+  // Hide training for expert
+  document.getElementById('row-training').style.display =
+    state.seniority === 'junior' ? '' : 'none';
+
+  // Stacked matching bar
+  const minPct = state.matching ? Math.round(r12.ministry / (r12.total || 1) * 100) : 100;
+  const digPct = 100 - minPct;
+  document.getElementById('stack-ministry').style.flex = String(minPct);
+  document.getElementById('stack-digital').style.flex  = String(Math.max(digPct, 0));
+  document.getElementById('legend-ministry').textContent     = fmtK(r12.ministry);
+  document.getElementById('legend-digital').textContent      = fmtK(r12.digital);
+  document.getElementById('legend-ministry-pct').textContent = minPct;
+  document.getElementById('legend-digital-pct').textContent  = digPct;
+
+  // Alerts
+  const alerts = [];
+  if (state.seniority === 'junior')
+    alerts.push({ type:'warn', text:"שים לב: העסקת ג'וניור דורשת הקצאת משאבים לחניכה וליווי מצד יחידת הדאטה או ה-CDO." });
+  if (state.type === 'consultant')
+    alerts.push({ type:'warn', text:'שים לב: התקשרות זו מוגדרת בזמן ואינה מהווה פתרון לעתודה שתישאר בממשלה לאורך זמן.' });
+  if (state.seniority === 'expert')
+    alerts.push({ type:'info', text:"מומחים נוטים להישאר לאורך זמן — שקול מסלול מומחה לחיסכון בעלויות גיוס עתידיות." });
+  if (state.period === 24 && state.seniority === 'junior' && state.type === 'civil')
+    alerts.push({ type:'warn', text:"תחזית לשנתיים: קיים סיכון עזיבה מוגבר לאנליסט ג'וניור לאחר תקופת הכשרה." });
+  document.getElementById('alerts-container').innerHTML = alerts.map(a =>
+    `<div class="alert ${a.type}"><div class="al-ic">${a.type==='warn'?'⚠️':'💡'}</div><div>${a.text}</div></div>`
+  ).join('');
+
+  // Disable hourly for civil servants
+  const hourlyBtn = document.getElementById('btn-hourly');
+  if (state.type === 'civil') {
+    hourlyBtn.style.opacity       = '0.35';
+    hourlyBtn.style.cursor        = 'not-allowed';
+    hourlyBtn.style.pointerEvents = 'none';
+    if (state.comp === 'hourly') { state.comp = 'global'; syncSeg('seg-comp', 'global'); }
+  } else {
+    hourlyBtn.style.opacity       = '1';
+    hourlyBtn.style.cursor        = 'pointer';
+    hourlyBtn.style.pointerEvents = 'auto';
+  }
+
+  // Matching pct field disabled when toggle off
+  const pctInput = document.getElementById('matching-pct');
+  const pctWrap  = document.getElementById('matching-pct-wrap');
+  pctInput.disabled      = !state.matching;
+  pctWrap.style.opacity  = state.matching ? '1' : '0.4';
+
+  // Scope slider visual
+  const pct = (state.scope - 25) / 75;
+  document.getElementById('scope-fill').style.width = (pct * 100) + '%';
+  document.getElementById('scope-dot').style.left   = 'calc(' + (pct * 100) + '% - 9px)';
+  document.getElementById('scope-dot').style.right  = 'auto';
+  document.getElementById('scope-display').textContent = state.scope;
+
+  // Salary hint + label
+  document.getElementById('salary-hint').textContent  = '↑ ' + SALARY_HINTS[state.type][state.seniority];
+  document.getElementById('salary-label').textContent =
+    state.comp === 'hourly' ? 'תעריף שעתי (₪ / שעה)' : 'שכר ברוטו (₪ / חודש)';
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+function syncSeg(segId, value) {
+  document.querySelectorAll(`#${segId} .seg-btn`).forEach(btn => {
+    btn.classList.toggle('on', btn.dataset.value === String(value));
+  });
+}
+
+// ── LISTENERS ─────────────────────────────────────────────
+function initListeners() {
+  ['seg-type','seg-seniority','seg-comp','seg-period'].forEach(segId => {
+    document.getElementById(segId).addEventListener('click', e => {
+      const btn = e.target.closest('.seg-btn');
+      if (!btn || btn.style.pointerEvents === 'none') return;
+      const keyMap = { 'seg-type':'type','seg-seniority':'seniority','seg-comp':'comp','seg-period':'period' };
+      const key = keyMap[segId];
+      state[key] = key === 'period' ? Number(btn.dataset.value) : btn.dataset.value;
+      syncSeg(segId, state[key]);
+      // Reset salary default when profile changes
+      if (['seg-type','seg-seniority','seg-comp'].includes(segId)) {
+        const compKey = state.comp === 'hourly' ? 'hourly' : 'global';
+        const def = DEFAULTS[state.type]?.[state.seniority]?.[compKey];
+        if (def) { state.salary = def; document.getElementById('salary-input').value = def; }
+      }
+      updateUI();
+    });
+  });
+
+  document.getElementById('scope-slider').addEventListener('input', e => {
+    state.scope = Number(e.target.value);
+    updateUI();
+  });
+
+  document.getElementById('salary-input').addEventListener('input', e => {
+    const v = Number(e.target.value);
+    const hint = document.getElementById('salary-hint');
+    if (v > 0) {
+      state.salary = v;
+      hint.style.color = 'var(--blue-light)';
+      updateUI();
+    } else {
+      hint.textContent = '⚠ הכנס ערך גדול מ-0';
+      hint.style.color = '#DC2626';
+    }
+  });
+
+  document.getElementById('matching-sw').addEventListener('click', () => {
+    state.matching = !state.matching;
+    const sw = document.getElementById('matching-sw');
+    sw.classList.toggle('on',  state.matching);
+    sw.classList.toggle('off', !state.matching);
+    updateUI();
+  });
+
+  document.getElementById('matching-pct').addEventListener('input', e => {
+    const v = Number(e.target.value);
+    const msg = document.getElementById('matching-validation');
+    if (v >= 1 && v <= 100) {
+      state.matchingPct = v;
+      msg.classList.remove('show');
+      updateUI();
+    } else {
+      msg.classList.add('show');
+    }
+  });
+}
+
+// ── SHARE & PDF ───────────────────────────────────────────
+function shareLink() {
+  const params = new URLSearchParams({
+    type: state.type, seniority: state.seniority,
+    comp: state.comp, scope: state.scope,
+    period: state.period, salary: state.salary,
+    matching: state.matching ? '1' : '0',
+    matchingPct: state.matchingPct
+  });
+  const url = location.href.split('#')[0] + '#' + params.toString();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => alert('הקישור הועתק ללוח!'));
+  } else {
+    prompt('העתק את הקישור:', url);
+  }
+}
+
+function exportPDF() { window.print(); }
+
+// ── URL LOAD ──────────────────────────────────────────────
+function loadFromURL() {
+  const hash = location.hash.slice(1);
+  if (!hash) return;
+  try {
+    const p = new URLSearchParams(hash);
+    const get = (k, def) => p.has(k) ? p.get(k) : String(def);
+    if (['civil','consultant'].includes(get('type','')))       state.type        = get('type');
+    if (['junior','expert'].includes(get('seniority','')))     state.seniority   = get('seniority');
+    if (['global','hourly'].includes(get('comp','')))          state.comp        = get('comp');
+    if ([25,50,75,100].includes(Number(get('scope',100))))     state.scope       = Number(get('scope'));
+    if ([6,12,24].includes(Number(get('period',12))))          state.period      = Number(get('period'));
+    const sal = Number(get('salary', state.salary));           if (sal > 0)      state.salary = sal;
+    state.matching    = get('matching','1') !== '0';
+    state.matchingPct = Math.min(100, Math.max(1, Number(get('matchingPct',30)))) || 30;
+
+    syncSeg('seg-type',      state.type);
+    syncSeg('seg-seniority', state.seniority);
+    syncSeg('seg-comp',      state.comp);
+    syncSeg('seg-period',    String(state.period));
+    document.getElementById('scope-slider').value = state.scope;
+    document.getElementById('salary-input').value = state.salary;
+    document.getElementById('matching-pct').value = state.matchingPct;
+    // Normalize: civil servants cannot have hourly compensation
+    if (state.type === 'civil' && state.comp === 'hourly') state.comp = 'global';
+    const sw = document.getElementById('matching-sw');
+    sw.classList.toggle('on',  state.matching);
+    sw.classList.toggle('off', !state.matching);
+  } catch(e) { /* fallback to defaults silently */ }
+}
+
+// ── INIT ──────────────────────────────────────────────────
+loadFromURL();
+initListeners();
+updateUI();
+</script>
+</body>
+</html>
