@@ -222,12 +222,11 @@ input[type="range"]{-webkit-appearance:none;width:100%;height:5px;background:tra
   .ham-btn{display:flex;order:-1;z-index:101;position:relative}
 
   /* Hero */
-  .hero{padding:12px 18px}
-  .hero-inner{flex-direction:column;gap:6px}
-  .hero-title{font-size:15px}
-  .hero-stats{gap:0}
-  .hero-stat{padding:0 10px}
-  .hs-val{font-size:12px}
+  .hero{padding:10px 16px}
+  .hero-inner{flex-direction:row;gap:10px;justify-content:space-between}
+  .hero-badge{display:none}
+  .hero-title{font-size:13px;text-align:right}
+  .hero-stats{display:none}
 
   /* Main layout: only results visible, full width */
   .calc-wrap{display:block;overflow:visible}
@@ -256,17 +255,21 @@ input[type="range"]{-webkit-appearance:none;width:100%;height:5px;background:tra
   /* KPI sections: natural height */
   .kpi-section{flex:none}
   .kpi-row{flex:none}
-  .kpi-row-3{grid-template-columns:1fr}
-  .kpi-row-2{grid-template-columns:1fr 1fr}
-  .kpi-row-4{grid-template-columns:1fr 1fr}
-  .kpi{padding:12px 14px;min-height:76px}
+  .kpi-row-3{grid-template-columns:repeat(3,1fr);gap:6px}
+  .kpi-row-2{grid-template-columns:1fr 1fr;gap:6px}
+  .kpi-row-4{grid-template-columns:1fr 1fr;gap:6px}
+  .kpi{padding:10px 8px;min-height:70px}
   .kpi:hover{transform:none}
+  .kpi-amt{font-size:14px}
+  .kpi-period{font-size:8px}
+  .kpi-lbl{font-size:9px}
 
-  .res-header{margin-bottom:10px}
-  .res-h{font-size:18px}
-  .kpi-section-label{margin-top:12px}
-  .actions{flex-wrap:wrap}
-  .btn{flex:1;justify-content:center}
+  .res-header{margin-bottom:8px}
+  .res-h{font-size:17px}
+  .res-sub{font-size:10px}
+  .kpi-section-label{margin-top:10px;font-size:8px}
+  .actions{flex-wrap:wrap;margin-top:6px}
+  .btn{flex:1;justify-content:center;font-size:11px;padding:7px 14px}
 }
 
 /* ── TABLET (769–1100px) ── */
@@ -590,8 +593,6 @@ input[type="range"]{-webkit-appearance:none;width:100%;height:5px;background:tra
     </div>
     </div><!-- /kpi-section -->
 
-    <div class="alerts" id="alerts-container"></div>
-
     <div class="actions">
       <button class="btn btn-p" onclick="exportPDF()">⬇ הורד PDF</button>
       <button class="btn btn-s" onclick="shareLink()">🔗 שתף קישור</button>
@@ -692,15 +693,6 @@ function updateUI(){
   document.getElementById('count-dec').disabled=state.count===1;
   document.getElementById('count-inc').disabled=state.count===MAX_COUNT;
 
-  const alerts=[];
-  if(state.seniority==='junior') alerts.push({type:'warn',text:"ג'וניור דורש חניכה וליווי מצד יחידת הדאטה או ה-CDO."});
-  alerts.push({type:'warn',text:'התקשרות עם יועץ חיצוני מוגדרת בזמן ואינה עתודת ידע ארוכת-טווח.'});
-  if(state.seniority==='expert') alerts.push({type:'info',text:'מומחים נוטים להישאר — שקול מסלול מומחה לחיסכון בגיוס עתידי.'});
-  if(state.period===24&&state.seniority==='junior') alerts.push({type:'warn',text:"שנתיים עם ג'וניור: סיכון עזיבה מוגבר לאחר תקופת הכשרה."});
-  if(state.count>1) alerts.push({type:'info',text:`${state.count} אנליסטים — עלויות הכשרה וציוד מוכפלות ×${state.count}.`});
-  document.getElementById('alerts-container').innerHTML=alerts.map(a=>
-    `<div class="alert ${a.type}"><div class="al-ic">${a.type==='warn'?'⚠️':'💡'}</div><div>${a.text}</div></div>`
-  ).join('');
 }
 
 function syncSeg(id,val){ document.querySelectorAll(`#${id} .seg-btn`).forEach(b=>b.classList.toggle('on',b.dataset.value===String(val))); }
