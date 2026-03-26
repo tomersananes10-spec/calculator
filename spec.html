@@ -222,9 +222,29 @@ body{font-family:'Assistant',sans-serif;background:var(--bg);color:var(--text);f
 
 /* ─── FOOTER ─── */
 .footer{text-align:center;padding:32px;font-size:12px;color:var(--text4);border-top:1px solid var(--border);margin-top:60px}
+
+/* ─── DOWNLOAD BAR ─── */
+.dl-bar{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:10px 32px;display:flex;align-items:center;justify-content:space-between;max-width:100%}
+.dl-bar-title{font-size:13px;font-weight:600;color:var(--text2)}
+.dl-bar-title span{color:var(--text4);font-weight:400}
+.dl-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:9px;font-size:13px;font-weight:700;font-family:'Assistant',sans-serif;cursor:pointer;border:none;transition:all 0.15s}
+.dl-btn-word{background:#2563EB;color:#fff;box-shadow:0 3px 10px rgba(37,99,235,0.25)}
+.dl-btn-word:hover{background:#1D4ED8;transform:translateY(-1px)}
+.dl-btn-print{background:#fff;color:var(--text2);border:1.5px solid var(--border2);margin-right:8px}
+.dl-btn-print:hover{background:#F8FAFC}
+@media print{.dl-bar{display:none}}
 </style>
 </head>
 <body>
+
+<!-- DOWNLOAD BAR -->
+<div class="dl-bar">
+  <div class="dl-bar-title">אפיון עסקי — מחשבון עלויות אנליסט עסקי <span>· גרסה 1.0</span></div>
+  <div>
+    <button class="dl-btn dl-btn-print" onclick="window.print()">🖨️ הדפס / PDF</button>
+    <button class="dl-btn dl-btn-word" onclick="downloadWord()">📄 הורד Word</button>
+  </div>
+</div>
 
 <!-- COVER -->
 <div class="cover">
@@ -1046,6 +1066,258 @@ body{font-family:'Assistant',sans-serif;background:var(--bg);color:var(--text);f
 <div class="footer">
   מחשבון עלויות אנליסט עסקי ממשלתי · גרסה 1.0 · מרץ 2026 · מסמך לשימוש פנימי
 </div>
+
+</div>
+
+<script>
+function downloadWord() {
+  const wordHTML = `
+<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40"
+      lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>אפיון עסקי — מחשבון עלויות אנליסט עסקי ממשלתי</title>
+<!--[if gte mso 9]><xml>
+<w:WordDocument>
+  <w:View>Print</w:View>
+  <w:Zoom>100</w:Zoom>
+  <w:DoNotOptimizeForBrowser/>
+  <w:BiDi/>
+</w:WordDocument>
+</xml><![endif]-->
+<style>
+  @page { size: A4; margin: 2.5cm 2cm; mso-header-margin: 1cm; mso-footer-margin: 1cm; }
+  body { font-family: Arial, sans-serif; font-size: 11pt; color: #0F172A; direction: rtl; line-height: 1.6; }
+  h1 { font-size: 22pt; font-weight: bold; color: #1D4ED8; border-bottom: 3px solid #1D4ED8; padding-bottom: 6pt; margin-bottom: 10pt; }
+  h2 { font-size: 15pt; font-weight: bold; color: #1E3A8A; margin-top: 24pt; margin-bottom: 8pt; border-right: 4pt solid #2563EB; padding-right: 8pt; }
+  h3 { font-size: 12pt; font-weight: bold; color: #1D4ED8; margin-top: 14pt; margin-bottom: 6pt; }
+  p  { margin-bottom: 8pt; }
+  table { border-collapse: collapse; width: 100%; margin: 10pt 0; font-size: 10pt; }
+  th { background: #DBEAFE; color: #1E40AF; font-weight: bold; border: 1pt solid #93C5FD; padding: 6pt 8pt; text-align: right; }
+  td { border: 1pt solid #CBD5E1; padding: 6pt 8pt; vertical-align: top; }
+  tr:nth-child(even) td { background: #F8FAFC; }
+  .formula-box { background: #F0F7FF; border: 1.5pt solid #93C5FD; border-right: 4pt solid #2563EB; padding: 10pt 14pt; margin: 8pt 0; font-family: Courier New, monospace; font-size: 10pt; color: #1E40AF; line-height: 1.8; }
+  .warn-box  { background: #FFFBEB; border: 1pt solid #FCD34D; border-right: 4pt solid #D97706; padding: 8pt 12pt; margin: 8pt 0; color: #78350F; }
+  .info-box  { background: #EFF6FF; border: 1pt solid #93C5FD; border-right: 4pt solid #2563EB; padding: 8pt 12pt; margin: 8pt 0; color: #1E40AF; }
+  .cover-box { background: #1E3A8A; color: #fff; padding: 18pt 20pt; margin-bottom: 20pt; }
+  .cover-box h1 { color: #fff; border-color: rgba(255,255,255,0.3); }
+  .cover-box p  { color: rgba(255,255,255,0.8); margin: 0; }
+  .meta-table td { border: none; background: transparent; padding: 3pt 10pt; }
+  .field-num { display: inline-block; background: #2563EB; color: #fff; width: 18pt; text-align: center; border-radius: 3pt; font-weight: bold; margin-left: 4pt; }
+  ul { margin: 6pt 0 10pt 0; padding-right: 18pt; }
+  li { margin-bottom: 4pt; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<div class="cover-box">
+  <h1>אפיון עסקי — מחשבון עלויות אנליסט עסקי ממשלתי</h1>
+  <p>תיאור מפורט של לוגיקת חישוב, שדות קלט, תוצאות ופונקציונליות</p>
+  <table class="meta-table" style="margin-top:12pt">
+    <tr>
+      <td><strong style="color:#93C5FD">תאריך:</strong> <span style="color:#fff">מרץ 2026</span></td>
+      <td><strong style="color:#93C5FD">גרסה:</strong> <span style="color:#fff">1.0</span></td>
+      <td><strong style="color:#93C5FD">סטטוס:</strong> <span style="color:#fff">מאושר לשימוש</span></td>
+    </tr>
+    <tr><td colspan="3"><strong style="color:#93C5FD">קהל יעד:</strong> <span style="color:#fff">משרדי ממשלה · CDO · מנהלי תקציב</span></td></tr>
+  </table>
+</div>
+
+<!-- ═══ SECTION 1 ═══ -->
+<h2>סעיף 1 — סקירת המערכת</h2>
+<p><strong>מטרה:</strong> כלי תומך-החלטה למשרדי ממשלה המעוניינים לשלב אנליסטים עסקיים. המערכת מציגה תחזית תקציבית ברורה לפי מודל ההעסקה, הוותק, היקף המשרה ומימון מאצ'ינג, ומסייעת לבחור בין גישות שונות — פרויקטלי מול קבוע.</p>
+<div class="info-box">ℹ️ <strong>טכנולוגיה:</strong> קובץ HTML בודד — ללא שרת, ללא מסד נתונים, ניתן לפתוח ישירות מהדפדפן. כל החישובים מתבצעים בדפדפן בזמן אמת.</div>
+<table>
+  <tr><th>פרמטר</th><th>פרטים</th></tr>
+  <tr><td><strong>שפה</strong></td><td>עברית, כתיבה מימין לשמאל (RTL)</td></tr>
+  <tr><td><strong>פורמט</strong></td><td>קובץ HTML יחיד — calculator.html</td></tr>
+  <tr><td><strong>תצוגה</strong></td><td>Desktop-first (לא מותאם למובייל)</td></tr>
+  <tr><td><strong>עדכון תוצאות</strong></td><td>זמן אמת — ללא כפתור "חשב"</td></tr>
+  <tr><td><strong>שמירת נתונים</strong></td><td>אין — ניתן לשתף קישור עם פרמטרים ב-URL</td></tr>
+  <tr><td><strong>ייצוא</strong></td><td>PDF דרך הדפסת דפדפן (window.print)</td></tr>
+</table>
+
+<!-- ═══ SECTION 2 ═══ -->
+<div class="page-break"></div>
+<h2>סעיף 2 — שדות קלט (Sidebar)</h2>
+<p>הסרגל ממוקם בצד ימין של המסך ורוחבו 292px. מכיל 8 שדות קלט. כל שינוי מעדכן את התוצאות <strong>באופן מיידי</strong>.</p>
+<table>
+  <tr><th>מס'</th><th>שדה</th><th>תיאור</th><th>ברירת מחדל</th></tr>
+  <tr><td>1</td><td><strong>שכר ברוטו / תעריף שעתי</strong></td><td>שדה מספרי. כותרתו משתנה לפי מודל תגמול. ערך ברירת מחדל נטען אוטומטית לפי שדות 5+6+7.</td><td>₪18,500</td></tr>
+  <tr><td>2</td><td><strong>היקף משרה</strong></td><td>סליידר עם 4 עצירות: 25% / 50% / 75% / 100%. כפתורי ‹ › מאפשרים מעבר צעד אחד בכל לחיצה.</td><td>100%</td></tr>
+  <tr><td>3</td><td><strong>מאצ'ינג דיגיטל לאומי</strong></td><td>Toggle כן/לא. כשדולק — מפחית את עלות המשרד לפי אחוז המאצ'ינג (שדה 4). כשכבוי — שדה האחוז מושבת.</td><td>פעיל</td></tr>
+  <tr><td>4</td><td><strong>אחוז מאצ'ינג</strong></td><td>שדה מספרי, טווח 1–100. מושבת כשהמאצ'ינג כבוי. מציג שגיאה אם הערך אינו בטווח.</td><td>30%</td></tr>
+  <tr><td>5</td><td><strong>סוג התקשרות</strong></td><td>עובד מדינה / יועץ חיצוני. קובע את נוסחת החישוב. בחירת עובד מדינה מבטלת את שכר שעתי.</td><td>עובד מדינה</td></tr>
+  <tr><td>6</td><td><strong>רמת מומחיות</strong></td><td>ג'וניור / מומחה (220). משפיע על שכר ברירת המחדל ועל הכשרה (₪15,000 לג'וניור בלבד).</td><td>ג'וניור</td></tr>
+  <tr><td>7</td><td><strong>מודל תגמול</strong></td><td>שכר גלובלי / שכר שעתי. זמין ליועץ חיצוני בלבד — מושבת לעובד מדינה.</td><td>שכר גלובלי</td></tr>
+  <tr><td>8</td><td><strong>תקופת חישוב</strong></td><td>חצי שנה (6) / שנה (12) / שנתיים (24). קובע איזו כרטיסיית KPI מודגשת. כל 3 הכרטיסיות תמיד מוצגות.</td><td>שנה</td></tr>
+</table>
+
+<!-- ═══ SECTION 3 ═══ -->
+<div class="page-break"></div>
+<h2>סעיף 3 — לוגיקת חישוב</h2>
+<p>קיימים <strong>שלושה מסלולי חישוב</strong> בהתאם לשילוב סוג התקשרות + מודל תגמול.</p>
+
+<h3>מסלול א׳ — עובד מדינה / שכר גלובלי (המסלול היחיד לעובד מדינה)</h3>
+<div class="formula-box">
+עלות_חודשית = שכר_בסיס × 1.28 × היקף_משרה<br>
+&nbsp;&nbsp;&nbsp;&nbsp;↑ מקדם 1.28 = פנסיה + קרן השתלמות + ביטוח לאומי + חופשה<br>
+עלות_לתקופה = עלות_חודשית × מספר_חודשים + הכשרה + ציוד<br>
+עלות_משרד   = עלות_לתקופה × (1 − אחוז_מאצ'ינג)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;↑ אין מע"מ לעובד מדינה
+</div>
+
+<h3>מסלול ב׳ — יועץ חיצוני / שכר שעתי</h3>
+<div class="formula-box">
+שעות_חודשיות = 176 × היקף_משרה<br>
+&nbsp;&nbsp;&nbsp;&nbsp;↑ 22 ימי עבודה × 8 שעות = 176 שעות ב-100% משרה<br>
+עלות_חודשית  = תעריף_שעתי × שעות_חודשיות<br>
+עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.17<br>
+&nbsp;&nbsp;&nbsp;&nbsp;↑ מע"מ 17% חל על יועץ חיצוני<br>
+עלות_משרד   = עלות_לתקופה × (1 − אחוז_מאצ'ינג)
+</div>
+
+<h3>מסלול ג׳ — יועץ חיצוני / שכר גלובלי (חוזה חודשי)</h3>
+<div class="formula-box">
+עלות_חודשית = שכר_בסיס × היקף_משרה<br>
+&nbsp;&nbsp;&nbsp;&nbsp;↑ אין מקדם מעביד — הוצאות סוציאליות על חשבון הספק<br>
+עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.17<br>
+עלות_משרד   = עלות_לתקופה × (1 − אחוז_מאצ'ינג)
+</div>
+
+<table>
+  <tr><th>תקופה</th><th>מספר חודשים</th><th>שימוש</th></tr>
+  <tr><td>חצי שנה</td><td>6</td><td>הערכה ראשונית / פיילוט</td></tr>
+  <tr><td>שנה</td><td>12</td><td>תקציב שנתי (ברירת מחדל — מודגש)</td></tr>
+  <tr><td>שנתיים</td><td>24</td><td>תכנון רב-שנתי</td></tr>
+</table>
+
+<!-- ═══ SECTION 4 ═══ -->
+<div class="page-break"></div>
+<h2>סעיף 4 — פאנל תוצאות</h2>
+<p>הפאנל ממוקם בצד שמאל (רוחב גמיש) ומתעדכן בזמן אמת. מכיל 5 אזורים עיקריים.</p>
+
+<table>
+  <tr><th>אזור</th><th>תיאור</th><th>הערות</th></tr>
+  <tr><td><strong>כותרת ראשית</strong></td><td>מציגה סיכום הפרופיל + עלות שנתית מודגשת + תיאור מאצ'ינג</td><td>מתעדכן בזמן אמת</td></tr>
+  <tr><td><strong>כרטיסיות KPI</strong></td><td>3 כרטיסיות תמיד מוצגות: 6 חודשים / שנה / שנתיים. הכרטיסייה של התקופה שנבחרה מודגשת בכחול.</td><td>ערך = עלות המשרד לאחר מאצ'ינג</td></tr>
+  <tr><td><strong>גרף פירוק שנתי</strong></td><td>Stacked bar — כחול (עלות משרד) + ירוק (מאצ'ינג). מוצג רק כשמאצ'ינג פעיל.</td><td>אחוז לפי שדה 4</td></tr>
+  <tr><td><strong>גרף רכיבי עלות</strong></td><td>פירוט 4 רכיבים: שכר ברוטו / עלות מעביד או מע"מ / הכשרה / ציוד. רוחב יחסי לסכום.</td><td>מבוסס על שנה ראשונה</td></tr>
+  <tr><td><strong>התראות</strong></td><td>מוצגות אוטומטית לפי תנאי (ראה סעיף 6). צהוב = אזהרה, כחול = המלצה.</td><td>עד 4 התראות במקביל</td></tr>
+</table>
+
+<h3>רכיבי העלות לפי סוג</h3>
+<table>
+  <tr><th>רכיב עלות</th><th>עובד מדינה</th><th>יועץ חיצוני</th></tr>
+  <tr><td><strong>שכר ברוטו</strong></td><td>שכר_בסיס × scope% × 12</td><td>עלות לפני מע"מ</td></tr>
+  <tr><td><strong>עלות מעביד</strong></td><td>שכר_ברוטו × 28%</td><td>לא רלוונטי</td></tr>
+  <tr><td><strong>מע"מ</strong></td><td>לא חל</td><td>עלות_לפני_מע"מ × 17%</td></tr>
+  <tr><td><strong>הכשרה</strong></td><td>₪15,000 × חודשים÷12 (ג'וניור בלבד)</td><td>₪0</td></tr>
+  <tr><td><strong>ציוד ורישיונות</strong></td><td>₪12,000 × חודשים÷12</td><td>₪0</td></tr>
+</table>
+
+<!-- ═══ SECTION 5 ═══ -->
+<div class="page-break"></div>
+<h2>סעיף 5 — כפתורים ופעולות</h2>
+
+<h3>⬇ הורד PDF</h3>
+<p>מדפיס את הדשבורד כ-PDF לשמירה מקומית.</p>
+<ul>
+  <li>קורא ל-window.print() של הדפדפן</li>
+  <li>CSS מיוחד מסתיר את הסרגל ואת הכפתורים בהדפסה</li>
+  <li>פאנל התוצאות מודפס במסגרת מלאה</li>
+  <li>הדפדפן פותח דיאלוג שמירה כ-PDF</li>
+</ul>
+
+<h3>🔗 שתף קישור</h3>
+<p>מקודד את כל הפרמטרים ב-URL ומעתיק ללוח.</p>
+<ul>
+  <li>מקודד 8 פרמטרים ב-URL hash (#)</li>
+  <li>מעתיק ל-clipboard בדפדפנים תומכים</li>
+  <li>מציג prompt עם הקישור בדפדפנים ישנים</li>
+  <li>טעינה עתידית מה-URL משחזרת את כל השדות</li>
+</ul>
+
+<h3>‹ › כפתורי היקף משרה</h3>
+<ul>
+  <li>‹ = הקטנת היקף בצעד אחד (100→75→50→25)</li>
+  <li>› = הגדלת היקף בצעד אחד (25→50→75→100)</li>
+  <li>כפתור מוצלל כשמגיעים לקצה (25% או 100%)</li>
+</ul>
+
+<h3>פרמטרי URL לשיתוף</h3>
+<table>
+  <tr><th>פרמטר</th><th>ערכים אפשריים</th><th>ברירת מחדל</th></tr>
+  <tr><td>type</td><td>civil | consultant</td><td>civil</td></tr>
+  <tr><td>seniority</td><td>junior | expert</td><td>junior</td></tr>
+  <tr><td>comp</td><td>global | hourly</td><td>global</td></tr>
+  <tr><td>scope</td><td>25 | 50 | 75 | 100</td><td>100</td></tr>
+  <tr><td>period</td><td>6 | 12 | 24</td><td>12</td></tr>
+  <tr><td>salary</td><td>מספר חיובי</td><td>לפי פרופיל</td></tr>
+  <tr><td>matching</td><td>1 | 0</td><td>1 (פעיל)</td></tr>
+  <tr><td>matchingPct</td><td>1–100</td><td>30</td></tr>
+</table>
+
+<!-- ═══ SECTION 6 ═══ -->
+<div class="page-break"></div>
+<h2>סעיף 6 — התראות אוטומטיות</h2>
+<p>ההתראות מחושבות בזמן אמת ומוצגות מתחת לגרפים. ייתכן שיופיעו מספר התראות בו-זמנית.</p>
+<table>
+  <tr><th>סוג</th><th>תנאי הפעלה</th><th>הודעה</th></tr>
+  <tr style="background:#FFFBEB"><td>⚠️ אזהרה</td><td>רמת מומחיות = ג'וניור (כל סוג)</td><td>שים לב: העסקת ג'וניור דורשת הקצאת משאבים לחניכה וליווי מצד יחידת הדאטה או ה-CDO.</td></tr>
+  <tr style="background:#FFFBEB"><td>⚠️ אזהרה</td><td>סוג התקשרות = יועץ חיצוני</td><td>שים לב: התקשרות זו מוגדרת בזמן ואינה מהווה פתרון לעתודה שתישאר בממשלה לאורך זמן.</td></tr>
+  <tr style="background:#FFFBEB"><td>⚠️ אזהרה</td><td>שנתיים + ג'וניור + עובד מדינה</td><td>תחזית לשנתיים: קיים סיכון עזיבה מוגבר לאנליסט ג'וניור לאחר תקופת הכשרה.</td></tr>
+  <tr style="background:#EFF6FF"><td>💡 המלצה</td><td>רמת מומחיות = מומחה (כל סוג)</td><td>מומחים נוטים להישאר לאורך זמן — שקול מסלול מומחה לחיסכון בעלויות גיוס עתידיות.</td></tr>
+</table>
+
+<!-- ═══ SECTION 7 ═══ -->
+<h2>סעיף 7 — ברירות מחדל</h2>
+<p>שכר ברירת המחדל נטען אוטומטית בכל פעם שמשתמש משנה שדות סוג, ותק או מודל תגמול.</p>
+<table>
+  <tr><th>סוג התקשרות</th><th>רמת מומחיות</th><th>שכר גלובלי (₪/חודש)</th><th>שכר שעתי (₪/שעה)</th></tr>
+  <tr><td>עובד מדינה</td><td>ג'וניור</td><td>₪18,500</td><td>לא רלוונטי</td></tr>
+  <tr><td>עובד מדינה</td><td>מומחה (220)</td><td>₪28,000</td><td>לא רלוונטי</td></tr>
+  <tr><td>יועץ חיצוני</td><td>ג'וניור</td><td>₪22,000</td><td>₪180</td></tr>
+  <tr><td>יועץ חיצוני</td><td>מומחה (220)</td><td>₪38,000</td><td>₪350</td></tr>
+</table>
+<div class="info-box">💡 <strong>קבועים:</strong> עלויות מעביד = 28% · מע"מ = 17% · ימי עבודה חודשיים = 22 · שעות יום = 8 · הכשרה ג'וניור = ₪15,000 · ציוד ורישיונות = ₪12,000</div>
+
+<!-- ═══ SECTION 8 ═══ -->
+<h2>סעיף 8 — מגבלות ו-Validation</h2>
+<table>
+  <tr><th>שדה</th><th>תנאי תקינות</th><th>התנהגות כשלא תקין</th></tr>
+  <tr><td><strong>שכר / תעריף</strong></td><td>מספר גדול מ-0</td><td>מציג "⚠ הכנס ערך גדול מ-0" באדום, לא מעדכן חישובים</td></tr>
+  <tr><td><strong>אחוז מאצ'ינג</strong></td><td>1–100 (כשמאצ'ינג פעיל)</td><td>מציג "הכנס אחוז בין 1 ל-100", לא מעדכן חישובים</td></tr>
+  <tr><td><strong>מודל שעתי</strong></td><td>יועץ חיצוני בלבד</td><td>מושבת לעובד מדינה, מאופס ל-גלובלי בבחירת מדינה</td></tr>
+  <tr><td><strong>טעינה מ-URL</strong></td><td>ערך חוקי לכל פרמטר</td><td>פרמטר לא תקין מוחלף בברירת מחדל, ללא שגיאה</td></tr>
+</table>
+<div class="warn-box">⚠️ <strong>מחוץ לסקופ:</strong> אין שמירת נתונים בשרת · אין אימות משתמשים · אין תמיכה ב-IE · אין גרסת מובייל</div>
+
+<br><br>
+<p style="text-align:center;color:#94A3B8;font-size:9pt;border-top:1pt solid #E2E8F0;padding-top:10pt">
+  מחשבון עלויות אנליסט עסקי ממשלתי · גרסה 1.0 · מרץ 2026 · מסמך לשימוש פנימי
+</p>
+
+</body>
+</html>`;
+
+  const blob = new Blob(['\ufeff' + wordHTML], {
+    type: 'application/msword;charset=utf-8'
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'אפיון-עסקי-מחשבון-עלויות.doc';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+</script>
 
 </div>
 </body>
