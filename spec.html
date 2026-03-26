@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אפיון עסקי — מחשבון עלויות אנליסט עסקי ממשלתי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1D4ED8;--blue2:#2563EB;--blue3:#3B82F6;--blue-pale:#EFF6FF;--blue-mid:#DBEAFE;
+  --green:#059669;--amber:#D97706;
+  --text:#0F172A;--text2:#334155;--text3:#64748B;--text4:#94A3B8;
+  --bg:#F8FAFC;--surface:#FFFFFF;--border:#E2E8F0;--border2:#CBD5E1;
+  --radius:12px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Assistant',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;direction:rtl}
+
+/* ─── COVER ─── */
+.cover{
+  background:linear-gradient(160deg,#0F172A 0%,#1E3A8A 55%,#1D4ED8 100%);
+  min-height:280px;padding:56px 64px 52px;position:relative;overflow:hidden;
+}
+.cover::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.cover-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-bottom:20px}
+.cover-dot{width:6px;height:6px;background:#34D399;border-radius:50%}
+.cover h1{font-size:36px;font-weight:800;color:#fff;letter-spacing:-0.8px;line-height:1.2;margin-bottom:10px}
+.cover-sub{font-size:16px;color:rgba(255,255,255,0.6);margin-bottom:32px}
+.cover-meta{display:flex;gap:28px;flex-wrap:wrap}
+.meta-item{display:flex;flex-direction:column;gap:2px}
+.meta-label{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.4)}
+.meta-val{font-size:13px;font-weight:600;color:rgba(255,255,255,0.85)}
+
+/* ─── LAYOUT ─── */
+.page{max-width:960px;margin:0 auto;padding:0 32px 80px}
+
+/* ─── TOC ─── */
+.toc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 32px;margin:36px 0 0}
+.toc-title{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text4);margin-bottom:16px}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
+.toc-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--border);text-decoration:none;color:var(--text2);font-size:13px;font-weight:500;transition:color 0.15s}
+.toc-item:hover{color:var(--blue2)}
+.toc-num{width:22px;height:22px;border-radius:6px;background:var(--blue-pale);border:1px solid var(--blue-mid);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--blue2);flex-shrink:0}
+
+/* ─── SECTION ─── */
+.section{margin-top:52px}
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--blue-mid)}
+.sec-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--blue2),var(--blue3));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,0.3)}
+.sec-num{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue3)}
+.sec-title{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.4px;line-height:1.2}
+
+/* ─── PROSE ─── */
+.prose{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:16px}
+.prose strong{color:var(--text);font-weight:700}
+
+/* ─── CALLOUT ─── */
+.callout{display:flex;gap:14px;border-radius:var(--radius);padding:14px 18px;font-size:13px;line-height:1.6;margin:16px 0}
+.callout.info{background:var(--blue-pale);border:1px solid var(--blue-mid);color:#1E40AF}
+.callout.warn{background:#FEF3C7;border:1px solid #FCD34D;color:#78350F}
+.callout-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+
+/* ─── ANNOTATED MOCKUP ─── */
+.mockup-wrap{position:relative;margin:24px 0}
+.mockup{background:var(--surface);border:2px solid var(--border2);border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.08)}
+.mock-topbar{height:44px;background:#0F172A;display:flex;align-items:center;padding:0 20px;gap:10px}
+.mock-tb-logo{width:24px;height:24px;background:linear-gradient(135deg,#2563EB,#3B82F6);border-radius:6px;font-size:12px;display:flex;align-items:center;justify-content:center}
+.mock-tb-title{font-size:12px;font-weight:700;color:#fff}
+.mock-tb-sep{width:1px;height:14px;background:rgba(255,255,255,0.2)}
+.mock-tb-sub{font-size:11px;color:rgba(255,255,255,0.45)}
+.mock-tb-spacer{flex:1}
+.mock-tb-badge{background:rgba(37,99,235,0.3);border:1px solid rgba(59,130,246,0.4);border-radius:20px;padding:3px 10px;font-size:10px;color:#93C5FD;font-weight:600}
+.mock-body{display:grid;grid-template-columns:230px 1fr;min-height:340px}
+.mock-sidebar{background:#fff;border-left:1px solid var(--border);padding:16px 14px;display:flex;flex-direction:column;gap:10px}
+.mock-results{background:var(--bg);padding:16px 18px}
+.mock-sec-lbl{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text4);padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:2px}
+.mock-field-lbl{font-size:9px;font-weight:500;color:var(--text3);margin-bottom:3px}
+.mock-input{background:#F8FAFC;border:1px solid var(--border2);border-radius:6px;padding:5px 8px;font-size:10px;color:var(--text);width:100%}
+.mock-slider-row{display:flex;align-items:center;gap:5px}
+.mock-arrow{width:20px;height:20px;border:1px solid var(--border2);border-radius:5px;background:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;color:var(--text3);flex-shrink:0}
+.mock-track{flex:1;height:5px;background:#E2E8F0;border-radius:3px;position:relative}
+.mock-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#2563EB,#3B82F6);width:100%}
+.mock-thumb{width:12px;height:12px;background:#fff;border:2px solid var(--blue2);border-radius:50%;position:absolute;top:-4px;left:calc(100% - 6px)}
+.mock-seg{display:flex;background:#F1F5F9;border:1px solid var(--border);border-radius:7px;padding:2px;gap:1px;overflow:hidden}
+.mock-seg-btn{flex:1;text-align:center;padding:4px 3px;border-radius:5px;font-size:9px;font-weight:500;color:var(--text3)}
+.mock-seg-btn.on{background:#fff;color:var(--blue2);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,0.06);border:1px solid var(--blue-mid)}
+.mock-seg-btn.disabled{opacity:0.3}
+.mock-toggle{display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:7px 9px}
+.mock-toggle-name{font-size:9px;font-weight:600;color:var(--text)}
+.mock-sw{width:26px;height:14px;background:var(--blue2);border-radius:7px;position:relative}
+.mock-sw-k{width:10px;height:10px;background:#fff;border-radius:50%;position:absolute;right:2px;top:2px}
+.mock-chip{background:var(--blue-pale);border:1px solid var(--blue-mid);border-radius:6px;padding:5px 8px;font-size:9px;color:var(--blue2);display:flex;align-items:center;gap:5px}
+.mock-chip input{width:36px;border:1px solid var(--blue-mid);border-radius:4px;padding:2px 4px;font-size:9px;background:#fff}
+
+/* Results mock */
+.mock-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.mock-kpi{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px}
+.mock-kpi.hero{background:linear-gradient(135deg,#2563EB,#3B82F6);border:none}
+.mock-kpi-lbl{font-size:7px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--text4);margin-bottom:4px}
+.mock-kpi.hero .mock-kpi-lbl{color:rgba(255,255,255,0.6)}
+.mock-kpi-amt{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-0.5px}
+.mock-kpi.hero .mock-kpi-amt{color:#fff}
+.mock-kpi-sub{font-size:8px;color:var(--text4);margin-top:2px}
+.mock-kpi.hero .mock-kpi-sub{color:rgba(255,255,255,0.5)}
+.mock-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.mock-panel{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px}
+.mock-panel-ttl{font-size:9px;font-weight:700;color:var(--text);margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.mock-stack{height:8px;border-radius:4px;overflow:hidden;display:flex;margin-bottom:6px}
+.mock-sa{flex:70;background:linear-gradient(90deg,#2563EB,#3B82F6)}
+.mock-sb{flex:30;background:linear-gradient(90deg,#059669,#10B981)}
+.mock-cbr{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.mock-cbl{font-size:8px;color:var(--text4);width:36px}
+.mock-cbt{flex:1;height:5px;background:#F1F5F9;border-radius:3px;overflow:hidden}
+.mock-cbf{height:100%;border-radius:3px;background:var(--blue2)}
+.mock-cbv{font-size:9px;font-weight:600;color:var(--text3);width:28px;text-align:right}
+.mock-alert{display:flex;gap:6px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:7px;padding:7px 9px;font-size:8px;color:#78350F;margin-bottom:5px}
+.mock-actions{display:flex;gap:6px;margin-top:8px}
+.mock-btn{padding:5px 12px;border-radius:7px;font-size:9px;font-weight:700;border:none}
+.mock-btn-p{background:var(--blue2);color:#fff}
+.mock-btn-s{background:#fff;border:1px solid var(--border2);color:var(--text2)}
+
+/* ─── ANNOTATION NUMBERS ─── */
+.ann{
+  position:absolute;
+  width:24px;height:24px;
+  background:var(--blue2);color:#fff;
+  border-radius:50%;font-size:11px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(37,99,235,0.5);
+  z-index:10;border:2px solid #fff;
+  cursor:default;
+}
+.ann-line{position:absolute;width:2px;background:var(--blue2);opacity:0.4;z-index:5}
+.ann-hline{position:absolute;height:2px;background:var(--blue2);opacity:0.4;z-index:5}
+
+/* ─── LEGEND TABLE ─── */
+.ann-legend{display:grid;grid-template-columns:1fr 1fr;gap:10px 28px;margin-top:20px}
+.ann-item{display:flex;align-items:flex-start;gap:10px}
+.ann-badge{width:24px;height:24px;background:var(--blue2);color:#fff;border-radius:50%;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(37,99,235,0.3)}
+.ann-text{}
+.ann-name{font-size:13px;font-weight:700;color:var(--text)}
+.ann-desc{font-size:12px;color:var(--text3);line-height:1.5}
+
+/* ─── FORMULA CARD ─── */
+.formula-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+.formula-head{background:linear-gradient(90deg,#0F172A,#1E3A8A);padding:12px 20px;display:flex;align-items:center;gap:10px}
+.formula-head-icon{font-size:16px}
+.formula-head-title{font-size:13px;font-weight:700;color:#fff}
+.formula-head-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-right:auto}
+.formula-body{padding:20px}
+.formula-eq{background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:14px 18px;font-family:monospace;font-size:13px;color:var(--blue);line-height:2;margin-bottom:12px}
+.formula-eq .cmt{color:var(--text4);font-size:11px}
+.formula-vars{display:flex;flex-direction:column;gap:6px}
+.formula-var{display:flex;gap:10px;align-items:baseline;font-size:13px}
+.var-name{font-weight:700;color:var(--text);min-width:110px;font-family:monospace}
+.var-desc{color:var(--text3)}
+
+/* ─── TABLE ─── */
+.spec-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.spec-table th{background:#F1F5F9;padding:10px 14px;text-align:right;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--text3);border-bottom:2px solid var(--border2)}
+.spec-table td{padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text2);line-height:1.5;vertical-align:top}
+.spec-table tr:last-child td{border-bottom:none}
+.spec-table tr:hover td{background:#FAFBFC}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600}
+.tag-blue{background:var(--blue-pale);color:var(--blue2);border:1px solid var(--blue-mid)}
+.tag-green{background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0}
+.tag-amber{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
+.tag-gray{background:#F1F5F9;color:var(--text3);border:1px solid var(--border)}
+
+/* ─── STEP FLOW ─── */
+.flow{display:flex;flex-direction:column;gap:0}
+.flow-step{display:flex;gap:16px;position:relative}
+.flow-step::before{content:'';position:absolute;right:17px;top:40px;bottom:0;width:2px;background:var(--border2)}
+.flow-step:last-child::before{display:none}
+.flow-num{width:36px;height:36px;border-radius:50%;background:var(--blue2);color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(37,99,235,0.3)}
+.flow-content{padding-bottom:24px;flex:1}
+.flow-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.flow-desc{font-size:13px;color:var(--text3);line-height:1.6}
+
+/* ─── BUTTON DOCS ─── */
+.btn-docs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.btn-doc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative}
+.btn-doc-visual{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;font-family:'Assistant',sans-serif;margin-bottom:12px}
+.btn-doc-visual.primary{background:var(--blue2);color:#fff;box-shadow:0 3px 10px rgba(37,99,235,0.3)}
+.btn-doc-visual.secondary{background:#fff;color:var(--text2);border:1.5px solid var(--border2)}
+.btn-doc-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.btn-doc-desc{font-size:13px;color:var(--text3);line-height:1.6}
+.btn-doc-steps{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.step-list{list-style:none;display:flex;flex-direction:column;gap:5px}
+.step-list li{display:flex;gap:8px;font-size:12px;color:var(--text2)}
+.step-list li::before{content:'→';color:var(--blue3);font-weight:700;flex-shrink:0}
+
+/* ─── ALERTS DOCS ─── */
+.alert-docs{display:flex;flex-direction:column;gap:10px;margin:16px 0}
+.alert-doc{display:flex;gap:14px;border-radius:var(--radius);padding:16px 18px;border:1px solid}
+.alert-doc.warn{background:#FFFBEB;border-color:#FCD34D}
+.alert-doc.info{background:var(--blue-pale);border-color:var(--blue-mid)}
+.alert-doc-icon{font-size:20px;flex-shrink:0}
+.alert-doc-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.alert-doc-cond{font-size:11px;font-weight:600;letter-spacing:0.3px;color:var(--text3);margin-bottom:5px}
+.alert-doc-text{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* ─── DEFAULTS TABLE ─── */
+.defaults-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+
+/* ─── DIVIDER ─── */
+.divider{height:1px;background:linear-gradient(90deg,var(--border),transparent);margin:8px 0}
+
+/* ─── PRINT ─── */
+@media print{
+  .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .formula-head{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .mock-topbar{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .mock-kpi.hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .mock-sa,.mock-sb{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ann{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+/* ─── FOOTER ─── */
+.footer{text-align:center;padding:32px;font-size:12px;color:var(--text4);border-top:1px solid var(--border);margin-top:60px}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-badge"><div class="cover-dot"></div>מסמך מאושר · גרסה 1.0</div>
+  <h1>אפיון עסקי<br>מחשבון עלויות אנליסט עסקי</h1>
+  <div class="cover-sub">תיאור מפורט של לוגיקת חישוב, שדות קלט, תוצאות ופונקציונליות</div>
+  <div class="cover-meta">
+    <div class="meta-item"><div class="meta-label">תאריך</div><div class="meta-val">מרץ 2026</div></div>
+    <div class="meta-item"><div class="meta-label">גרסה</div><div class="meta-val">1.0</div></div>
+    <div class="meta-item"><div class="meta-label">סטטוס</div><div class="meta-val">מאושר לשימוש</div></div>
+    <div class="meta-item"><div class="meta-label">קהל יעד</div><div class="meta-val">משרדי ממשלה · CDO · מנהלי תקציב</div></div>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- TOC -->
+<div class="toc">
+  <div class="toc-title">תוכן עניינים</div>
+  <div class="toc-grid">
+    <a class="toc-item" href="#s1"><div class="toc-num">1</div>סקירת המערכת</a>
+    <a class="toc-item" href="#s2"><div class="toc-num">2</div>מבנה המסך — סרגל קלט</a>
+    <a class="toc-item" href="#s3"><div class="toc-num">3</div>לוגיקת חישוב</a>
+    <a class="toc-item" href="#s4"><div class="toc-num">4</div>פאנל תוצאות</a>
+    <a class="toc-item" href="#s5"><div class="toc-num">5</div>כפתורים ופעולות</a>
+    <a class="toc-item" href="#s6"><div class="toc-num">6</div>התראות אוטומטיות</a>
+    <a class="toc-item" href="#s7"><div class="toc-num">7</div>ברירות מחדל</div></a>
+    <a class="toc-item" href="#s8"><div class="toc-num">8</div>מגבלות וולידציה</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 1 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="s1">
+  <div class="sec-header">
+    <div class="sec-icon">🎯</div>
+    <div>
+      <div class="sec-num">סעיף 1</div>
+      <div class="sec-title">סקירת המערכת</div>
+    </div>
+  </div>
+
+  <p class="prose">
+    <strong>מטרה:</strong> כלי תומך-החלטה למשרדי ממשלה המעוניינים לשלב אנליסטים עסקיים.
+    המערכת מציגה תחזית תקציבית ברורה לפי מודל ההעסקה, הוותק, היקף המשרה ומימון מאצ'ינג,
+    ומסייעת לבחור בין גישות שונות — פרויקטלי מול קבוע.
+  </p>
+
+  <div class="callout info">
+    <div class="callout-icon">ℹ️</div>
+    <div>
+      <strong>טכנולוגיה:</strong> קובץ HTML בודד — ללא שרת, ללא מסד נתונים, ניתן לפתוח ישירות מהדפדפן.
+      כל החישובים מתבצעים בדפדפן בזמן אמת ללא תלות ברשת (למעט טעינת הפונטים).
+    </div>
+  </div>
+
+  <table class="spec-table">
+    <thead><tr><th>פרמטר</th><th>פרטים</th></tr></thead>
+    <tbody>
+      <tr><td><strong>שפה</strong></td><td>עברית, כתיבה מימין לשמאל (RTL)</td></tr>
+      <tr><td><strong>פורמט</strong></td><td>קובץ HTML יחיד — calculator.html</td></tr>
+      <tr><td><strong>תצוגה</strong></td><td>Desktop-first (לא מותאם למובייל)</td></tr>
+      <tr><td><strong>עדכון תוצאות</strong></td><td>זמן אמת — ללא כפתור "חשב"</td></tr>
+      <tr><td><strong>שמירת נתונים</strong></td><td>אין — ניתן לשתף קישור עם פרמטרים ב-URL</td></tr>
+      <tr><td><strong>ייצוא</strong></td><td>PDF דרך הדפסת דפדפן (window.print)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 2 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="s2">
+  <div class="sec-header">
+    <div class="sec-icon">📋</div>
+    <div>
+      <div class="sec-num">סעיף 2</div>
+      <div class="sec-title">מבנה המסך — סרגל קלט (Sidebar)</div>
+    </div>
+  </div>
+
+  <p class="prose">
+    הסרגל ממוקם בצד ימין של המסך (בהתאם לכיוון RTL) ורוחבו 292px.
+    מכיל 8 שדות קלט המסודרים מלמעלה למטה. כל שינוי בשדה כלשהו מעדכן את התוצאות <strong>באופן מיידי</strong>.
+  </p>
+
+  <!-- ANNOTATED SIDEBAR MOCKUP -->
+  <div class="mockup-wrap" style="position:relative">
+    <div style="display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start">
+
+      <!-- MOCKUP -->
+      <div>
+        <div class="mockup" style="position:relative">
+          <div class="mock-topbar">
+            <div class="mock-tb-logo">📊</div>
+            <div class="mock-tb-title">מחשבון עלויות</div>
+            <div class="mock-tb-sep"></div>
+            <div class="mock-tb-sub">אנליסט עסקי ממשלתי</div>
+            <div class="mock-tb-spacer"></div>
+            <div class="mock-tb-badge">חישוב פעיל</div>
+          </div>
+          <div style="padding:14px;display:flex;flex-direction:column;gap:8px;position:relative">
+
+            <!-- 1 salary -->
+            <div style="position:relative">
+              <div class="ann" style="position:absolute;right:-14px;top:4px;width:22px;height:22px;font-size:10px">1</div>
+              <div class="mock-sec-lbl">שכר בסיס</div>
+              <div class="mock-field-lbl">שכר ברוטו (₪ / חודש)</div>
+              <div class="mock-input" style="display:block">18,500</div>
+              <div style="font-size:8px;color:#3B82F6;margin-top:2px">↑ ברירת מחדל: ג'וניור עובד מדינה</div>
+            </div>
+
+            <!-- 2 scope -->
+            <div style="position:relative">
+              <div class="ann" style="position:absolute;right:-14px;top:4px;width:22px;height:22px;font-size:10px">2</div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">
+                <div style="font-size:9px;font-weight:500;color:var(--text3)">היקף משרה</div>
+                <div style="font-size:14px;font-weight:800;color:var(--text)">100<span style="font-size:9px;font-weight:400;color:var(--text4)">%</span></div>
+              </div>
+              <div class="mock-slider-row">
+                <div class="mock-arrow">‹</div>
+                <div class="mock-track"><div class="mock-fill"></div><div class="mock-thumb"></div></div>
+                <div class="mock-arrow">›</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:7px;color:var(--text4);margin-top:2px">
+                <span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+              </div>
+            </div>
+
+            <!-- 3 matching toggle -->
+            <div style="position:relative">
+              <div class="ann" style="position:absolute;right:-14px;top:8px;width:22px;height:22px;font-size:10px">3</div>
+              <div class="mock-sec-lbl" style="margin-bottom:5px">מימון</div>
+              <div class="mock-toggle">
+                <div>
+                  <div class="mock-toggle-name">מאצ'ינג דיגיטל לאומי</div>
+                  <div style="font-size:7px;color:var(--text4)">מימון חלקי בשנה הראשונה</div>
+                </div>
+                <div class="mock-sw"><div class="mock-sw-k"></div></div>
+              </div>
+            </div>
+
+            <!-- 4 matching pct -->
+            <div style="position:relative">
+              <div class="ann" style="position:absolute;right:-14px;top:6px;width:22px;height:22px;font-size:10px">4</div>
+              <div class="mock-chip">
+                ⚡ <input type="text" value="30" readonly style="width:30px;border:1px solid var(--blue-mid);border-radius:3px;padding:1px 3px;font-size:9px">
+                <span>% מימון מערך הדיגיטל</span>
+              </div>
+            </div>
+
+            <!-- 5 type -->
+            <div style="position:relative">
+              <div class="ann" style="position:absolute;right:-14px;top:8px;width:22px;height:22px;font-size:10px">5</div>
+              <div class="mock-sec-lbl" style="margin-bottom:5px">פרופיל</div>
+              <div class="mock-seg">
+                <div class="mock-seg-btn on">עובד מדינה</div>
+                <div class="mock-seg-btn">יועץ חיצוני</div>
+              </div>
+            </div>
+
+            <!-- 6 seniority -->
+            <div style="position:relative">
+              <div class="ann" style="position:absolute;right:-14px;top:4px;width:22px;height:22px;font-size:10px">6</div>
+              <div class="mock-field-lbl">רמת מומחיות</div>
+              <div class="mock-seg">
+                <div class="mock-seg-btn on">ג'וניור</div>
+                <div class="mock-seg-btn">מומחה (220)</div>
+              </div>
+            </div>
+
+            <!-- 7 comp -->
+            <div style="position:relative">
+              <div class="ann" style="position:absolute;right:-14px;top:4px;width:22px;height:22px;font-size:10px">7</div>
+              <div class="mock-field-lbl">מודל תגמול</div>
+              <div class="mock-seg">
+                <div class="mock-seg-btn on">שכר גלובלי</div>
+                <div class="mock-seg-btn disabled">שכר שעתי</div>
+              </div>
+            </div>
+
+            <!-- 8 period -->
+            <div style="position:relative">
+              <div class="ann" style="position:absolute;right:-14px;top:4px;width:22px;height:22px;font-size:10px">8</div>
+              <div class="mock-field-lbl">תקופת חישוב (מודגש)</div>
+              <div class="mock-seg">
+                <div class="mock-seg-btn">חצי שנה</div>
+                <div class="mock-seg-btn on">שנה</div>
+                <div class="mock-seg-btn">שנתיים</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text4);text-align:center;margin-top:8px">איור 1 — סרגל קלט עם ספרות הסבר</div>
+      </div>
+
+      <!-- LEGEND -->
+      <div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--text4);margin-bottom:14px">הסבר שדות</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+
+          <div class="ann-item">
+            <div class="ann-badge">1</div>
+            <div>
+              <div class="ann-name">שכר ברוטו / תעריף שעתי</div>
+              <div class="ann-desc">שדה מספרי. ערך ברירת מחדל נטען אוטומטית לפי שדות 5+6+7. ניתן לשינוי ידני. הכותרת משתנה: "שכר ברוטו ₪/חודש" בשכר גלובלי, "תעריף שעתי ₪/שעה" בשכר שעתי.</div>
+            </div>
+          </div>
+
+          <div class="ann-item">
+            <div class="ann-badge">2</div>
+            <div>
+              <div class="ann-name">היקף משרה</div>
+              <div class="ann-desc">סליידר עם 4 עצירות: 25% / 50% / 75% / 100%. כפתורי ‹ › מאפשרים מעבר צעד אחד בכל לחיצה. כפתור ‹ מוצלל כשההיקף 25%, כפתור › כשהוא 100%.</div>
+            </div>
+          </div>
+
+          <div class="ann-item">
+            <div class="ann-badge">3</div>
+            <div>
+              <div class="ann-name">מאצ'ינג דיגיטל לאומי</div>
+              <div class="ann-desc">Toggle כן/לא. כשדולק — מפחית את עלות המשרד לפי אחוז המאצ'ינג (שדה 4). כשכבוי — שדה האחוז מוצלל ומושבת.</div>
+            </div>
+          </div>
+
+          <div class="ann-item">
+            <div class="ann-badge">4</div>
+            <div>
+              <div class="ann-name">אחוז מאצ'ינג</div>
+              <div class="ann-desc">שדה מספרי, טווח תקין 1–100. ברירת מחדל: 30%. מושבת אוטומטית כשהמאצ'ינג כבוי. מציג הודעת שגיאה אם הערך אינו בטווח.</div>
+            </div>
+          </div>
+
+          <div class="ann-item">
+            <div class="ann-badge">5</div>
+            <div>
+              <div class="ann-name">סוג התקשרות</div>
+              <div class="ann-desc">עובד מדינה / יועץ חיצוני. קובע את נוסחת החישוב. בחירת "עובד מדינה" מבטלת אוטומטית את אפשרות שכר שעתי (שדה 7).</div>
+            </div>
+          </div>
+
+          <div class="ann-item">
+            <div class="ann-badge">6</div>
+            <div>
+              <div class="ann-name">רמת מומחיות</div>
+              <div class="ann-desc">ג'וניור / מומחה (דירוג 220). משפיע על שכר ברירת המחדל ועל הוספת עלות הכשרה (₪15,000 לג'וניור בלבד).</div>
+            </div>
+          </div>
+
+          <div class="ann-item">
+            <div class="ann-badge">7</div>
+            <div>
+              <div class="ann-name">מודל תגמול</div>
+              <div class="ann-desc">שכר גלובלי (חוזה חודשי) / שכר שעתי. זמין רק ליועץ חיצוני — לעובד מדינה מוצלל ומושבת. שינוי המודל מעדכן אוטומטית את שכר ברירת המחדל ואת כותרת שדה 1.</div>
+            </div>
+          </div>
+
+          <div class="ann-item">
+            <div class="ann-badge">8</div>
+            <div>
+              <div class="ann-name">תקופת חישוב</div>
+              <div class="ann-desc">חצי שנה (6 חודשים) / שנה (12) / שנתיים (24). קובעת איזו כרטיסיית KPI מודגשת בכחול. כל שלוש הכרטיסיות תמיד מוצגות.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 3 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="s3">
+  <div class="sec-header">
+    <div class="sec-icon">🧮</div>
+    <div>
+      <div class="sec-num">סעיף 3</div>
+      <div class="sec-title">לוגיקת חישוב</div>
+    </div>
+  </div>
+
+  <p class="prose">
+    קיימים <strong>שלושה מסלולי חישוב</strong> בהתאם לשילוב סוג התקשרות + מודל תגמול.
+    כל מסלול מחשב עלות חודשית → שנתית → לתקופה → עלות המשרד אחרי מאצ'ינג.
+  </p>
+
+  <!-- PATH 1 -->
+  <div class="formula-card">
+    <div class="formula-head">
+      <div class="formula-head-icon">🏛️</div>
+      <div class="formula-head-title">מסלול א׳ — עובד מדינה / שכר גלובלי</div>
+      <div class="formula-head-sub">המסלול היחיד לעובד מדינה</div>
+    </div>
+    <div class="formula-body">
+      <div class="formula-eq">
+עלות_חודשית = שכר_בסיס × 1.28 × היקף_משרה<br>
+<span class="cmt">        ↑ מקדם 1.28 = פנסיה + קרן השתלמות + ביטוח לאומי + חופשה</span><br>
+עלות_לתקופה = עלות_חודשית × מספר_חודשים + הכשרה + ציוד<br>
+עלות_משרד   = עלות_לתקופה × (1 − אחוז_מאצ'ינג)<br>
+<span class="cmt">        ↑ אין מע"מ לעובד מדינה</span>
+      </div>
+      <div class="formula-vars">
+        <div class="formula-var"><div class="var-name">שכר_בסיס</div><div class="var-desc">ערך שדה 1 (₪/חודש)</div></div>
+        <div class="formula-var"><div class="var-name">1.28</div><div class="var-desc">מקדם עלויות מעביד (28% מעל שכר ברוטו)</div></div>
+        <div class="formula-var"><div class="var-name">היקף_משרה</div><div class="var-desc">שדה 2 ÷ 100 (0.25 / 0.5 / 0.75 / 1.0)</div></div>
+        <div class="formula-var"><div class="var-name">הכשרה</div><div class="var-desc">₪15,000 × חודשים÷12 (ג'וניור בלבד, 0 למומחה)</div></div>
+        <div class="formula-var"><div class="var-name">ציוד</div><div class="var-desc">₪12,000 × חודשים÷12 (עלות חד-פעמית פרורטה)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PATH 2 -->
+  <div class="formula-card">
+    <div class="formula-head">
+      <div class="formula-head-icon">⏱️</div>
+      <div class="formula-head-title">מסלול ב׳ — יועץ חיצוני / שכר שעתי</div>
+      <div class="formula-head-sub">תעריף × שעות × מע"מ</div>
+    </div>
+    <div class="formula-body">
+      <div class="formula-eq">
+שעות_חודשיות = 176 × היקף_משרה<br>
+<span class="cmt">        ↑ 22 ימי עבודה × 8 שעות = 176 שעות ב-100% משרה</span><br>
+עלות_חודשית  = תעריף_שעתי × שעות_חודשיות<br>
+עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.17<br>
+<span class="cmt">        ↑ מע"מ 17% חל על יועץ חיצוני</span><br>
+עלות_משרד   = עלות_לתקופה × (1 − אחוז_מאצ'ינג)
+      </div>
+      <div class="formula-vars">
+        <div class="formula-var"><div class="var-name">176</div><div class="var-desc">שעות חודשיות ב-100% משרה (22 ימים × 8 שעות)</div></div>
+        <div class="formula-var"><div class="var-name">תעריף_שעתי</div><div class="var-desc">ערך שדה 1 (₪/שעה)</div></div>
+        <div class="formula-var"><div class="var-name">1.17</div><div class="var-desc">מקדם מע"מ (17%)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PATH 3 -->
+  <div class="formula-card">
+    <div class="formula-head">
+      <div class="formula-head-icon">📄</div>
+      <div class="formula-head-title">מסלול ג׳ — יועץ חיצוני / שכר גלובלי</div>
+      <div class="formula-head-sub">חוזה חודשי קבוע + מע"מ</div>
+    </div>
+    <div class="formula-body">
+      <div class="formula-eq">
+עלות_חודשית = שכר_בסיס × היקף_משרה<br>
+<span class="cmt">        ↑ אין מקדם מעביד — הוצאות סוציאליות על חשבון הספק</span><br>
+עלות_לתקופה = עלות_חודשית × מספר_חודשים × 1.17<br>
+<span class="cmt">        ↑ מע"מ חל גם על יועץ בחוזה גלובלי</span><br>
+עלות_משרד   = עלות_לתקופה × (1 − אחוז_מאצ'ינג)
+      </div>
+      <div class="formula-vars">
+        <div class="formula-var"><div class="var-name">שכר_בסיס</div><div class="var-desc">ערך שדה 1 (₪/חודש)</div></div>
+        <div class="formula-var"><div class="var-name">ציוד / הכשרה</div><div class="var-desc">אפס ליועץ חיצוני (עלויות אלו על הספק)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERIOD TABLE -->
+  <table class="spec-table" style="margin-top:24px">
+    <thead><tr><th>תקופה</th><th>מספר חודשים</th><th>שימוש</th></tr></thead>
+    <tbody>
+      <tr><td>חצי שנה</td><td>6</td><td>הערכה ראשונית / פיילוט</td></tr>
+      <tr><td>שנה</td><td>12</td><td>תקציב שנתי (ברירת מחדל — מודגש)</td></tr>
+      <tr><td>שנתיים</td><td>24</td><td>תכנון רב-שנתי</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 4 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="s4">
+  <div class="sec-header">
+    <div class="sec-icon">📊</div>
+    <div>
+      <div class="sec-num">סעיף 4</div>
+      <div class="sec-title">פאנל תוצאות</div>
+    </div>
+  </div>
+
+  <p class="prose">
+    הפאנל ממוקם בצד שמאל (רוחב גמיש) ומתעדכן בזמן אמת. מכיל 4 אזורים עיקריים.
+  </p>
+
+  <!-- RESULTS MOCKUP -->
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start;margin:20px 0">
+
+    <div>
+      <div class="mockup" style="position:relative">
+        <div class="mock-topbar" style="height:32px">
+          <span style="font-size:10px;color:rgba(255,255,255,0.6);margin:auto">⚙ עובד מדינה · ג'וניור · 100% משרה</span>
+        </div>
+        <div style="padding:14px;background:var(--bg)">
+
+          <!-- Header -->
+          <div style="margin-bottom:10px">
+            <div style="font-size:8px;background:var(--blue-pale);border:1px solid var(--blue-mid);border-radius:20px;display:inline-block;padding:2px 8px;color:var(--blue2);margin-bottom:4px">⚙ עובד מדינה · ג'וניור · 100% משרה</div>
+            <div style="font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.5px">עלות שנתית: <span style="color:var(--blue2)">₪217K</span></div>
+            <div style="font-size:9px;color:var(--text3)">לאחר מאצ'ינג 30% — עלות מלאה: ₪311K</div>
+          </div>
+
+          <!-- KPI -->
+          <div style="position:relative">
+            <div class="ann" style="position:absolute;right:-14px;top:8px;width:22px;height:22px;font-size:10px">A</div>
+            <div class="mock-kpi-row">
+              <div class="mock-kpi">
+                <div class="mock-kpi-lbl">6 חודשים</div>
+                <div class="mock-kpi-amt" style="font-size:13px">₪108K</div>
+                <div class="mock-kpi-sub">עלות המשרד</div>
+              </div>
+              <div class="mock-kpi hero">
+                <div class="mock-kpi-lbl">שנה · פוקוס</div>
+                <div class="mock-kpi-amt">₪217K</div>
+                <div class="mock-kpi-sub">עלות המשרד</div>
+              </div>
+              <div class="mock-kpi">
+                <div class="mock-kpi-lbl">שנתיים</div>
+                <div class="mock-kpi-amt" style="font-size:13px">₪433K</div>
+                <div class="mock-kpi-sub">עלות המשרד</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div style="position:relative">
+            <div class="ann" style="position:absolute;right:-14px;top:8px;width:22px;height:22px;font-size:10px">B</div>
+            <div class="mock-grid2">
+              <div class="mock-panel">
+                <div class="mock-panel-ttl">📊 פירוק עלות שנתית</div>
+                <div class="mock-stack">
+                  <div class="mock-sa"></div>
+                  <div class="mock-sb"></div>
+                </div>
+                <div style="display:flex;gap:8px;font-size:8px">
+                  <span style="color:var(--text2)">● משרד: ₪217K (70%)</span>
+                  <span style="color:var(--green)">● דיגיטל: ₪93K (30%)</span>
+                </div>
+              </div>
+              <div class="mock-panel">
+                <div class="mock-panel-ttl">💰 רכיבי עלות</div>
+                <div style="position:relative">
+                  <div class="ann" style="position:absolute;right:-14px;top:4px;width:22px;height:22px;font-size:10px">C</div>
+                  <div class="mock-cbr"><div class="mock-cbl">שכר ברוטו</div><div class="mock-cbt"><div class="mock-cbf" style="width:71%"></div></div><div class="mock-cbv">₪222K</div></div>
+                  <div class="mock-cbr"><div class="mock-cbl">עלות מעביד</div><div class="mock-cbt"><div class="mock-cbf" style="width:20%;background:#3B82F6"></div></div><div class="mock-cbv">₪62K</div></div>
+                  <div class="mock-cbr"><div class="mock-cbl">הכשרה</div><div class="mock-cbt"><div class="mock-cbf" style="width:5%;background:#93C5FD"></div></div><div class="mock-cbv">₪15K</div></div>
+                  <div class="mock-cbr"><div class="mock-cbl">ציוד</div><div class="mock-cbt"><div class="mock-cbf" style="width:4%;background:#BFDBFE"></div></div><div class="mock-cbv">₪12K</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alert -->
+          <div style="position:relative">
+            <div class="ann" style="position:absolute;right:-14px;top:4px;width:22px;height:22px;font-size:10px">D</div>
+            <div class="mock-alert">⚠️ דורש חניכה וליווי מצד יחידת הדאטה / CDO</div>
+          </div>
+
+          <!-- Actions -->
+          <div style="position:relative">
+            <div class="ann" style="position:absolute;right:-14px;top:4px;width:22px;height:22px;font-size:10px">E</div>
+            <div class="mock-actions">
+              <button class="mock-btn mock-btn-p">⬇ הורד PDF</button>
+              <button class="mock-btn mock-btn-s">🔗 שתף קישור</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text4);text-align:center;margin-top:8px">איור 2 — פאנל תוצאות עם ספרות הסבר</div>
+    </div>
+
+    <!-- LEGEND -->
+    <div>
+      <div style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--text4);margin-bottom:14px">הסבר אזורים</div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <div class="ann-item">
+          <div class="ann-badge">A</div>
+          <div>
+            <div class="ann-name">כרטיסיות KPI</div>
+            <div class="ann-desc">תמיד מציגות 3 תקופות. הכרטיסייה המתאימה לתקופה שנבחרה בשדה 8 מודגשת בכחול (hero). הערך בכל כרטיסייה = עלות המשרד לאחר מאצ'ינג.</div>
+          </div>
+        </div>
+
+        <div class="ann-item">
+          <div class="ann-badge">B</div>
+          <div>
+            <div class="ann-name">גרף פירוק עלות שנתית</div>
+            <div class="ann-desc">Stacked bar — כחול (עלות המשרד) + ירוק (מאצ'ינג). מוצג רק כשמאצ'ינג פעיל. אחוז המאצ'ינג = שדה 4.</div>
+          </div>
+        </div>
+
+        <div class="ann-item">
+          <div class="ann-badge">C</div>
+          <div>
+            <div class="ann-name">גרף רכיבי עלות</div>
+            <div class="ann-desc">פירוט השנה הראשונה: שכר ברוטו / עלות מעביד או מע"מ / הכשרה / ציוד. הרוחב יחסי לסכום הכולל.</div>
+          </div>
+        </div>
+
+        <div class="ann-item">
+          <div class="ann-badge">D</div>
+          <div>
+            <div class="ann-name">התראות אוטומטיות</div>
+            <div class="ann-desc">מופיעות לפי תנאי הבחירה (ראה סעיף 6). צהוב = אזהרה, כחול = המלצה.</div>
+          </div>
+        </div>
+
+        <div class="ann-item">
+          <div class="ann-badge">E</div>
+          <div>
+            <div class="ann-name">כפתורי ייצוא</div>
+            <div class="ann-desc">הורדת PDF + שיתוף קישור (ראה סעיף 5).</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPONENT DETAILS TABLE -->
+  <table class="spec-table" style="margin-top:20px">
+    <thead><tr><th>רכיב עלות</th><th>עובד מדינה</th><th>יועץ חיצוני</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>שכר ברוטו</strong></td>
+        <td>שכר_בסיס × scope% × 12</td>
+        <td>עלות לפני מע"מ</td>
+      </tr>
+      <tr>
+        <td><strong>עלות מעביד</strong></td>
+        <td>שכר_ברוטו × 28%</td>
+        <td><span class="tag tag-gray">לא רלוונטי</span></td>
+      </tr>
+      <tr>
+        <td><strong>מע"מ</strong></td>
+        <td><span class="tag tag-gray">לא חל</span></td>
+        <td>עלות_לפני_מע"מ × 17%</td>
+      </tr>
+      <tr>
+        <td><strong>הכשרה</strong></td>
+        <td>₪15,000 × חודשים÷12 (ג'וניור בלבד)</td>
+        <td>₪0</td>
+      </tr>
+      <tr>
+        <td><strong>ציוד ורישיונות</strong></td>
+        <td>₪12,000 × חודשים÷12</td>
+        <td>₪0</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 5 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="s5">
+  <div class="sec-header">
+    <div class="sec-icon">🖱️</div>
+    <div>
+      <div class="sec-num">סעיף 5</div>
+      <div class="sec-title">כפתורים ופעולות</div>
+    </div>
+  </div>
+
+  <div class="btn-docs">
+
+    <div class="btn-doc">
+      <div class="btn-doc-visual primary">⬇ הורד PDF</div>
+      <div class="btn-doc-title">ייצוא PDF</div>
+      <div class="btn-doc-desc">מדפיס את הדשבורד כ-PDF לשמירה מקומית.</div>
+      <div class="btn-doc-steps">
+        <ul class="step-list">
+          <li>קורא ל-window.print() של הדפדפן</li>
+          <li>CSS מיוחד מסתיר את הסרגל ואת הכפתורים בהדפסה</li>
+          <li>פאנל התוצאות מודפס במסגרת מלאה</li>
+          <li>הדפדפן פותח דיאלוג שמירה כ-PDF</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="btn-doc">
+      <div class="btn-doc-visual secondary">🔗 שתף קישור</div>
+      <div class="btn-doc-title">שיתוף קישור</div>
+      <div class="btn-doc-desc">מקודד את כל הפרמטרים ב-URL ומעתיק ללוח.</div>
+      <div class="btn-doc-steps">
+        <ul class="step-list">
+          <li>מקודד 8 פרמטרים ב-URL hash (#)</li>
+          <li>מעתיק ל-clipboard בדפדפנים תומכים</li>
+          <li>מציג prompt עם הקישור בדפדפנים ישנים</li>
+          <li>טעינה עתידית מה-URL משחזרת את כל השדות</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="btn-doc">
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <div class="btn-doc-visual secondary" style="padding:7px 13px;font-size:15px;margin:0">‹</div>
+        <div class="btn-doc-visual secondary" style="padding:7px 13px;font-size:15px;margin:0">›</div>
+      </div>
+      <div class="btn-doc-title">חיצי היקף משרה</div>
+      <div class="btn-doc-desc">מעבר מדורג בין ערכי ההיקף.</div>
+      <div class="btn-doc-steps">
+        <ul class="step-list">
+          <li>‹ = הקטנת היקף בצעד אחד (100→75→50→25)</li>
+          <li>› = הגדלת היקף בצעד אחד (25→50→75→100)</li>
+          <li>כפתור מוצלל כשמגיעים לקצה (25% או 100%)</li>
+          <li>מעדכן את הסליידר ואת כל התוצאות</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="btn-doc">
+      <div style="margin-bottom:12px">
+        <div class="mock-toggle" style="max-width:180px">
+          <div class="mock-toggle-name">מאצ'ינג דיגיטל לאומי</div>
+          <div class="mock-sw"><div class="mock-sw-k"></div></div>
+        </div>
+      </div>
+      <div class="btn-doc-title">Toggle מאצ'ינג</div>
+      <div class="btn-doc-desc">מפעיל/מבטל את הפחתת המאצ'ינג מהעלות.</div>
+      <div class="btn-doc-steps">
+        <ul class="step-list">
+          <li>כשדולק — שדה האחוז פעיל, הגרף מציג פיצול</li>
+          <li>כשכבוי — שדה האחוז מוצלל (opacity 0.4) ומושבת</li>
+          <li>עלות המשרד = עלות מלאה (ללא הנחה) כשכבוי</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- URL PARAMS TABLE -->
+  <p class="prose" style="margin-top:24px"><strong>פרמטרי URL לשיתוף:</strong></p>
+  <table class="spec-table">
+    <thead><tr><th>פרמטר</th><th>ערכים אפשריים</th><th>ברירת מחדל</th></tr></thead>
+    <tbody>
+      <tr><td><code>type</code></td><td>civil | consultant</td><td>civil</td></tr>
+      <tr><td><code>seniority</code></td><td>junior | expert</td><td>junior</td></tr>
+      <tr><td><code>comp</code></td><td>global | hourly</td><td>global</td></tr>
+      <tr><td><code>scope</code></td><td>25 | 50 | 75 | 100</td><td>100</td></tr>
+      <tr><td><code>period</code></td><td>6 | 12 | 24</td><td>12</td></tr>
+      <tr><td><code>salary</code></td><td>מספר חיובי</td><td>לפי פרופיל</td></tr>
+      <tr><td><code>matching</code></td><td>1 | 0</td><td>1 (פעיל)</td></tr>
+      <tr><td><code>matchingPct</code></td><td>1–100</td><td>30</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 6 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="s6">
+  <div class="sec-header">
+    <div class="sec-icon">🔔</div>
+    <div>
+      <div class="sec-num">סעיף 6</div>
+      <div class="sec-title">התראות אוטומטיות</div>
+    </div>
+  </div>
+
+  <p class="prose">
+    ההתראות מחושבות בזמן אמת ומוצגות מתחת לגרפים. ייתכן שיופיעו מספר התראות בו-זמנית.
+  </p>
+
+  <div class="alert-docs">
+
+    <div class="alert-doc warn">
+      <div class="alert-doc-icon">⚠️</div>
+      <div>
+        <div class="alert-doc-cond">תנאי הפעלה: רמת מומחיות = ג'וניור (כל סוג התקשרות)</div>
+        <div class="alert-doc-title">הודעת חניכה</div>
+        <div class="alert-doc-text">שים לב: העסקת ג'וניור דורשת הקצאת משאבים לחניכה וליווי מצד יחידת הדאטה או ה-CDO.</div>
+      </div>
+    </div>
+
+    <div class="alert-doc warn">
+      <div class="alert-doc-icon">⚠️</div>
+      <div>
+        <div class="alert-doc-cond">תנאי הפעלה: סוג התקשרות = יועץ חיצוני</div>
+        <div class="alert-doc-title">הודעת התקשרות מוגבלת בזמן</div>
+        <div class="alert-doc-text">שים לב: התקשרות זו מוגדרת בזמן ואינה מהווה פתרון לעתודה שתישאר בממשלה לאורך זמן.</div>
+      </div>
+    </div>
+
+    <div class="alert-doc warn">
+      <div class="alert-doc-icon">⚠️</div>
+      <div>
+        <div class="alert-doc-cond">תנאי הפעלה: תקופה = שנתיים + ג'וניור + עובד מדינה</div>
+        <div class="alert-doc-title">סיכון עזיבה</div>
+        <div class="alert-doc-text">תחזית לשנתיים: קיים סיכון עזיבה מוגבר לאנליסט ג'וניור לאחר תקופת הכשרה.</div>
+      </div>
+    </div>
+
+    <div class="alert-doc info">
+      <div class="alert-doc-icon">💡</div>
+      <div>
+        <div class="alert-doc-cond">תנאי הפעלה: רמת מומחיות = מומחה (כל סוג)</div>
+        <div class="alert-doc-title">המלצה — מסלול מומחה</div>
+        <div class="alert-doc-text">מומחים נוטים להישאר לאורך זמן — שקול מסלול מומחה לחיסכון בעלויות גיוס עתידיות.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 7 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="s7">
+  <div class="sec-header">
+    <div class="sec-icon">📌</div>
+    <div>
+      <div class="sec-num">סעיף 7</div>
+      <div class="sec-title">ברירות מחדל</div>
+    </div>
+  </div>
+
+  <p class="prose">
+    שכר ברירת המחדל נטען אוטומטית בכל פעם שמשתמש משנה את שדות 5, 6 או 7.
+    ניתן לשנות ידנית — הערך המוזן ידנית לא יאופס עד לשינוי פרופיל.
+  </p>
+
+  <table class="spec-table">
+    <thead><tr><th>סוג התקשרות</th><th>רמת מומחיות</th><th>שכר גלובלי (₪/חודש)</th><th>שכר שעתי (₪/שעה)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="tag tag-blue">עובד מדינה</span></td>
+        <td>ג'וניור</td>
+        <td><strong>₪18,500</strong></td>
+        <td><span class="tag tag-gray">לא רלוונטי</span></td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-blue">עובד מדינה</span></td>
+        <td>מומחה (220)</td>
+        <td><strong>₪28,000</strong></td>
+        <td><span class="tag tag-gray">לא רלוונטי</span></td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-green">יועץ חיצוני</span></td>
+        <td>ג'וניור</td>
+        <td><strong>₪22,000</strong></td>
+        <td><strong>₪180</strong></td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-green">יועץ חיצוני</span></td>
+        <td>מומחה (220)</td>
+        <td><strong>₪38,000</strong></td>
+        <td><strong>₪350</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout info" style="margin-top:16px">
+    <div class="callout-icon">💡</div>
+    <div><strong>קבועים נוספים:</strong>
+      עלויות מעביד = 28% · מע"מ = 17% · ימי עבודה חודשיים = 22 · שעות יום = 8 · הכשרה ג'וניור = ₪15,000 · ציוד ורישיונות = ₪12,000
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 8 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="s8">
+  <div class="sec-header">
+    <div class="sec-icon">✅</div>
+    <div>
+      <div class="sec-num">סעיף 8</div>
+      <div class="sec-title">מגבלות ו-Validation</div>
+    </div>
+  </div>
+
+  <table class="spec-table">
+    <thead><tr><th>שדה</th><th>תנאי תקינות</th><th>התנהגות כשלא תקין</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>שכר ברוטו / תעריף שעתי</strong></td>
+        <td>מספר גדול מ-0</td>
+        <td>מציג "⚠ הכנס ערך גדול מ-0" באדום, לא מעדכן חישובים</td>
+      </tr>
+      <tr>
+        <td><strong>אחוז מאצ'ינג</strong></td>
+        <td>1–100 (כשמאצ'ינג פעיל)</td>
+        <td>מציג "הכנס אחוז בין 1 ל-100", לא מעדכן חישובים</td>
+      </tr>
+      <tr>
+        <td><strong>מודל תגמול שעתי</strong></td>
+        <td>רלוונטי רק ליועץ חיצוני</td>
+        <td>מוצלל ומושבת כשהסוג = עובד מדינה. בחירת מדינה מאפסת ל-גלובלי</td>
+      </tr>
+      <tr>
+        <td><strong>טעינה מ-URL</strong></td>
+        <td>ערך חוקי לכל פרמטר</td>
+        <td>פרמטר לא תקין מוחלף בברירת המחדל, ללא שגיאה למשתמש</td>
+      </tr>
+      <tr>
+        <td><strong>civil + hourly בURL</strong></td>
+        <td>שילוב לא חוקי</td>
+        <td>אוטומטית comp=global לאחר טעינה</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn" style="margin-top:16px">
+    <div class="callout-icon">⚠️</div>
+    <div>
+      <strong>מחוץ לסקופ:</strong>
+      אין שמירת נתונים בשרת · אין אימות משתמשים · אין תמיכה ב-IE · אין גרסת מובייל
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  מחשבון עלויות אנליסט עסקי ממשלתי · גרסה 1.0 · מרץ 2026 · מסמך לשימוש פנימי
+</div>
+
+</div>
+</body>
+</html>
