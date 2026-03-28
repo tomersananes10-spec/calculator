@@ -1,0 +1,1219 @@
+# TAKAM Calculator Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build a single-file Hebrew RTL wizard calculator (`takam-calculator.html`) that lets government users build an IT staffing mix from 35 roles and compute project costs based on TAKAM ceiling rates.
+
+**Architecture:** Single self-contained HTML file with inline CSS and JS — no build step, no server, opens directly in any browser. State lives in a plain JS object; all DOM updates are imperative. Charts are rendered as inline SVG.
+
+**Tech Stack:** Vanilla HTML/CSS/JS (ES6), Google Fonts (Heebo), SVG for charts, `window.print()` for PDF export, URL hash for share links.
+
+**Spec:** `docs/superpowers/specs/2026-03-29-takam-calculator-design.md`
+
+---
+
+## File Structure
+
+```
+takam-calculator.html          ← the entire app (single file)
+takam-brainstorm.html          ← approved mockup, keep as reference only
+```
+
+The single HTML file is structured in build order:
+1. `<head>` — charset, viewport, Google Fonts import, title
+2. `<style>` — all CSS (design tokens → layout → components → responsive → print)
+3. `<body>` — topbar → wizard-progress → main > panels 1–4
+4. `<script>` — ROLES_DATA → state → helpers → render functions → event wiring → init
+
+---
+
+## Task 1: HTML Skeleton + Design System CSS
+
+**Files:**
+- Create: `takam-calculator.html`
+
+- [ ] **Step 1: Create the file with DOCTYPE, head, fonts, and CSS design tokens**
+
+```html
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחשבון תק"ם — שירותי מחשוב, דאטה ובינה מלאכותית</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0d9488;--teal2:#14b8a6;--teal3:#5eead4;
+  --teal-pale:#f0fdfa;--teal-mid:#ccfbf1;
+  --navy:#0f172a;--slate:#1e293b;
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --bg:#f8fafc;--surface:#ffffff;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --green:#10b981;--red:#ef4444;--amber:#f59e0b;
+  --radius:12px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--text);direction:rtl;font-size:15px;line-height:1.6;min-height:100vh}
+</style>
+</head>
+<body>
+<script>console.log('skeleton ok')</script>
+</body>
+</html>
+```
+
+- [ ] **Step 2: Open in browser, verify Heebo font loads and console shows "skeleton ok"**
+
+Open `takam-calculator.html` in Chrome. Open DevTools → Console. Expected: `skeleton ok`. Expected: page background is `#f8fafc` (light grey).
+
+- [ ] **Step 3: Add Topbar HTML + CSS**
+
+Add to `<style>`:
+```css
+/* ─── TOPBAR ─── */
+.topbar{height:60px;background:var(--navy);display:flex;align-items:center;padding:0 24px;gap:14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.topbar-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--teal2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.3px}
+.topbar-sep{width:1px;height:20px;background:rgba(255,255,255,0.15);flex-shrink:0}
+.topbar-sub{font-size:12px;color:rgba(255,255,255,0.45)}
+.topbar-spacer{flex:1}
+.topbar-badge{background:rgba(13,148,136,0.25);border:1px solid rgba(20,184,166,0.4);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--teal3)}
+```
+
+Add to `<body>`:
+```html
+<div class="topbar">
+  <div class="topbar-logo">🏛️</div>
+  <span class="topbar-title">מחשבון תק"ם</span>
+  <div class="topbar-sep"></div>
+  <span class="topbar-sub">שירותי מחשוב, דאטה ובינה מלאכותית</span>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-badge" id="stepBadge">שלב 1 מתוך 4</div>
+</div>
+```
+
+- [ ] **Step 4: Verify topbar renders — dark navy bar, teal logo, white text**
+
+Refresh browser. Expected: sticky dark topbar with teal gradient logo square and correct Hebrew text.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add takam-calculator.html
+git commit -m "feat: HTML skeleton, design tokens, topbar"
+```
+
+---
+
+## Task 2: Wizard Progress Bar
+
+**Files:**
+- Modify: `takam-calculator.html`
+
+- [ ] **Step 1: Add wizard progress CSS**
+
+Add to `<style>`:
+```css
+/* ─── WIZARD PROGRESS ─── */
+.wizard-progress{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;overflow-x:auto}
+.steps{display:flex;align-items:stretch;min-width:max-content}
+.step{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;flex-shrink:0}
+.step.active{border-bottom-color:var(--teal)}
+.step.done{border-bottom-color:var(--green);cursor:pointer}
+.step.future{cursor:default}
+.step-num{width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text3);flex-shrink:0;transition:all 0.2s}
+.step.active .step-num{background:var(--teal);border-color:var(--teal);color:#fff}
+.step.done .step-num{background:var(--green);border-color:var(--green);color:#fff;font-size:13px}
+.step-info{display:flex;flex-direction:column;gap:1px}
+.step-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.5px}
+.step.active .step-label{color:var(--teal);font-weight:700}
+.step.done .step-label{color:var(--green)}
+.step-name{font-size:13px;font-weight:600;color:var(--text2)}
+.step.active .step-name{color:var(--text);font-weight:700}
+.step-sep{color:var(--border2);font-size:18px;padding:0 2px;display:flex;align-items:center}
+/* main content area */
+.main{max-width:860px;margin:0 auto;padding:28px 20px 100px}
+.panel{display:none}
+.panel.active{display:block}
+.step-header{margin-bottom:24px}
+.step-header h2{font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
+.step-header p{font-size:14px;color:var(--text2)}
+```
+
+- [ ] **Step 2: Add wizard progress HTML and main container (after topbar)**
+
+```html
+<div class="wizard-progress">
+  <div class="steps">
+    <div class="step active" id="step1" onclick="tryGoStep(1)">
+      <div class="step-num" id="snum1">1</div>
+      <div class="step-info">
+        <span class="step-label">שלב 1</span>
+        <span class="step-name">פרטי פרויקט</span>
+      </div>
+    </div>
+    <div class="step-sep">›</div>
+    <div class="step future" id="step2" onclick="tryGoStep(2)">
+      <div class="step-num" id="snum2">2</div>
+      <div class="step-info">
+        <span class="step-label">שלב 2</span>
+        <span class="step-name">בחירת תפקידים</span>
+      </div>
+    </div>
+    <div class="step-sep">›</div>
+    <div class="step future" id="step3" onclick="tryGoStep(3)">
+      <div class="step-num" id="snum3">3</div>
+      <div class="step-info">
+        <span class="step-label">שלב 3</span>
+        <span class="step-name">הגדרת תמהיל</span>
+      </div>
+    </div>
+    <div class="step-sep">›</div>
+    <div class="step future" id="step4" onclick="tryGoStep(4)">
+      <div class="step-num" id="snum4">4</div>
+      <div class="step-info">
+        <span class="step-label">שלב 4</span>
+        <span class="step-name">תוצאות ועלויות</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="panel active" id="p1"><div class="step-header"><h2>פרטי הפרויקט</h2><p>הגדר את המסגרת הכללית</p></div><p style="color:var(--text3)">תוכן שלב 1 — בקרוב</p></div>
+  <div class="panel" id="p2"><div class="step-header"><h2>בחירת תפקידים</h2><p>בחר תפקידים לתמהיל</p></div><p style="color:var(--text3)">תוכן שלב 2 — בקרוב</p></div>
+  <div class="panel" id="p3"><div class="step-header"><h2>הגדרת תמהיל</h2><p>רמה ואחוז משרה לכל תפקיד</p></div><p style="color:var(--text3)">תוכן שלב 3 — בקרוב</p></div>
+  <div class="panel" id="p4"><div class="step-header"><h2>תוצאות ועלויות</h2><p>עלות הפרויקט המלאה</p></div><p style="color:var(--text3)">תוכן שלב 4 — בקרוב</p></div>
+</div>
+```
+
+- [ ] **Step 3: Add goStep JS skeleton in `<script>` block**
+
+Replace the `console.log` script with:
+```js
+let currentStep = 1;
+
+function goStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step'+i);
+    const num = document.getElementById('snum'+i);
+    el.className = 'step ' + (i < n ? 'done' : i === n ? 'active' : 'future');
+    num.textContent = i < n ? '✓' : String(i);
+  }
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('p'+n).classList.add('active');
+  document.getElementById('stepBadge').textContent = 'שלב ' + n + ' מתוך 4';
+  currentStep = n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function tryGoStep(n) {
+  // Allow going back to done steps only
+  if (n < currentStep) goStep(n);
+}
+```
+
+- [ ] **Step 4: Verify wizard renders and back-navigation works**
+
+Refresh. Expected: progress bar shows 4 steps, step 1 is teal-highlighted. Open console and run `goStep(3)` — steps 1 and 2 should show ✓ (green), step 3 teal, step 4 grey. Run `goStep(1)` — back to step 1. Run `tryGoStep(4)` — nothing happens (can't skip forward).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add takam-calculator.html
+git commit -m "feat: wizard progress bar with step navigation"
+```
+
+---
+
+## Task 3: ROLES_DATA + Calculation Engine
+
+**Files:**
+- Modify: `takam-calculator.html` (script section)
+
+- [ ] **Step 1: Add ROLES_DATA array at top of script**
+
+```js
+const VAT = 1.17; // 17% — fixed constant
+const HOURS_PER_MONTH = 176; // 22 days × 8 hours
+
+const ROLES_DATA = [
+  {id:'1.1', name:'אחראי תחום פיתוח ואפליקציות', cat:'ניהול',    rates:{b:202,c:249}},
+  {id:'1.2', name:'אחראי תחום פיתוח ותשתיות',   cat:'ניהול',    rates:{b:207,c:243}},
+  {id:'1.3', name:'אחראי תפעול / הטמעה',         cat:'ניהול',    rates:{b:185,c:211}},
+  {id:'1.5', name:'אחראי מתודולוגיה/אינטגרציה', cat:'ניהול',    rates:{b:191,c:217}},
+  {id:'1.6', name:'קצין ניהול פרויקטים PMO',     cat:'ניהול',    rates:{a:151,b:202,c:232}},
+  {id:'2.1', name:'אחראי פרויקט',                cat:'פיתוח',   rates:{b:219,c:284}},
+  {id:'2.2', name:'מנחת מערכות',                 cat:'פיתוח',   rates:{a:151,b:174,c:218,d:240}},
+  {id:'2.3', name:'מפתח תוכנה',                  cat:'פיתוח',   rates:{a:146,b:192,c:229,d:266}},
+  {id:'2.4', name:'בודק תוכנה / QA',             cat:'פיתוח',   rates:{a:99,b:128,c:170,d:184}},
+  {id:'2.5', name:'מידען / עורך תוכן',           cat:'פיתוח',   rates:{a:76,b:93,c:110}},
+  {id:'2.6', name:'אפיון UX/UI',                 cat:'פיתוח',   rates:{a:142,b:169,c:201,d:235}},
+  {id:'2.7', name:'אנליטיקה של הנתונים',         cat:'דאטה ובינה', rates:{a:150,b:162,c:189}},
+  {id:'2.8', name:'פיתוח וייישום פלטפורמה',      cat:'פיתוח',   rates:{b:191,c:224}},
+  {id:'2.9', name:'DevOps',                       cat:'פיתוח',   rates:{a:185,b:232,c:280}},
+  {id:'2.11',name:'מדע הנתונים',                 cat:'דאטה ובינה', rates:{b:272,c:304,d:342}},
+  {id:'2.12',name:'הנדסת נתונים',                cat:'דאטה ובינה', rates:{a:193,b:209,c:248,d:280}},
+  {id:'2.13',name:'ניהול מוצר',                  cat:'פיתוח',   rates:{b:220,c:269,d:294}},
+  {id:'3.1', name:'איש תקשורת ורשתות',           cat:'תשתיות',  rates:{a:153,b:174,c:196,d:229}},
+  {id:'3.2', name:'טכנאי ציוד מחשבים',           cat:'תשתיות',  rates:{a:79,b:98,c:142}},
+  {id:'3.3', name:'איש צוות סיסטם',              cat:'תשתיות',  rates:{a:164,b:183,c:221}},
+  {id:'3.4', name:'מנהל בסיס נתונים DBA',        cat:'תשתיות',  rates:{a:149,b:184,c:219,d:233}},
+  {id:'3.7', name:'בקרת מערכות שליטה',           cat:'תשתיות',  rates:{a:95,b:128,c:147}},
+  {id:'3.8', name:'מיישם הגנת סייבר',            cat:'תשתיות',  rates:{a:124,b:204,c:246}},
+  {id:'3.9', name:'תפעול תשתיית ענן',            cat:'תשתיות',  rates:{a:161,b:201,c:242}},
+  {id:'4.1', name:'נאמן מחשוב / רפרנט',          cat:'תמיכה',   rates:{a:89,b:120,c:133}},
+  {id:'4.2', name:'איש סיוע ותמיכה',             cat:'תמיכה',   rates:{a:77,b:89,c:134}},
+  {id:'4.3', name:'מדריך / מטמיע',               cat:'תמיכה',   rates:{a:81,b:95,c:143}},
+  {id:'4.4', name:'מפעיל / פקיד ביצוע',          cat:'תמיכה',   rates:{a:66,b:78}},
+  {id:'5.1', name:'מיישם SAP בסביבת ERP',        cat:'ERP/SAP', rates:{a:183,b:237,c:286,d:314}},
+  {id:'5.2', name:'איש תשתיות SAP/ERP',          cat:'ERP/SAP', rates:{a:182,b:231,c:293}},
+  {id:'6.1', name:'אחראי מערכות המידע',          cat:'ארכיטקטורה', rates:{b:284,c:323,d:327}},
+  {id:'6.2', name:'ארכיטקט ראשי',                cat:'ארכיטקטורה', rates:{a:252,b:311,c:327}},
+  {id:'6.4', name:'מומחה טכנולוגיות הגנת סייבר', cat:'ארכיטקטורה', rates:{b:306,c:358}},
+  {id:'6.5', name:'מומחה מתודולוגיות הגנת סייבר',cat:'ארכיטקטורה', rates:{b:306,c:358}},
+  {id:'6.6', name:'חוקר סייבר',                  cat:'ארכיטקטורה', rates:{a:217,b:306,c:358,d:423}},
+  {id:'6.7', name:'ארכיטקט פתרונות',             cat:'ארכיטקטורה', rates:{a:275,b:340,c:358}},
+];
+```
+
+- [ ] **Step 2: Add calculation helper functions**
+
+```js
+// calcRoleMonthlyCost: returns monthly cost in ₪ for one role in the mix
+// mixEntry = {id, level, scope}  level='a'|'b'|'c'|'d'  scope=10..100
+function calcRoleMonthlyCost(mixEntry) {
+  const role = ROLES_DATA.find(r => r.id === mixEntry.id);
+  if (!role) return 0;
+  const rate = role.rates[mixEntry.level];
+  if (!rate) return 0;
+  const hours = HOURS_PER_MONTH * (mixEntry.scope / 100);
+  return Math.round(rate * hours * VAT);
+}
+
+// calcTotalCost: returns {gross, matching, net} for the full mix
+// state.mix = [{id, level, scope}, ...]
+// months = 6|12|24
+function calcTotalCost(mix, months, matchingOn, matchingPct) {
+  const monthlyPerRole = mix.map(m => calcRoleMonthlyCost(m));
+  const grossMonthly = monthlyPerRole.reduce((s,v) => s+v, 0);
+  const gross = grossMonthly * months;
+  const matching = matchingOn ? Math.round(gross * matchingPct / 100) : 0;
+  const net = gross - matching;
+  return {gross, matching, net, monthlyPerRole};
+}
+
+// fmtCurrency: ₪1,234,567 or ₪1.2M or ₪459K (compact mode)
+function fmtCurrency(n, compact=false) {
+  if (compact) {
+    if (n >= 1_000_000) return '₪' + (n/1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000) return '₪' + Math.round(n/1_000) + 'K';
+  }
+  return '₪' + n.toLocaleString('he-IL');
+}
+```
+
+- [ ] **Step 3: Verify calculation logic in browser console**
+
+Open DevTools console and test:
+```js
+// Test 1: PMO level b, 100% scope, 12 months, no matching
+calcRoleMonthlyCost({id:'1.6', level:'b', scope:100})
+// Expected: 202 × 176 × 1.17 = 41,619 → Math.round = 41,619
+
+calcTotalCost([{id:'1.6',level:'b',scope:100}], 12, false, 0)
+// Expected: {gross: 499428, matching: 0, net: 499428, ...}
+
+fmtCurrency(499428, true)  // Expected: "₪499K"
+fmtCurrency(1500000, true) // Expected: "₪1.5M"
+```
+
+If numbers differ, re-check formula: `rate × (176 × scope/100) × 1.17`.
+
+- [ ] **Step 4: Add app state object**
+
+```js
+const state = {
+  project: {name:'', ministry:''},
+  period: 12,          // 6|12|24
+  tariff: 'ceiling',   // only ceiling in v1
+  matchingOn: true,
+  matchingPct: 30,
+  selectedIds: new Set(),  // role IDs chosen in step 2
+  mix: [],             // [{id, level, scope}]  populated in step 3
+};
+```
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add takam-calculator.html
+git commit -m "feat: ROLES_DATA (35 roles), calc engine, state object"
+```
+
+---
+
+## Task 4: Step 1 — Project Setup Panel
+
+**Files:**
+- Modify: `takam-calculator.html`
+
+- [ ] **Step 1: Add shared component CSS (cards, fields, buttons, toggles, segmented controls)**
+
+Add to `<style>`:
+```css
+/* ─── SHARED COMPONENTS ─── */
+.card-box{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field-label{font-size:13px;font-weight:600;color:var(--text2)}
+.field-sub{font-size:11px;color:var(--text3);margin-top:-3px}
+.input{width:100%;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;padding:10px 13px;font-size:14px;font-family:inherit;color:var(--text);outline:none;transition:border-color 0.15s}
+.input:focus{border-color:var(--teal)}
+/* Segmented control */
+.seg{display:flex;background:#f1f5f9;border:1.5px solid var(--border);border-radius:10px;padding:3px;gap:2px}
+.seg-btn{flex:1;text-align:center;padding:8px 6px;border-radius:7px;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;transition:all 0.15s;font-family:inherit;border:none;background:transparent;white-space:nowrap}
+.seg-btn.on{background:var(--surface);color:var(--teal);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid var(--teal-mid)}
+.seg-btn:disabled{opacity:0.4;cursor:not-allowed}
+/* Toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px 15px}
+.toggle-info{display:flex;flex-direction:column;gap:2px}
+.toggle-name{font-size:13px;font-weight:600;color:var(--text)}
+.toggle-sub{font-size:11px;color:var(--text3)}
+.sw{width:44px;height:24px;border-radius:12px;background:var(--border2);cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;border:none}
+.sw.on{background:var(--teal)}
+.sw::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;right:3px;transition:transform 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.sw.on::after{transform:translateX(-20px)}
+/* Number input row */
+.num-row{display:flex;align-items:center;gap:10px}
+.num-input{width:80px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;padding:8px 10px;font-size:14px;font-family:inherit;color:var(--text);outline:none;text-align:center;transition:border-color 0.15s}
+.num-input:focus{border-color:var(--teal)}
+/* Setup grid */
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* Nav buttons */
+.nav-row{display:flex;align-items:center;gap:10px;margin-top:28px;flex-wrap:wrap}
+.nav-spacer{flex:1}
+.btn{padding:11px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all 0.15s;white-space:nowrap}
+.btn-primary{background:var(--teal);color:#fff;box-shadow:0 4px 12px rgba(13,148,136,0.3)}
+.btn-primary:hover{background:var(--teal2);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.btn-back{padding:10px 18px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-family:inherit;transition:all 0.15s}
+.btn-back:hover{border-color:var(--teal);color:var(--teal)}
+.btn-outline{padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-family:inherit;transition:all 0.15s}
+.btn-outline:hover{border-color:var(--teal);color:var(--teal)}
+/* Responsive */
+@media(max-width:600px){.setup-grid{grid-template-columns:1fr}}
+```
+
+- [ ] **Step 2: Replace Step 1 panel placeholder with full HTML**
+
+Replace `<div class="panel active" id="p1">...</div>` with:
+```html
+<div class="panel active" id="p1">
+  <div class="step-header">
+    <h2>פרטי הפרויקט</h2>
+    <p>הגדר את המסגרת הכללית לפני שנבחר תפקידים</p>
+  </div>
+  <div class="card-box">
+    <div class="setup-grid">
+      <div class="field">
+        <label class="field-label">שם הפרויקט <span style="font-weight:400;color:var(--text3)">(אופציונלי)</span></label>
+        <input class="input" id="projName" type="text" placeholder="למשל: פיתוח מערכת HR">
+      </div>
+      <div class="field">
+        <label class="field-label">משרד / גוף <span style="font-weight:400;color:var(--text3)">(אופציונלי)</span></label>
+        <input class="input" id="projMinistry" type="text" placeholder="שם הגוף הממשלתי">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">תקופת החישוב</label>
+      <div class="seg" id="periodSeg">
+        <button class="seg-btn" onclick="setPeriod(6)">6 חודשים</button>
+        <button class="seg-btn on" onclick="setPeriod(12)">שנה</button>
+        <button class="seg-btn" onclick="setPeriod(24)">שנתיים</button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">סוג תעריף</label>
+      <div class="field-sub">תעריף גג — המחיר המרבי המוחלט לפי נספח יג</div>
+      <div class="seg">
+        <button class="seg-btn on">תעריף גג 🔴</button>
+        <button class="seg-btn" disabled title="יתווסף בגרסה 2 — ממתין לנתונים">תעריף מרבי 🟡</button>
+      </div>
+    </div>
+    <div class="toggle-row" style="margin-top:4px">
+      <div class="toggle-info">
+        <span class="toggle-name">מאצ'ינג — מערך הדיגיטל הלאומי</span>
+        <span class="toggle-sub">גורע מהעלות הכוללת של המשרד</span>
+      </div>
+      <button class="sw on" id="matchingSw" onclick="toggleMatching()"></button>
+    </div>
+    <div id="matchingPctRow" style="margin-top:10px;display:flex;align-items:center;gap:10px">
+      <span class="field-label">אחוז מאצ'ינג:</span>
+      <input class="num-input" id="matchingPct" type="number" value="30" min="1" max="100" oninput="state.matchingPct=parseInt(this.value)||30">
+      <span class="field-label">%</span>
+    </div>
+  </div>
+  <div class="nav-row">
+    <div class="nav-spacer"></div>
+    <button class="btn btn-primary" onclick="proceedToStep2()">המשך — בחירת תפקידים ›</button>
+  </div>
+</div>
+```
+
+- [ ] **Step 3: Add Step 1 JS handlers**
+
+```js
+function setPeriod(months) {
+  state.period = months;
+  document.querySelectorAll('#periodSeg .seg-btn').forEach(b => b.classList.remove('on'));
+  const labels = {'6':'6 חודשים','12':'שנה','24':'שנתיים'};
+  document.querySelectorAll('#periodSeg .seg-btn').forEach(b => {
+    if (b.textContent.includes(labels[months] || months)) b.classList.add('on');
+  });
+}
+
+function toggleMatching() {
+  state.matchingOn = !state.matchingOn;
+  document.getElementById('matchingSw').classList.toggle('on', state.matchingOn);
+  document.getElementById('matchingPctRow').style.display = state.matchingOn ? 'flex' : 'none';
+}
+
+function proceedToStep2() {
+  state.project.name = document.getElementById('projName').value;
+  state.project.ministry = document.getElementById('projMinistry').value;
+  goStep(2);
+  renderRolePicker();
+}
+```
+
+- [ ] **Step 4: Verify Step 1 in browser**
+
+Refresh. Check:
+- Two text inputs side by side (stacks on mobile)
+- Period seg: "שנה" highlighted teal
+- Tariff seg: "תעריף גג" active, "תעריף מרבי" greyed-out (hover shows tooltip)
+- Matching toggle ON (teal)
+- Matching % input visible (30)
+- Clicking toggle hides/shows the % row
+- "המשך" button navigates to step 2 (placeholder content for now)
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add takam-calculator.html
+git commit -m "feat: step 1 — project setup panel with period, tariff, matching"
+```
+
+---
+
+## Task 5: Step 2 — Role Picker Panel
+
+**Files:**
+- Modify: `takam-calculator.html`
+
+- [ ] **Step 1: Add role picker CSS**
+
+```css
+/* ─── ROLE PICKER ─── */
+.role-search-wrap{position:relative;margin-bottom:14px}
+.role-search-wrap input{width:100%;padding:11px 12px 11px 38px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.15s;background:var(--surface)}
+.role-search-wrap input:focus{border-color:var(--teal)}
+.role-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none}
+.cat-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.cat-pill{padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:inherit}
+.cat-pill.on{background:var(--teal-pale);border-color:var(--teal);color:var(--teal)}
+.role-cat-section{margin-bottom:20px}
+.role-cat-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.role-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:7px}
+.role-card{background:var(--surface);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none}
+.role-card:hover{border-color:var(--teal2);background:var(--teal-pale);transform:translateY(-1px)}
+.role-card.selected{border-color:var(--teal);background:var(--teal-pale)}
+.role-card-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.3}
+.role-card.selected .role-card-name{color:var(--teal);font-weight:700}
+.role-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all 0.15s;flex-shrink:0}
+.role-card.selected .role-check{background:var(--teal);border-color:var(--teal);color:#fff}
+/* sticky bottom bar */
+.sticky-bar{position:fixed;bottom:0;right:0;left:0;background:var(--navy);padding:12px 24px;display:flex;align-items:center;gap:14px;z-index:90;transform:translateY(100%);transition:transform 0.25s}
+.sticky-bar.visible{transform:translateY(0)}
+.sticky-bar-text{color:rgba(255,255,255,0.55);font-size:13px}
+.sticky-bar-count{color:#fff;font-weight:700;font-size:15px}
+.sticky-bar-spacer{flex:1}
+@media(max-width:500px){.role-grid{grid-template-columns:1fr 1fr}}
+```
+
+- [ ] **Step 2: Replace Step 2 placeholder panel with HTML**
+
+```html
+<div class="panel" id="p2">
+  <div class="step-header">
+    <h2>בחירת תפקידים לתמהיל</h2>
+    <p>בחר את כל התפקידים שיהיו חלק מהפרויקט</p>
+  </div>
+  <div class="role-search-wrap">
+    <span class="role-search-icon">🔍</span>
+    <input type="text" id="roleSearch" placeholder="חפש תפקיד..." oninput="filterRoles()">
+  </div>
+  <div class="cat-pills" id="catPills"></div>
+  <div id="roleList"></div>
+  <div class="nav-row">
+    <button class="btn-back" onclick="goStep(1)">‹ חזור</button>
+    <div class="nav-spacer"></div>
+    <button class="btn btn-primary" id="toStep3Btn" disabled onclick="proceedToStep3()">המשך — הגדרת תמהיל ›</button>
+  </div>
+</div>
+```
+
+- [ ] **Step 3: Add renderRolePicker, filterRoles, toggleRole JS**
+
+```js
+const CATS = ['הכל','ניהול','פיתוח','דאטה ובינה','תשתיות','תמיכה','ERP/SAP','ארכיטקטורה'];
+const CAT_ICONS = {'ניהול':'📋','פיתוח':'💻','דאטה ובינה':'📊','תשתיות':'🔧','תמיכה':'🤝','ERP/SAP':'🏢','ארכיטקטורה':'🏗️'};
+let activeCat = 'הכל';
+
+function renderRolePicker() {
+  // pills
+  const pillsEl = document.getElementById('catPills');
+  pillsEl.innerHTML = CATS.map(c =>
+    `<button class="cat-pill${c===activeCat?' on':''}" onclick="setCat('${c}')">${c}</button>`
+  ).join('');
+  // role list
+  renderRoleList();
+}
+
+function renderRoleList() {
+  const q = (document.getElementById('roleSearch')?.value||'').trim().toLowerCase();
+  const listEl = document.getElementById('roleList');
+  const filtered = ROLES_DATA.filter(r =>
+    (activeCat === 'הכל' || r.cat === activeCat) &&
+    (!q || r.name.toLowerCase().includes(q) || r.id.includes(q))
+  );
+  // group by category (respects filter)
+  const bycat = {};
+  filtered.forEach(r => { (bycat[r.cat]||(bycat[r.cat]=[])).push(r); });
+  listEl.innerHTML = Object.entries(bycat).map(([cat, roles]) => `
+    <div class="role-cat-section">
+      <div class="role-cat-title"><span>${CAT_ICONS[cat]||''}</span> ${cat}</div>
+      <div class="role-grid">
+        ${roles.map(r => `
+          <div class="role-card${state.selectedIds.has(r.id)?' selected':''}" onclick="toggleRole('${r.id}')" data-id="${r.id}">
+            <span class="role-card-name">${r.name}</span>
+            <span class="role-check">✓</span>
+          </div>`).join('')}
+      </div>
+    </div>`).join('') || '<p style="color:var(--text3);padding:20px 0">לא נמצאו תפקידים</p>';
+  updateStickyBar();
+}
+
+function setCat(cat) {
+  activeCat = cat;
+  renderRolePicker();
+}
+
+function filterRoles() { renderRoleList(); }
+
+function toggleRole(id) {
+  if (state.selectedIds.has(id)) state.selectedIds.delete(id);
+  else state.selectedIds.add(id);
+  // update card UI
+  document.querySelectorAll(`[data-id="${id}"]`).forEach(el => el.classList.toggle('selected', state.selectedIds.has(id)));
+  updateStickyBar();
+}
+
+function updateStickyBar() {
+  const n = state.selectedIds.size;
+  const bar = document.getElementById('stickyBar');
+  const btn = document.getElementById('toStep3Btn');
+  if (!bar) return;
+  bar.classList.toggle('visible', n > 0);
+  bar.querySelector('.sticky-bar-count').textContent = n;
+  btn.disabled = n === 0;
+}
+
+function proceedToStep3() {
+  // init mix: for each selected role, default to first available level, 100% scope
+  state.mix = [...state.selectedIds].map(id => {
+    const role = ROLES_DATA.find(r => r.id === id);
+    const firstLevel = Object.keys(role.rates)[0];
+    return {id, level: firstLevel, scope: 100};
+  });
+  goStep(3);
+  renderMixPanel();
+}
+```
+
+- [ ] **Step 4: Add sticky bar HTML (just before closing `</body>`)**
+
+```html
+<div class="sticky-bar" id="stickyBar">
+  <span class="sticky-bar-text">נבחרו</span>
+  <span class="sticky-bar-count">0</span>
+  <span class="sticky-bar-text">תפקידים</span>
+  <div class="sticky-bar-spacer"></div>
+  <button class="btn btn-primary" onclick="proceedToStep3()">המשך ›</button>
+</div>
+```
+
+- [ ] **Step 5: Verify Step 2 in browser**
+
+After clicking "המשך" from Step 1:
+- Role search input visible
+- 8 category pills, "הכל" highlighted
+- All 35 roles shown grouped by category with icons
+- Clicking a role card toggles teal selection + ✓ check
+- Sticky bottom bar slides up after first selection, shows count
+- "המשך" button disabled until at least one role selected
+- Search filters roles in real time
+- Category pill filters by category
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add takam-calculator.html
+git commit -m "feat: step 2 — role picker with search, category filter, sticky bar"
+```
+
+---
+
+## Task 6: Step 3 — Mix Configuration Panel
+
+**Files:**
+- Modify: `takam-calculator.html`
+
+- [ ] **Step 1: Add mix panel CSS**
+
+```css
+/* ─── MIX PANEL ─── */
+.mix-role{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:12px;transition:box-shadow 0.2s}
+.mix-role:hover{box-shadow:0 4px 16px rgba(0,0,0,0.06)}
+.mix-role-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.mix-role-icon{width:34px;height:34px;background:var(--teal-pale);border:1px solid var(--teal-mid);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.mix-role-title{font-size:15px;font-weight:700;color:var(--text);flex:1}
+.mix-role-cat{font-size:11px;color:var(--text3)}
+.mix-role-del{margin-right:auto;background:none;border:1px solid var(--border2);border-radius:7px;padding:4px 10px;font-size:12px;color:var(--text3);cursor:pointer;font-family:inherit;transition:all 0.15s;flex-shrink:0}
+.mix-role-del:hover{border-color:var(--red);color:var(--red)}
+.mix-params{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
+.level-btns{display:flex;gap:5px;flex-wrap:wrap}
+.level-btn{min-width:52px;padding:6px 8px;border-radius:9px;border:1.5px solid var(--border2);background:var(--surface);font-family:inherit;cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;gap:1px}
+.level-btn-letter{font-size:15px;font-weight:800;color:var(--text2)}
+.level-btn-rate{font-size:9px;color:var(--text3)}
+.level-btn:hover{border-color:var(--teal);.level-btn-letter{color:var(--teal)}}
+.level-btn.on{background:var(--teal);border-color:var(--teal)}
+.level-btn.on .level-btn-letter{color:#fff}
+.level-btn.on .level-btn-rate{color:rgba(255,255,255,0.75)}
+.level-btn.na{opacity:0.3;cursor:not-allowed;pointer-events:none}
+.scope-row{display:flex;align-items:center;gap:10px}
+.scope-val{font-size:18px;font-weight:800;color:var(--teal);min-width:46px}
+.slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:var(--border2);outline:none;cursor:pointer}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--teal);cursor:pointer;box-shadow:0 2px 8px rgba(13,148,136,0.4)}
+.slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--teal);cursor:pointer;border:none}
+.role-rate-row{background:var(--teal-pale);border:1px solid var(--teal-mid);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.rate-item{display:flex;flex-direction:column;gap:2px}
+.rate-label{font-size:10px;color:var(--text3)}
+.rate-val{font-size:15px;font-weight:800;color:var(--teal)}
+.mix-summary{background:var(--navy);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.mix-summary-label{font-size:12px;color:rgba(255,255,255,0.5)}
+.mix-summary-val{font-size:20px;font-weight:800;color:#fff}
+@media(max-width:550px){.mix-params{grid-template-columns:1fr}}
+```
+
+- [ ] **Step 2: Replace Step 3 placeholder panel**
+
+```html
+<div class="panel" id="p3">
+  <div class="step-header">
+    <h2>הגדרת תמהיל התפקידים</h2>
+    <p>לכל תפקיד — בחר רמת מומחיות ואחוז משרה</p>
+  </div>
+  <div class="mix-summary" id="mixSummary">
+    <div class="rate-item"><div class="mix-summary-label">עלות חודשית כוללת</div><div class="mix-summary-val" id="mixMonthly">₪0</div></div>
+    <div class="rate-item" style="text-align:left"><div class="mix-summary-label">עלות שנתית (אומדן)</div><div class="mix-summary-val" id="mixAnnual">₪0</div></div>
+  </div>
+  <div id="mixCards"></div>
+  <div class="nav-row">
+    <button class="btn-back" onclick="goStep(2);renderRolePicker()">‹ הוסף / הסר תפקידים</button>
+    <div class="nav-spacer"></div>
+    <button class="btn btn-primary" onclick="proceedToStep4()">חשב עלויות ›</button>
+  </div>
+</div>
+```
+
+- [ ] **Step 3: Add renderMixPanel JS**
+
+```js
+const LEVEL_LABELS = {a:'א',b:'ב',c:'ג',d:'ד'};
+const ALL_LEVELS = ['a','b','c','d'];
+
+function renderMixPanel() {
+  const container = document.getElementById('mixCards');
+  container.innerHTML = state.mix.map((m,i) => {
+    const role = ROLES_DATA.find(r => r.id === m.id);
+    const levelBtns = ALL_LEVELS.map(lv => {
+      const rate = role.rates[lv];
+      const isOn = m.level === lv;
+      const isNA = !rate;
+      return `<button class="level-btn${isOn?' on':''}${isNA?' na':''}"
+        onclick="setMixLevel(${i},'${lv}')" ${isNA?'disabled':''}>
+        <span class="level-btn-letter">${LEVEL_LABELS[lv]}</span>
+        <span class="level-btn-rate">${rate?'₪'+rate:'N/A'}</span>
+      </button>`;
+    }).join('');
+    return `
+    <div class="mix-role" id="mixRole${i}">
+      <div class="mix-role-header">
+        <div class="mix-role-icon">${CAT_ICONS[role.cat]||'👤'}</div>
+        <div>
+          <div class="mix-role-title">${role.name}</div>
+          <div class="mix-role-cat">${role.cat}</div>
+        </div>
+        <button class="mix-role-del" onclick="removeMixRole('${m.id}')">הסר ✕</button>
+      </div>
+      <div class="mix-params">
+        <div class="field" style="margin-bottom:0">
+          <div class="field-label">רמת מומחיות</div>
+          <div class="level-btns" id="levelBtns${i}">${levelBtns}</div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <div class="field-label">אחוז משרה: <span id="scopeVal${i}" style="color:var(--teal);font-weight:800">${m.scope}%</span></div>
+          <div class="scope-row">
+            <input type="range" class="slider" min="10" max="100" step="10" value="${m.scope}"
+              oninput="setMixScope(${i},parseInt(this.value))">
+          </div>
+        </div>
+      </div>
+      <div class="role-rate-row" id="rateRow${i}">
+        ${renderRateRow(m, role)}
+      </div>
+    </div>`;
+  }).join('');
+  updateMixSummary();
+}
+
+function renderRateRow(m, role) {
+  const rate = role.rates[m.level] || 0;
+  const monthly = calcRoleMonthlyCost(m);
+  const annual = monthly * 12;
+  return `
+    <div class="rate-item"><div class="rate-label">תעריף שעתי</div><div class="rate-val">₪${rate}/שעה</div></div>
+    <div class="rate-item"><div class="rate-label">עלות חודשית (כולל מע"מ)</div><div class="rate-val">${fmtCurrency(monthly,true)}</div></div>
+    <div class="rate-item"><div class="rate-label">עלות שנתית (אומדן)</div><div class="rate-val">${fmtCurrency(annual,true)}</div></div>`;
+}
+
+function setMixLevel(i, lv) {
+  state.mix[i].level = lv;
+  const role = ROLES_DATA.find(r => r.id === state.mix[i].id);
+  // update level buttons
+  document.querySelectorAll(`#levelBtns${i} .level-btn`).forEach((btn,bi) => {
+    btn.classList.toggle('on', ALL_LEVELS[bi] === lv);
+  });
+  document.getElementById('rateRow'+i).innerHTML = renderRateRow(state.mix[i], role);
+  updateMixSummary();
+}
+
+function setMixScope(i, val) {
+  state.mix[i].scope = val;
+  document.getElementById('scopeVal'+i).textContent = val + '%';
+  const role = ROLES_DATA.find(r => r.id === state.mix[i].id);
+  document.getElementById('rateRow'+i).innerHTML = renderRateRow(state.mix[i], role);
+  updateMixSummary();
+}
+
+function removeMixRole(id) {
+  state.mix = state.mix.filter(m => m.id !== id);
+  state.selectedIds.delete(id);
+  if (state.mix.length === 0) { goStep(2); renderRolePicker(); return; }
+  renderMixPanel();
+}
+
+function updateMixSummary() {
+  const total = state.mix.reduce((s,m) => s + calcRoleMonthlyCost(m), 0);
+  document.getElementById('mixMonthly').textContent = fmtCurrency(total, true);
+  document.getElementById('mixAnnual').textContent = fmtCurrency(total*12, true);
+}
+
+function proceedToStep4() {
+  goStep(4);
+  renderResults();
+}
+```
+
+- [ ] **Step 4: Verify Step 3 in browser**
+
+From step 2, select 3 roles (e.g., PMO, מפתח תוכנה, DBA) and proceed. On step 3:
+- Each role has a card with icon, name, category
+- Level buttons show א/ב/ג/ד with rate; unavailable levels greyed-out (N/A)
+- Slider changes scope%, rate row updates in real-time
+- Navy summary bar at top updates total monthly + annual cost
+- Removing a role removes it from the mix
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add takam-calculator.html
+git commit -m "feat: step 3 — mix configuration, level selector, scope slider, live cost"
+```
+
+---
+
+## Task 7: Step 4 — Results Panel (KPI + Table + Charts)
+
+**Files:**
+- Modify: `takam-calculator.html`
+
+- [ ] **Step 1: Add results CSS**
+
+```css
+/* ─── RESULTS ─── */
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center;transition:all 0.2s;cursor:default}
+.kpi.highlighted{background:var(--navy);border-color:var(--teal);box-shadow:0 8px 24px rgba(13,148,136,0.2)}
+.kpi-period{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.8px}
+.kpi.highlighted .kpi-period{color:var(--teal3)}
+.kpi-total{font-size:24px;font-weight:900;color:var(--text);letter-spacing:-0.5px}
+.kpi.highlighted .kpi-total{color:#fff}
+.kpi-label{font-size:11px;color:var(--text3);margin-top:4px}
+.kpi.highlighted .kpi-label{color:rgba(255,255,255,0.45)}
+.kpi-gross{font-size:11px;color:var(--text3);margin-top:2px}
+.kpi.highlighted .kpi-gross{color:rgba(255,255,255,0.3)}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.results-box{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+.results-box-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+/* breakdown table */
+.breakdown-table{width:100%;border-collapse:collapse;font-size:13px}
+.breakdown-table th{text-align:right;padding:6px 8px;font-size:10px;font-weight:600;color:var(--text3);border-bottom:2px solid var(--border)}
+.breakdown-table td{padding:8px 8px;border-bottom:1px solid var(--border);color:var(--text2)}
+.breakdown-table tr:last-child.total td{border-top:2px solid var(--border);border-bottom:none;font-weight:700;color:var(--text)}
+.cost-val{color:var(--teal);font-weight:700;text-align:left}
+/* bar chart */
+.bar-chart{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.bar-name{width:130px;color:var(--text2);text-align:right;flex-shrink:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:10px;background:var(--bg);border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width 0.5s ease}
+.bar-val{width:68px;text-align:left;font-weight:700;color:var(--text);font-size:12px;flex-shrink:0}
+/* actions */
+.actions-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+/* matching note */
+.matching-note{background:var(--teal-pale);border:1px solid var(--teal-mid);border-radius:9px;padding:12px 16px;font-size:13px;color:#134e4a;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+@media(max-width:600px){.kpi-row{grid-template-columns:1fr}.results-grid{grid-template-columns:1fr}}
+```
+
+- [ ] **Step 2: Replace Step 4 placeholder panel**
+
+```html
+<div class="panel" id="p4">
+  <div class="step-header">
+    <h2>עלויות הפרויקט</h2>
+    <p id="resultsSubtitle">טוען...</p>
+  </div>
+  <div class="kpi-row" id="kpiRow"></div>
+  <div id="matchingNote"></div>
+  <div class="results-grid">
+    <div class="results-box">
+      <div class="results-box-title">פירוט לפי תפקיד</div>
+      <table class="breakdown-table" id="breakdownTable"></table>
+    </div>
+    <div class="results-box">
+      <div class="results-box-title">התפלגות עלות שנתית</div>
+      <div class="bar-chart" id="barChart"></div>
+    </div>
+  </div>
+  <div class="actions-row">
+    <button class="btn btn-primary" onclick="window.print()">הורד PDF 📄</button>
+    <button class="btn-outline" onclick="shareURL()">שתף קישור 🔗</button>
+    <button class="btn-outline" onclick="goStep(3);renderMixPanel()">‹ ערוך תמהיל</button>
+    <button class="btn-outline" onclick="resetAll()">פרויקט חדש +</button>
+  </div>
+  <div class="nav-row">
+    <button class="btn-back" onclick="goStep(3);renderMixPanel()">‹ חזור לתמהיל</button>
+  </div>
+</div>
+```
+
+- [ ] **Step 3: Add renderResults JS**
+
+```js
+const TEAL_SHADES = ['#0d9488','#14b8a6','#2dd4bf','#5eead4','#99f6e4','#ccfbf1'];
+
+function renderResults() {
+  const periods = [6, 12, 24];
+  const periodLabels = {6:'6 חודשים', 12:'שנה', 24:'שנתיים'};
+  const n = state.mix.length;
+  const projName = state.project.name || 'פרויקט';
+
+  // subtitle
+  document.getElementById('resultsSubtitle').textContent =
+    `${n} תפקידים · ${periodLabels[state.period]} · תעריף גג${state.matchingOn ? ` · מאצ'ינג ${state.matchingPct}%` : ''}`;
+
+  // KPI cards
+  document.getElementById('kpiRow').innerHTML = periods.map(p => {
+    const {gross, net} = calcTotalCost(state.mix, p, state.matchingOn, state.matchingPct);
+    const isHL = p === state.period;
+    return `<div class="kpi${isHL?' highlighted':''}">
+      <div class="kpi-period">${periodLabels[p]}</div>
+      <div class="kpi-total">${fmtCurrency(net, true)}</div>
+      <div class="kpi-label">עלות המשרד</div>
+      ${state.matchingOn?`<div class="kpi-gross">ברוטו: ${fmtCurrency(gross,true)}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // matching note
+  if (state.matchingOn) {
+    const {matching} = calcTotalCost(state.mix, state.period, true, state.matchingPct);
+    document.getElementById('matchingNote').innerHTML =
+      `<div class="matching-note">✅ מאצ'ינג ${state.matchingPct}% — חיסכון של ${fmtCurrency(matching,true)} לתקופה הנבחרת</div>`;
+  } else {
+    document.getElementById('matchingNote').innerHTML = '';
+  }
+
+  // breakdown table
+  const {monthlyPerRole} = calcTotalCost(state.mix, state.period, false, 0);
+  let tableRows = state.mix.map((m,i) => {
+    const role = ROLES_DATA.find(r => r.id === m.id);
+    const annual = monthlyPerRole[i] * 12;
+    return `<tr>
+      <td>${role.name}</td>
+      <td style="text-align:center">${LEVEL_LABELS[m.level]}</td>
+      <td style="text-align:center">${m.scope}%</td>
+      <td class="cost-val">${fmtCurrency(annual,true)}</td>
+    </tr>`;
+  }).join('');
+  const totalAnnual = monthlyPerRole.reduce((s,v)=>s+v,0)*12;
+  document.getElementById('breakdownTable').innerHTML = `
+    <tr><th>תפקיד</th><th style="text-align:center">רמה</th><th style="text-align:center">משרה</th><th style="text-align:left">שנתי</th></tr>
+    ${tableRows}
+    <tr class="total"><td colspan="3">סה"כ ברוטו שנתי</td><td class="cost-val">${fmtCurrency(totalAnnual,true)}</td></tr>`;
+
+  // bar chart
+  const maxAnnual = Math.max(...monthlyPerRole.map(v => v*12));
+  document.getElementById('barChart').innerHTML = state.mix.map((m,i) => {
+    const role = ROLES_DATA.find(r => r.id === m.id);
+    const annual = monthlyPerRole[i]*12;
+    const pct = maxAnnual > 0 ? Math.round(annual/maxAnnual*100) : 0;
+    const color = TEAL_SHADES[i % TEAL_SHADES.length];
+    return `<div class="bar-row">
+      <div class="bar-name" title="${role.name}">${role.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="bar-val">${fmtCurrency(annual,true)}</div>
+    </div>`;
+  }).join('');
+}
+```
+
+- [ ] **Step 4: Verify Step 4 in browser**
+
+Run full flow: Step 1 → Step 2 (select 4 roles) → Step 3 (configure) → Step 4. Check:
+- 3 KPI cards; selected period is navy/highlighted, shows net cost. Others show their period's cost.
+- Matching note shows savings amount (if matching on)
+- Breakdown table lists all roles with level, scope, annual cost + total row
+- Bar chart shows proportional bars; longest role = 100% bar width
+- "הורד PDF" triggers print dialog
+- "‹ ערוך תמהיל" goes back to step 3
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add takam-calculator.html
+git commit -m "feat: step 4 — results panel, KPI cards, breakdown table, bar chart"
+```
+
+---
+
+## Task 8: Share URL + Reset + Polish
+
+**Files:**
+- Modify: `takam-calculator.html`
+
+- [ ] **Step 1: Add shareURL and loadFromURL**
+
+```js
+// Encode state to URL hash
+function shareURL() {
+  const roles = state.mix.map(m => `${m.id}:${m.level}:${m.scope}`).join(',');
+  const hash = `v1|period=${state.period}|tariff=ceiling|matching=${state.matchingOn?1:0}|pct=${state.matchingPct}|roles=${roles}`;
+  location.hash = encodeURIComponent(hash);
+  navigator.clipboard.writeText(location.href).then(() => {
+    showToast('קישור הועתק ללוח ✓');
+  }).catch(() => {
+    showToast('העתק את הכתובת מסרגל הכתובות');
+  });
+}
+
+// Restore state from URL hash
+function loadFromURL() {
+  const raw = decodeURIComponent(location.hash.slice(1));
+  if (!raw.startsWith('v1|')) return;
+  try {
+    const parts = Object.fromEntries(raw.split('|').slice(1).map(p => p.split('=')));
+    state.period = [6,12,24].includes(+parts.period) ? +parts.period : 12;
+    state.matchingOn = parts.matching === '1';
+    state.matchingPct = Math.min(100, Math.max(1, +parts.pct || 30));
+    if (parts.roles) {
+      state.mix = parts.roles.split(',').map(r => {
+        const [id, level, scope] = r.split(':');
+        return {id, level, scope: +scope};
+      }).filter(m => ROLES_DATA.find(r => r.id === m.id));
+      state.selectedIds = new Set(state.mix.map(m => m.id));
+    }
+    if (state.mix.length > 0) {
+      goStep(4);
+      renderResults();
+    }
+  } catch(e) { /* invalid hash, ignore */ }
+}
+```
+
+- [ ] **Step 2: Add toast notification + resetAll**
+
+```js
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all 0.25s;pointer-events:none';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; }, 2500);
+}
+
+function resetAll() {
+  state.project = {name:'', ministry:''};
+  state.period = 12;
+  state.matchingOn = true;
+  state.matchingPct = 30;
+  state.selectedIds = new Set();
+  state.mix = [];
+  location.hash = '';
+  goStep(1);
+  // reset step 1 inputs
+  document.getElementById('projName').value = '';
+  document.getElementById('projMinistry').value = '';
+  document.getElementById('matchingPct').value = 30;
+  document.getElementById('matchingSw').classList.add('on');
+  document.getElementById('matchingPctRow').style.display = 'flex';
+  setPeriod(12);
+}
+```
+
+- [ ] **Step 3: Add init call at bottom of script**
+
+```js
+// Initialize: try loading from URL, otherwise start at step 1
+loadFromURL();
+```
+
+- [ ] **Step 4: Add print CSS**
+
+Add to `<style>`:
+```css
+/* ─── PRINT ─── */
+@media print {
+  .topbar, .wizard-progress, .nav-row, .actions-row, .sticky-bar, .btn-back { display: none !important; }
+  .panel { display: block !important; }
+  body { background: white; }
+  .kpi.highlighted { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .bar-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+```
+
+- [ ] **Step 5: Add hover animations CSS**
+
+```css
+/* ─── ANIMATIONS ─── */
+.role-card { transition: border-color 0.18s, background 0.18s, transform 0.18s, box-shadow 0.18s; }
+.role-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(13,148,136,0.12); }
+.btn-primary { transition: background 0.15s, transform 0.15s, box-shadow 0.15s; }
+.mix-role { transition: box-shadow 0.2s; }
+.kpi { transition: all 0.2s; }
+.level-btn { transition: all 0.15s; }
+.cat-pill { transition: all 0.15s; }
+```
+
+- [ ] **Step 6: Test share URL round-trip**
+
+1. Configure a mix in steps 1–3 and reach step 4.
+2. Click "שתף קישור" — toast "קישור הועתק" appears.
+3. Paste the URL in a new tab — page should open directly on step 4 with the same mix.
+4. Verify all roles, levels, scope %, period, and matching are restored correctly.
+
+- [ ] **Step 7: Test "פרויקט חדש"**
+
+Click "פרויקט חדש +" on step 4 — should return to step 1 with all fields reset.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add takam-calculator.html
+git commit -m "feat: share URL, reset, print CSS, hover animations"
+```
+
+---
+
+## Task 9: Responsive Polish + Final QA
+
+**Files:**
+- Modify: `takam-calculator.html`
+
+- [ ] **Step 1: Test on mobile viewport (375px)**
+
+Open Chrome DevTools → Toggle device toolbar → iPhone SE (375px wide). Check:
+- Step 1: inputs stack vertically, seg controls wrap
+- Step 2: role grid shows 2 columns, pills wrap
+- Step 3: mix params stack vertically (single column)
+- Step 4: KPI shows 1 per row, results grid stacks
+
+Fix any overflow or misalignment.
+
+- [ ] **Step 2: Test on tablet (768px)**
+
+Switch to iPad viewport. Check 2-column layouts look good.
+
+- [ ] **Step 3: Cross-browser check**
+
+Open in Firefox and Edge. Verify:
+- Heebo font loads
+- Toggle switch, sliders, all inputs look correct
+- No layout breakage
+
+- [ ] **Step 4: Edge case — single role in mix**
+
+Select only 1 role, proceed through all steps. Verify bar chart and table show 1 row, no JS errors.
+
+- [ ] **Step 5: Edge case — max roles**
+
+Select all 35 roles (click "הכל" + select all). Proceed to step 3. Verify page doesn't break. Proceed to step 4 — verify bar chart handles many bars.
+
+- [ ] **Step 6: Edge case — invalid hash in URL**
+
+Navigate to `takam-calculator.html#garbage`. Verify page loads on step 1 normally with no errors.
+
+- [ ] **Step 7: Final commit**
+
+```bash
+git add takam-calculator.html
+git commit -m "feat: responsive polish, final QA — TAKAM calculator v1 complete"
+```
+
+---
+
+## Summary
+
+| Task | Deliverable |
+|------|-------------|
+| 1 | HTML skeleton, design tokens, topbar |
+| 2 | Wizard progress bar, step navigation |
+| 3 | ROLES_DATA (35 roles), calc engine, state |
+| 4 | Step 1 — project setup panel |
+| 5 | Step 2 — role picker with search + filter |
+| 6 | Step 3 — mix configuration, level + scope |
+| 7 | Step 4 — KPI cards, table, bar chart |
+| 8 | Share URL, reset, print CSS, animations |
+| 9 | Responsive polish, edge cases, final QA |
+
+> **נדחה ל-v2:** גרף Stacked bar (ברוטו vs. מאצ'ינג) — בשלב זה מוצג רק ה-bar chart האופקי לפי תפקיד. ה-Stacked bar יתווסף בגרסה 2.
