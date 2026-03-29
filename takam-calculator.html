@@ -909,6 +909,65 @@ function showAiError(msg) {
   el.classList.remove('hidden');
 }
 
+const LEVEL_NAMES = { a: 'בסיסי', b: 'מתקדם', c: 'מומחה', d: 'בכיר' };
+
+function renderAiResults(summary, roles) {
+  document.getElementById('aiSummary').textContent = summary;
+
+  const list = document.getElementById('aiRolesList');
+  list.innerHTML = '';
+
+  roles.forEach((rec, idx) => {
+    const roleData = ROLES_DATA.find(r => r.id === rec.id);
+    const name = roleData ? roleData.name : rec.id;
+    const levelName = LEVEL_NAMES[rec.level] || rec.level;
+    const alreadyAdded = state.selectedIds.has(rec.id);
+
+    const row = document.createElement('div');
+    row.className = 'ai-role-row';
+    row.dataset.idx = idx;
+    row.innerHTML = `
+      <div class="ai-role-info">
+        <div class="ai-role-name">${name}</div>
+        <div class="ai-role-meta">רמה: ${levelName} | משרה: ${rec.scope}%</div>
+        ${rec.reason ? `<div class="ai-role-reason">${rec.reason}</div>` : ''}
+      </div>
+      <button class="ai-add-btn" id="aiAddBtn-${idx}"
+        onclick="addRoleFromAi(${idx})"
+        ${alreadyAdded ? 'disabled' : ''}>
+        ${alreadyAdded ? '✓ נוסף' : '+ הוסף לתמהיל'}
+      </button>`;
+    list.appendChild(row);
+  });
+
+  document.getElementById('aiResults').classList.remove('hidden');
+}
+
+function addRoleFromAi(idx) {
+  const rec = aiRecs[idx];
+  if (!rec) return;
+
+  state.selectedIds.add(rec.id);
+  const existing = state.mix.find(m => m.id === rec.id);
+  if (existing) {
+    existing.level = rec.level;
+    existing.scope = rec.scope;
+  } else {
+    state.mix.push({ id: rec.id, level: rec.level, scope: rec.scope });
+  }
+  updateStickyBar();
+
+  const btn = document.getElementById(`aiAddBtn-${idx}`);
+  if (btn) { btn.textContent = '✓ נוסף'; btn.disabled = true; }
+}
+
+function addAllAiRoles() {
+  aiRecs.forEach((_, idx) => {
+    const btn = document.getElementById(`aiAddBtn-${idx}`);
+    if (btn && !btn.disabled) addRoleFromAi(idx);
+  });
+}
+
 // Initialize: try loading from URL hash, otherwise stay on step 1
 loadFromURL();
 </script>
