@@ -202,6 +202,49 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
 .kpi{transition:all 0.2s}
 .level-btn{transition:all 0.15s}
 .cat-pill{transition:all 0.15s}
+/* ─── AI ADVISOR ─── */
+.ai-fab{position:fixed;bottom:24px;left:24px;z-index:200;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;border:none;border-radius:50px;padding:0 20px;height:44px;font-size:14px;font-weight:700;font-family:Heebo,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(13,148,136,0.45);transition:transform .15s,box-shadow .15s}
+.ai-fab:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(13,148,136,0.55)}
+.ai-fab .fab-icon{font-size:18px}
+.ai-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px}
+.ai-overlay.hidden{display:none}
+.ai-modal{background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;direction:rtl;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.ai-modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;border-bottom:1px solid #f1f5f9;padding-bottom:16px}
+.ai-modal-head h2{margin:0;font-size:18px;font-weight:700;color:#0f172a}
+.ai-modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;line-height:1;padding:4px}
+.ai-modal-close:hover{color:#475569}
+.ai-modal-body{padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px}
+.ai-field{display:flex;flex-direction:column;gap:6px}
+.ai-label{font-size:13px;font-weight:600;color:#374151}
+.ai-sublabel{font-size:12px;color:#94a3b8}
+.ai-key-row{display:flex;gap:8px;align-items:center}
+.ai-input{flex:1;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:13px;font-family:Heebo,sans-serif;outline:none;direction:ltr}
+.ai-input:focus{border-color:#14b8a6}
+.ai-link{font-size:12px;color:#0d9488;text-decoration:none;white-space:nowrap}
+.ai-link:hover{text-decoration:underline}
+.ai-textarea{border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:13px;font-family:Heebo,sans-serif;resize:vertical;min-height:120px;outline:none;direction:rtl;width:100%;box-sizing:border-box}
+.ai-textarea:focus{border-color:#14b8a6}
+.ai-btn-analyze{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;font-family:Heebo,sans-serif;cursor:pointer;transition:opacity .2s}
+.ai-btn-analyze:disabled{opacity:.45;cursor:not-allowed}
+.ai-btn-analyze:not(:disabled):hover{opacity:.9}
+.ai-results{display:flex;flex-direction:column;gap:12px}
+.ai-results.hidden{display:none}
+.ai-results-title{font-size:15px;font-weight:700;color:#0f172a;margin:0}
+.ai-summary{font-size:13px;color:#475569;line-height:1.6;background:#f8fafc;border-radius:8px;padding:12px}
+.ai-role-row{display:flex;align-items:flex-start;gap:12px;background:#f8fafc;border-radius:10px;padding:12px;border:1px solid #e2e8f0}
+.ai-role-info{flex:1}
+.ai-role-name{font-size:14px;font-weight:700;color:#0f172a}
+.ai-role-meta{font-size:12px;color:#0d9488;margin-top:2px}
+.ai-role-reason{font-size:12px;color:#64748b;margin-top:4px}
+.ai-add-btn{background:#fff;border:1.5px solid #14b8a6;color:#0d9488;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;font-family:Heebo,sans-serif;cursor:pointer;white-space:nowrap;transition:background .15s}
+.ai-add-btn:hover:not(:disabled){background:#f0fdfa}
+.ai-add-btn:disabled{opacity:.55;cursor:default}
+.ai-add-all{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;font-family:Heebo,sans-serif;cursor:pointer;transition:opacity .2s}
+.ai-add-all:hover{opacity:.9}
+.ai-error{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:13px;color:#dc2626}
+.ai-error.hidden{display:none}
+.ai-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
