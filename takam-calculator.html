@@ -809,7 +809,7 @@ function tryGoStep(n) {
 }
 
 // ── AI ADVISOR ──────────────────────────────────────────
-const AI_KEY_LS = 'takam_claude_key';
+const AI_KEY_LS = 'takam_gemini_key';
 let aiRecs = [];
 
 function openAiModal() {
@@ -866,28 +866,34 @@ async function runAiAnalysis() {
   document.getElementById('aiResults').classList.add('hidden');
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        system: buildSystemPrompt(),
-        messages: [{ role: 'user', content: `תאר פרויקט: ${desc}` }]
-      })
-    });
-
-    if (res.status === 401) { showAiError('מפתח API שגוי — בדוק את המפתח'); return; }
-    if (!res.ok) { showAiError(`שגיאת שרת (${res.status}), נסה שוב`); return; }
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: buildSystemPrompt() }] },
+          contents: [{ parts: [{ text: `תאר פרויקט: ${desc}` }] }]
+        })
+      }
+    );
 
     const data = await res.json();
-    let raw = data.content[0].text.trim();
-    // Strip markdown code fences if present
+
+    if (res.status === 400 || res.status === 403) {
+      showAiError('מפתח API שגוי — בדוק את המפתח ב-aistudio.google.com');
+      return;
+    }
+    if (!res.ok) {
+      showAiError(`שגיאת שרת (${res.status}), נסה שוב`);
+      return;
+    }
+    if (data.error) {
+      showAiError(data.error.message || 'שגיאה, נסה שוב');
+      return;
+    }
+
+    let raw = data.candidates[0].content.parts[0].text.trim();
     raw = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
     let parsed;
     try { parsed = JSON.parse(raw); }
@@ -988,13 +994,13 @@ loadFromURL();
 
       <!-- API Key field -->
       <div class="ai-field">
-        <label class="ai-label">מפתח Claude API</label>
+        <label class="ai-label">מפתח Gemini API</label>
         <div class="ai-key-row">
           <input type="password" class="ai-input" id="aiKeyInput"
-            placeholder="sk-ant-..."
+            placeholder="AIza..."
             oninput="updateAnalyzeBtn()"
             onblur="saveApiKey()">
-          <a class="ai-link" href="https://console.anthropic.com/" target="_blank">איך מקבלים מפתח?</a>
+          <a class="ai-link" href="https://aistudio.google.com/" target="_blank">איך מקבלים מפתח?</a>
         </div>
         <span class="ai-sublabel">המפתח נשמר על המחשב שלך בלבד (localStorage)</span>
       </div>
