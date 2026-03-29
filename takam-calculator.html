@@ -839,6 +839,76 @@ function updateAnalyzeBtn() {
   document.getElementById('aiAnalyzeBtn').disabled = !key || !desc;
 }
 
+function buildSystemPrompt() {
+  const rolesList = ROLES_DATA.map(r => {
+    const levels = Object.keys(r.rates).join('/');
+    return `${r.id} | ${r.name} | קטגוריה: ${r.cat} | רמות: ${levels}`;
+  }).join('\n');
+  return `אתה יועץ לתמהיל משאבי IT לפרויקטים ממשלתיים ישראליים.
+הנה 35 תפקידי תכ"ם הזמינים:
+${rolesList}
+
+על בסיס תיאור הפרויקט, החזר JSON בלבד (ללא טקסט נוסף, ללא markdown, ללא קוד בלוקים) בפורמט:
+{"summary":"הסבר קצר של 2-3 משפטים","roles":[{"id":"1.1","level":"b","scope":100,"reason":"נדרש ל..."}]}
+רמות: a=בסיסי, b=מתקדם, c=מומחה, d=בכיר. scope הוא % משרה (25/50/75/100).
+החזר רק תפקידים רלוונטיים לפרויקט.`;
+}
+
+async function runAiAnalysis() {
+  const key = document.getElementById('aiKeyInput').value.trim();
+  const desc = document.getElementById('aiProjectDesc').value.trim();
+  saveApiKey();
+
+  const btn = document.getElementById('aiAnalyzeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ai-spinner"></span> מנתח...';
+  document.getElementById('aiError').classList.add('hidden');
+  document.getElementById('aiResults').classList.add('hidden');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        system: buildSystemPrompt(),
+        messages: [{ role: 'user', content: `תאר פרויקט: ${desc}` }]
+      })
+    });
+
+    if (res.status === 401) { showAiError('מפתח API שגוי — בדוק את המפתח'); return; }
+    if (!res.ok) { showAiError(`שגיאת שרת (${res.status}), נסה שוב`); return; }
+
+    const data = await res.json();
+    let raw = data.content[0].text.trim();
+    // Strip markdown code fences if present
+    raw = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch { showAiError('לא הצלחנו לנתח את התשובה, נסה שוב'); return; }
+
+    aiRecs = parsed.roles || [];
+    renderAiResults(parsed.summary, aiRecs);
+  } catch {
+    showAiError('שגיאת חיבור, בדוק אינטרנט');
+  } finally {
+    btn.innerHTML = '✨ נתח את הפרויקט';
+    updateAnalyzeBtn();
+  }
+}
+
+function showAiError(msg) {
+  const el = document.getElementById('aiError');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
 // Initialize: try loading from URL hash, otherwise stay on step 1
 loadFromURL();
 </script>
