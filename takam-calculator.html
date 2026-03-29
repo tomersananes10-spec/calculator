@@ -54,6 +54,48 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
 .step-header{margin-bottom:24px}
 .step-header h2{font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
 .step-header p{font-size:14px;color:var(--text2)}
+
+/* ─── SHARED COMPONENTS ─── */
+.card-box{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field-label{font-size:13px;font-weight:600;color:var(--text2)}
+.field-sub{font-size:11px;color:var(--text3);margin-top:-3px}
+.input{width:100%;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;padding:10px 13px;font-size:14px;font-family:inherit;color:var(--text);outline:none;transition:border-color 0.15s}
+.input:focus{border-color:var(--teal)}
+/* Segmented control */
+.seg{display:flex;background:#f1f5f9;border:1.5px solid var(--border);border-radius:10px;padding:3px;gap:2px}
+.seg-btn{flex:1;text-align:center;padding:8px 6px;border-radius:7px;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;transition:all 0.15s;font-family:inherit;border:none;background:transparent;white-space:nowrap}
+.seg-btn.on{background:var(--surface);color:var(--teal);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid var(--teal-mid)}
+.seg-btn:disabled{opacity:0.4;cursor:not-allowed}
+/* Toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px 15px}
+.toggle-info{display:flex;flex-direction:column;gap:2px}
+.toggle-name{font-size:13px;font-weight:600;color:var(--text)}
+.toggle-sub{font-size:11px;color:var(--text3)}
+.sw{width:44px;height:24px;border-radius:12px;background:var(--border2);cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;border:none}
+.sw.on{background:var(--teal)}
+.sw::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;right:3px;transition:transform 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.sw.on::after{transform:translateX(-20px)}
+/* Number input row */
+.num-row{display:flex;align-items:center;gap:10px}
+.num-input{width:80px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;padding:8px 10px;font-size:14px;font-family:inherit;color:var(--text);outline:none;text-align:center;transition:border-color 0.15s}
+.num-input:focus{border-color:var(--teal)}
+/* Setup grid */
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* Nav buttons */
+.nav-row{display:flex;align-items:center;gap:10px;margin-top:28px;flex-wrap:wrap}
+.nav-spacer{flex:1}
+.btn{padding:11px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all 0.15s;white-space:nowrap}
+.btn-primary{background:var(--teal);color:#fff;box-shadow:0 4px 12px rgba(13,148,136,0.3)}
+.btn-primary:hover{background:var(--teal2);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.btn-back{padding:10px 18px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-family:inherit;transition:all 0.15s}
+.btn-back:hover{border-color:var(--teal);color:var(--teal)}
+.btn-outline{padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-family:inherit;transition:all 0.15s}
+.btn-outline:hover{border-color:var(--teal);color:var(--teal)}
+/* Responsive */
+@media(max-width:600px){.setup-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -101,7 +143,56 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
 </div>
 <div class="main">
-  <div class="panel active" id="p1"><div class="step-header"><h2>פרטי הפרויקט</h2><p>הגדר את המסגרת הכללית</p></div><p style="color:var(--text3)">תוכן שלב 1 — בקרוב</p></div>
+  <div class="panel active" id="p1">
+    <div class="step-header">
+      <h2>פרטי הפרויקט</h2>
+      <p>הגדר את המסגרת הכללית לפני שנבחר תפקידים</p>
+    </div>
+    <div class="card-box">
+      <div class="setup-grid">
+        <div class="field">
+          <label class="field-label">שם הפרויקט <span style="font-weight:400;color:var(--text3)">(אופציונלי)</span></label>
+          <input class="input" id="projName" type="text" placeholder="למשל: פיתוח מערכת HR">
+        </div>
+        <div class="field">
+          <label class="field-label">משרד / גוף <span style="font-weight:400;color:var(--text3)">(אופציונלי)</span></label>
+          <input class="input" id="projMinistry" type="text" placeholder="שם הגוף הממשלתי">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">תקופת החישוב</label>
+        <div class="seg" id="periodSeg">
+          <button class="seg-btn" onclick="setPeriod(6)">6 חודשים</button>
+          <button class="seg-btn on" onclick="setPeriod(12)">שנה</button>
+          <button class="seg-btn" onclick="setPeriod(24)">שנתיים</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">סוג תעריף</label>
+        <div class="field-sub">תעריף גג — המחיר המרבי המוחלט לפי נספח יג</div>
+        <div class="seg">
+          <button class="seg-btn on">תעריף גג 🔴</button>
+          <button class="seg-btn" disabled title="יתווסף בגרסה 2 — ממתין לנתונים">תעריף מרבי 🟡</button>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-top:4px">
+        <div class="toggle-info">
+          <span class="toggle-name">מאצ'ינג — מערך הדיגיטל הלאומי</span>
+          <span class="toggle-sub">גורע מהעלות הכוללת של המשרד</span>
+        </div>
+        <button class="sw on" id="matchingSw" onclick="toggleMatching()"></button>
+      </div>
+      <div id="matchingPctRow" style="margin-top:10px;display:flex;align-items:center;gap:10px">
+        <span class="field-label">אחוז מאצ'ינג:</span>
+        <input class="num-input" id="matchingPct" type="number" value="30" min="1" max="100" oninput="state.matchingPct=parseInt(this.value)||30">
+        <span class="field-label">%</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <div class="nav-spacer"></div>
+      <button class="btn btn-primary" onclick="proceedToStep2()">המשך — בחירת תפקידים ›</button>
+    </div>
+  </div>
   <div class="panel" id="p2"><div class="step-header"><h2>בחירת תפקידים</h2><p>בחר תפקידים לתמהיל</p></div><p style="color:var(--text3)">תוכן שלב 2 — בקרוב</p></div>
   <div class="panel" id="p3"><div class="step-header"><h2>הגדרת תמהיל</h2><p>רמה ואחוז משרה לכל תפקיד</p></div><p style="color:var(--text3)">תוכן שלב 3 — בקרוב</p></div>
   <div class="panel" id="p4"><div class="step-header"><h2>תוצאות ועלויות</h2><p>עלות הפרויקט המלאה</p></div><p style="color:var(--text3)">תוכן שלב 4 — בקרוב</p></div>
@@ -184,6 +275,29 @@ const state = {
   selectedIds: new Set(),
   mix: [],
 };
+
+function setPeriod(months) {
+  state.period = months;
+  const labels = {6:'6 חודשים', 12:'שנה', 24:'שנתיים'};
+  document.querySelectorAll('#periodSeg .seg-btn').forEach(b => {
+    b.classList.toggle('on', b.textContent.trim() === labels[months]);
+  });
+}
+
+function toggleMatching() {
+  state.matchingOn = !state.matchingOn;
+  document.getElementById('matchingSw').classList.toggle('on', state.matchingOn);
+  document.getElementById('matchingPctRow').style.display = state.matchingOn ? 'flex' : 'none';
+}
+
+function proceedToStep2() {
+  state.project.name = document.getElementById('projName').value;
+  state.project.ministry = document.getElementById('projMinistry').value;
+  goStep(2);
+  renderRolePicker();
+}
+
+function renderRolePicker() { /* stub — Task 5 */ }
 
 let currentStep = 1;
 
