@@ -809,11 +809,10 @@ function tryGoStep(n) {
 }
 
 // ── AI ADVISOR ──────────────────────────────────────────
-const AI_KEY_LS = 'takam_gemini_key';
+const GEMINI_API_KEY = 'AIzaSyDzPyl4bQ4IqynKqGGEQsVc4p6XdwZXcTQ';
 let aiRecs = [];
 
 function openAiModal() {
-  document.getElementById('aiKeyInput').value = localStorage.getItem(AI_KEY_LS) || '';
   updateAnalyzeBtn();
   document.getElementById('aiOverlay').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -828,15 +827,11 @@ function handleOverlayClick(e) {
   if (e.target === document.getElementById('aiOverlay')) closeAiModal();
 }
 
-function saveApiKey() {
-  const val = document.getElementById('aiKeyInput').value.trim();
-  if (val) localStorage.setItem(AI_KEY_LS, val);
-}
+function saveApiKey() {}
 
 function updateAnalyzeBtn() {
-  const key = document.getElementById('aiKeyInput').value.trim();
   const desc = document.getElementById('aiProjectDesc').value.trim();
-  document.getElementById('aiAnalyzeBtn').disabled = !key || !desc;
+  document.getElementById('aiAnalyzeBtn').disabled = !desc;
 }
 
 function buildSystemPrompt() {
@@ -855,7 +850,7 @@ ${rolesList}
 }
 
 async function runAiAnalysis() {
-  const key = document.getElementById('aiKeyInput').value.trim();
+  const key = GEMINI_API_KEY;
   const desc = document.getElementById('aiProjectDesc').value.trim();
   saveApiKey();
 
@@ -992,18 +987,6 @@ loadFromURL();
 
     <div class="ai-modal-body">
 
-      <!-- API Key field -->
-      <div class="ai-field">
-        <label class="ai-label">מפתח Gemini API</label>
-        <div class="ai-key-row">
-          <input type="password" class="ai-input" id="aiKeyInput"
-            placeholder="AIza..."
-            oninput="updateAnalyzeBtn()"
-            onblur="saveApiKey()">
-          <a class="ai-link" href="https://aistudio.google.com/" target="_blank">איך מקבלים מפתח?</a>
-        </div>
-        <span class="ai-sublabel">המפתח נשמר על המחשב שלך בלבד (localStorage)</span>
-      </div>
 
       <!-- Project description -->
       <div class="ai-field">
