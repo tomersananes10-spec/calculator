@@ -96,6 +96,32 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
 .btn-outline:hover{border-color:var(--teal);color:var(--teal)}
 /* Responsive */
 @media(max-width:600px){.setup-grid{grid-template-columns:1fr}}
+
+/* ─── ROLE PICKER ─── */
+.role-search-wrap{position:relative;margin-bottom:14px}
+.role-search-wrap input{width:100%;padding:11px 12px 11px 38px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.15s;background:var(--surface)}
+.role-search-wrap input:focus{border-color:var(--teal)}
+.role-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none}
+.cat-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.cat-pill{padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:inherit}
+.cat-pill.on{background:var(--teal-pale);border-color:var(--teal);color:var(--teal)}
+.role-cat-section{margin-bottom:20px}
+.role-cat-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.role-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:7px}
+.role-card{background:var(--surface);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none}
+.role-card:hover{border-color:var(--teal2);background:var(--teal-pale);transform:translateY(-1px)}
+.role-card.selected{border-color:var(--teal);background:var(--teal-pale)}
+.role-card-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.3}
+.role-card.selected .role-card-name{color:var(--teal);font-weight:700}
+.role-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all 0.15s;flex-shrink:0}
+.role-card.selected .role-check{background:var(--teal);border-color:var(--teal);color:#fff}
+/* sticky bottom bar */
+.sticky-bar{position:fixed;bottom:0;right:0;left:0;background:var(--navy);padding:12px 24px;display:flex;align-items:center;gap:14px;z-index:90;transform:translateY(100%);transition:transform 0.25s}
+.sticky-bar.visible{transform:translateY(0)}
+.sticky-bar-text{color:rgba(255,255,255,0.55);font-size:13px}
+.sticky-bar-count{color:#fff;font-weight:700;font-size:15px}
+.sticky-bar-spacer{flex:1}
+@media(max-width:500px){.role-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -193,7 +219,23 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
       <button class="btn btn-primary" onclick="proceedToStep2()">המשך — בחירת תפקידים ›</button>
     </div>
   </div>
-  <div class="panel" id="p2"><div class="step-header"><h2>בחירת תפקידים</h2><p>בחר תפקידים לתמהיל</p></div><p style="color:var(--text3)">תוכן שלב 2 — בקרוב</p></div>
+  <div class="panel" id="p2">
+    <div class="step-header">
+      <h2>בחירת תפקידים לתמהיל</h2>
+      <p>בחר את כל התפקידים שיהיו חלק מהפרויקט</p>
+    </div>
+    <div class="role-search-wrap">
+      <span class="role-search-icon">🔍</span>
+      <input type="text" id="roleSearch" placeholder="חפש תפקיד..." oninput="filterRoles()">
+    </div>
+    <div class="cat-pills" id="catPills"></div>
+    <div id="roleList"></div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goStep(1)">‹ חזור</button>
+      <div class="nav-spacer"></div>
+      <button class="btn btn-primary" id="toStep3Btn" disabled onclick="proceedToStep3()">המשך — הגדרת תמהיל ›</button>
+    </div>
+  </div>
   <div class="panel" id="p3"><div class="step-header"><h2>הגדרת תמהיל</h2><p>רמה ואחוז משרה לכל תפקיד</p></div><p style="color:var(--text3)">תוכן שלב 3 — בקרוב</p></div>
   <div class="panel" id="p4"><div class="step-header"><h2>תוצאות ועלויות</h2><p>עלות הפרויקט המלאה</p></div><p style="color:var(--text3)">תוכן שלב 4 — בקרוב</p></div>
 </div>
@@ -297,7 +339,76 @@ function proceedToStep2() {
   renderRolePicker();
 }
 
-function renderRolePicker() { /* stub — Task 5 */ }
+const CATS = ['הכל','ניהול','פיתוח','דאטה ובינה','תשתיות','תמיכה','ERP/SAP','ארכיטקטורה'];
+const CAT_ICONS = {'ניהול':'📋','פיתוח':'💻','דאטה ובינה':'📊','תשתיות':'🔧','תמיכה':'🤝','ERP/SAP':'🏢','ארכיטקטורה':'🏗️'};
+let activeCat = 'הכל';
+
+function renderRolePicker() {
+  const pillsEl = document.getElementById('catPills');
+  pillsEl.innerHTML = CATS.map(c =>
+    `<button class="cat-pill${c===activeCat?' on':''}" onclick="setCat('${c}')">${c}</button>`
+  ).join('');
+  renderRoleList();
+}
+
+function renderRoleList() {
+  const q = (document.getElementById('roleSearch')?.value||'').trim().toLowerCase();
+  const listEl = document.getElementById('roleList');
+  const filtered = ROLES_DATA.filter(r =>
+    (activeCat === 'הכל' || r.cat === activeCat) &&
+    (!q || r.name.toLowerCase().includes(q) || r.id.includes(q))
+  );
+  const bycat = {};
+  filtered.forEach(r => { (bycat[r.cat]||(bycat[r.cat]=[])).push(r); });
+  listEl.innerHTML = Object.entries(bycat).map(([cat, roles]) => `
+    <div class="role-cat-section">
+      <div class="role-cat-title"><span>${CAT_ICONS[cat]||''}</span> ${cat}</div>
+      <div class="role-grid">
+        ${roles.map(r => `
+          <div class="role-card${state.selectedIds.has(r.id)?' selected':''}" onclick="toggleRole('${r.id}')" data-id="${r.id}">
+            <span class="role-card-name">${r.name}</span>
+            <span class="role-check">✓</span>
+          </div>`).join('')}
+      </div>
+    </div>`).join('') || '<p style="color:var(--text3);padding:20px 0">לא נמצאו תפקידים</p>';
+  updateStickyBar();
+}
+
+function setCat(cat) {
+  activeCat = cat;
+  renderRolePicker();
+}
+
+function filterRoles() { renderRoleList(); }
+
+function toggleRole(id) {
+  if (state.selectedIds.has(id)) state.selectedIds.delete(id);
+  else state.selectedIds.add(id);
+  document.querySelectorAll(`[data-id="${id}"]`).forEach(el => el.classList.toggle('selected', state.selectedIds.has(id)));
+  updateStickyBar();
+}
+
+function updateStickyBar() {
+  const n = state.selectedIds.size;
+  const bar = document.getElementById('stickyBar');
+  const btn = document.getElementById('toStep3Btn');
+  if (!bar) return;
+  bar.classList.toggle('visible', n > 0);
+  bar.querySelector('.sticky-bar-count').textContent = n;
+  if (btn) btn.disabled = n === 0;
+}
+
+function proceedToStep3() {
+  state.mix = [...state.selectedIds].map(id => {
+    const role = ROLES_DATA.find(r => r.id === id);
+    const firstLevel = Object.keys(role.rates)[0];
+    return {id, level: firstLevel, scope: 100};
+  });
+  goStep(3);
+  renderMixPanel();
+}
+
+function renderMixPanel() { /* stub — Task 6 */ }
 
 let currentStep = 1;
 
@@ -319,6 +430,13 @@ function tryGoStep(n) {
   // Allow going back to done steps only
   if (n < currentStep) goStep(n);
 }
+<div class="sticky-bar" id="stickyBar">
+  <span class="sticky-bar-text">נבחרו</span>
+  <span class="sticky-bar-count">0</span>
+  <span class="sticky-bar-text">תפקידים</span>
+  <div class="sticky-bar-spacer"></div>
+  <button class="btn btn-primary" onclick="proceedToStep3()">המשך ›</button>
+</div>
 </script>
 </body>
 </html>
