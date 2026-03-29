@@ -107,6 +107,84 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
   <div class="panel" id="p4"><div class="step-header"><h2>תוצאות ועלויות</h2><p>עלות הפרויקט המלאה</p></div><p style="color:var(--text3)">תוכן שלב 4 — בקרוב</p></div>
 </div>
 <script>
+const VAT = 1.17; // 17% — fixed constant
+const HOURS_PER_MONTH = 176; // 22 days × 8 hours
+
+const ROLES_DATA = [
+  {id:'1.1', name:'אחראי תחום פיתוח ואפליקציות', cat:'ניהול',    rates:{b:202,c:249}},
+  {id:'1.2', name:'אחראי תחום פיתוח ותשתיות',   cat:'ניהול',    rates:{b:207,c:243}},
+  {id:'1.3', name:'אחראי תפעול / הטמעה',         cat:'ניהול',    rates:{b:185,c:211}},
+  {id:'1.5', name:'אחראי מתודולוגיה/אינטגרציה', cat:'ניהול',    rates:{b:191,c:217}},
+  {id:'1.6', name:'קצין ניהול פרויקטים PMO',     cat:'ניהול',    rates:{a:151,b:202,c:232}},
+  {id:'2.1', name:'אחראי פרויקט',                cat:'פיתוח',   rates:{b:219,c:284}},
+  {id:'2.2', name:'מנחת מערכות',                 cat:'פיתוח',   rates:{a:151,b:174,c:218,d:240}},
+  {id:'2.3', name:'מפתח תוכנה',                  cat:'פיתוח',   rates:{a:146,b:192,c:229,d:266}},
+  {id:'2.4', name:'בודק תוכנה / QA',             cat:'פיתוח',   rates:{a:99,b:128,c:170,d:184}},
+  {id:'2.5', name:'מידען / עורך תוכן',           cat:'פיתוח',   rates:{a:76,b:93,c:110}},
+  {id:'2.6', name:'אפיון UX/UI',                 cat:'פיתוח',   rates:{a:142,b:169,c:201,d:235}},
+  {id:'2.7', name:'אנליטיקה של הנתונים',         cat:'דאטה ובינה', rates:{a:150,b:162,c:189}},
+  {id:'2.8', name:'פיתוח וייישום פלטפורמה',      cat:'פיתוח',   rates:{b:191,c:224}},
+  {id:'2.9', name:'DevOps',                       cat:'פיתוח',   rates:{a:185,b:232,c:280}},
+  {id:'2.11',name:'מדע הנתונים',                 cat:'דאטה ובינה', rates:{b:272,c:304,d:342}},
+  {id:'2.12',name:'הנדסת נתונים',                cat:'דאטה ובינה', rates:{a:193,b:209,c:248,d:280}},
+  {id:'2.13',name:'ניהול מוצר',                  cat:'פיתוח',   rates:{b:220,c:269,d:294}},
+  {id:'3.1', name:'איש תקשורת ורשתות',           cat:'תשתיות',  rates:{a:153,b:174,c:196,d:229}},
+  {id:'3.2', name:'טכנאי ציוד מחשבים',           cat:'תשתיות',  rates:{a:79,b:98,c:142}},
+  {id:'3.3', name:'איש צוות סיסטם',              cat:'תשתיות',  rates:{a:164,b:183,c:221}},
+  {id:'3.4', name:'מנהל בסיס נתונים DBA',        cat:'תשתיות',  rates:{a:149,b:184,c:219,d:233}},
+  {id:'3.7', name:'בקרת מערכות שליטה',           cat:'תשתיות',  rates:{a:95,b:128,c:147}},
+  {id:'3.8', name:'מיישם הגנת סייבר',            cat:'תשתיות',  rates:{a:124,b:204,c:246}},
+  {id:'3.9', name:'תפעול תשתיית ענן',            cat:'תשתיות',  rates:{a:161,b:201,c:242}},
+  {id:'4.1', name:'נאמן מחשוב / רפרנט',          cat:'תמיכה',   rates:{a:89,b:120,c:133}},
+  {id:'4.2', name:'איש סיוע ותמיכה',             cat:'תמיכה',   rates:{a:77,b:89,c:134}},
+  {id:'4.3', name:'מדריך / מטמיע',               cat:'תמיכה',   rates:{a:81,b:95,c:143}},
+  {id:'4.4', name:'מפעיל / פקיד ביצוע',          cat:'תמיכה',   rates:{a:66,b:78}},
+  {id:'5.1', name:'מיישם SAP בסביבת ERP',        cat:'ERP/SAP', rates:{a:183,b:237,c:286,d:314}},
+  {id:'5.2', name:'איש תשתיות SAP/ERP',          cat:'ERP/SAP', rates:{a:182,b:231,c:293}},
+  {id:'6.1', name:'אחראי מערכות המידע',          cat:'ארכיטקטורה', rates:{b:284,c:323,d:327}},
+  {id:'6.2', name:'ארכיטקט ראשי',                cat:'ארכיטקטורה', rates:{a:252,b:311,c:327}},
+  {id:'6.4', name:'מומחה טכנולוגיות הגנת סייבר', cat:'ארכיטקטורה', rates:{b:306,c:358}},
+  {id:'6.5', name:'מומחה מתודולוגיות הגנת סייבר',cat:'ארכיטקטורה', rates:{b:306,c:358}},
+  {id:'6.6', name:'חוקר סייבר',                  cat:'ארכיטקטורה', rates:{a:217,b:306,c:358,d:423}},
+  {id:'6.7', name:'ארכיטקט פתרונות',             cat:'ארכיטקטורה', rates:{a:275,b:340,c:358}},
+];
+
+function calcRoleMonthlyCost(mixEntry) {
+  const role = ROLES_DATA.find(r => r.id === mixEntry.id);
+  if (!role) return 0;
+  const rate = role.rates[mixEntry.level];
+  if (!rate) return 0;
+  const hours = HOURS_PER_MONTH * (mixEntry.scope / 100);
+  return Math.round(rate * hours * VAT);
+}
+
+function calcTotalCost(mix, months, matchingOn, matchingPct) {
+  const monthlyPerRole = mix.map(m => calcRoleMonthlyCost(m));
+  const grossMonthly = monthlyPerRole.reduce((s,v) => s+v, 0);
+  const gross = grossMonthly * months;
+  const matching = matchingOn ? Math.round(gross * matchingPct / 100) : 0;
+  const net = gross - matching;
+  return {gross, matching, net, monthlyPerRole};
+}
+
+function fmtCurrency(n, compact=false) {
+  if (compact) {
+    if (n >= 1_000_000) return '₪' + (n/1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000) return '₪' + Math.round(n/1_000) + 'K';
+  }
+  return '₪' + n.toLocaleString('he-IL');
+}
+
+const state = {
+  project: {name:'', ministry:''},
+  period: 12,
+  tariff: 'ceiling',
+  matchingOn: true,
+  matchingPct: 30,
+  selectedIds: new Set(),
+  mix: [],
+};
+
 let currentStep = 1;
 
 function goStep(n) {
