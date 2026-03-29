@@ -29,6 +29,31 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
 .topbar-sub{font-size:12px;color:rgba(255,255,255,0.45)}
 .topbar-spacer{flex:1}
 .topbar-badge{background:rgba(13,148,136,0.25);border:1px solid rgba(20,184,166,0.4);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--teal3)}
+
+/* ─── WIZARD PROGRESS ─── */
+.wizard-progress{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;overflow-x:auto}
+.steps{display:flex;align-items:stretch;min-width:max-content}
+.step{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;flex-shrink:0}
+.step.active{border-bottom-color:var(--teal)}
+.step.done{border-bottom-color:var(--green);cursor:pointer}
+.step.future{cursor:default}
+.step-num{width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text3);flex-shrink:0;transition:all 0.2s}
+.step.active .step-num{background:var(--teal);border-color:var(--teal);color:#fff}
+.step.done .step-num{background:var(--green);border-color:var(--green);color:#fff;font-size:13px}
+.step-info{display:flex;flex-direction:column;gap:1px}
+.step-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.5px}
+.step.active .step-label{color:var(--teal);font-weight:700}
+.step.done .step-label{color:var(--green)}
+.step-name{font-size:13px;font-weight:600;color:var(--text2)}
+.step.active .step-name{color:var(--text);font-weight:700}
+.step-sep{color:var(--border2);font-size:18px;padding:0 2px;display:flex;align-items:center}
+/* main content area */
+.main{max-width:860px;margin:0 auto;padding:28px 20px 100px}
+.panel{display:none}
+.panel.active{display:block}
+.step-header{margin-bottom:24px}
+.step-header h2{font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
+.step-header p{font-size:14px;color:var(--text2)}
 </style>
 </head>
 <body>
@@ -40,6 +65,68 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
   <div class="topbar-spacer"></div>
   <div class="topbar-badge" id="stepBadge">שלב 1 מתוך 4</div>
 </div>
-<script>console.log('skeleton ok')</script>
+<div class="wizard-progress">
+  <div class="steps">
+    <div class="step active" id="step1" onclick="tryGoStep(1)">
+      <div class="step-num" id="snum1">1</div>
+      <div class="step-info">
+        <span class="step-label">שלב 1</span>
+        <span class="step-name">פרטי פרויקט</span>
+      </div>
+    </div>
+    <div class="step-sep">›</div>
+    <div class="step future" id="step2" onclick="tryGoStep(2)">
+      <div class="step-num" id="snum2">2</div>
+      <div class="step-info">
+        <span class="step-label">שלב 2</span>
+        <span class="step-name">בחירת תפקידים</span>
+      </div>
+    </div>
+    <div class="step-sep">›</div>
+    <div class="step future" id="step3" onclick="tryGoStep(3)">
+      <div class="step-num" id="snum3">3</div>
+      <div class="step-info">
+        <span class="step-label">שלב 3</span>
+        <span class="step-name">הגדרת תמהיל</span>
+      </div>
+    </div>
+    <div class="step-sep">›</div>
+    <div class="step future" id="step4" onclick="tryGoStep(4)">
+      <div class="step-num" id="snum4">4</div>
+      <div class="step-info">
+        <span class="step-label">שלב 4</span>
+        <span class="step-name">תוצאות ועלויות</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="panel active" id="p1"><div class="step-header"><h2>פרטי הפרויקט</h2><p>הגדר את המסגרת הכללית</p></div><p style="color:var(--text3)">תוכן שלב 1 — בקרוב</p></div>
+  <div class="panel" id="p2"><div class="step-header"><h2>בחירת תפקידים</h2><p>בחר תפקידים לתמהיל</p></div><p style="color:var(--text3)">תוכן שלב 2 — בקרוב</p></div>
+  <div class="panel" id="p3"><div class="step-header"><h2>הגדרת תמהיל</h2><p>רמה ואחוז משרה לכל תפקיד</p></div><p style="color:var(--text3)">תוכן שלב 3 — בקרוב</p></div>
+  <div class="panel" id="p4"><div class="step-header"><h2>תוצאות ועלויות</h2><p>עלות הפרויקט המלאה</p></div><p style="color:var(--text3)">תוכן שלב 4 — בקרוב</p></div>
+</div>
+<script>
+let currentStep = 1;
+
+function goStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step'+i);
+    const num = document.getElementById('snum'+i);
+    el.className = 'step ' + (i < n ? 'done' : i === n ? 'active' : 'future');
+    num.textContent = i < n ? '✓' : String(i);
+  }
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('p'+n).classList.add('active');
+  document.getElementById('stepBadge').textContent = 'שלב ' + n + ' מתוך 4';
+  currentStep = n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function tryGoStep(n) {
+  // Allow going back to done steps only
+  if (n < currentStep) goStep(n);
+}
+</script>
 </body>
 </html>
