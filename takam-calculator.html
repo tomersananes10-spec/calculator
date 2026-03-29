@@ -811,6 +811,62 @@ function tryGoStep(n) {
 // Initialize: try loading from URL hash, otherwise stay on step 1
 loadFromURL();
 </script>
+<!-- ── AI ADVISOR ── -->
+<button class="ai-fab" onclick="openAiModal()">
+  <span class="fab-icon">✨</span> התייעץ עם AI
+</button>
+
+<div class="ai-overlay hidden" id="aiOverlay" onclick="handleOverlayClick(event)">
+  <div class="ai-modal" id="aiModal">
+
+    <div class="ai-modal-head">
+      <h2>✨ יועץ AI — תמהיל משאבים</h2>
+      <button class="ai-modal-close" onclick="closeAiModal()">✕</button>
+    </div>
+
+    <div class="ai-modal-body">
+
+      <!-- API Key field -->
+      <div class="ai-field">
+        <label class="ai-label">מפתח Claude API</label>
+        <div class="ai-key-row">
+          <input type="password" class="ai-input" id="aiKeyInput"
+            placeholder="sk-ant-..."
+            oninput="updateAnalyzeBtn()"
+            onblur="saveApiKey()">
+          <a class="ai-link" href="https://console.anthropic.com/" target="_blank">איך מקבלים מפתח?</a>
+        </div>
+        <span class="ai-sublabel">המפתח נשמר על המחשב שלך בלבד (localStorage)</span>
+      </div>
+
+      <!-- Project description -->
+      <div class="ai-field">
+        <label class="ai-label">תאר את הפרויקט שלך</label>
+        <textarea class="ai-textarea" id="aiProjectDesc"
+          placeholder="למשל: מערכת BI ממשלתית, 18 חודשים, 3 משרדים, כולל פיתוח, דאטה ותשתיות..."
+          oninput="updateAnalyzeBtn()"></textarea>
+      </div>
+
+      <!-- Analyze button -->
+      <button class="ai-btn-analyze" id="aiAnalyzeBtn" disabled onclick="runAiAnalysis()">
+        ✨ נתח את הפרויקט
+      </button>
+
+      <!-- Error message -->
+      <div class="ai-error hidden" id="aiError"></div>
+
+      <!-- Results area -->
+      <div class="ai-results hidden" id="aiResults">
+        <p class="ai-results-title">המלצת AI לתמהיל</p>
+        <div class="ai-summary" id="aiSummary"></div>
+        <div id="aiRolesList"></div>
+        <button class="ai-add-all" onclick="addAllAiRoles()">הוסף הכל לתמהיל</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div class="sticky-bar" id="stickyBar">
   <span class="sticky-bar-text">נבחרו</span>
   <span class="sticky-bar-count">0</span>
