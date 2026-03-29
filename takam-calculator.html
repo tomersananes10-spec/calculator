@@ -122,6 +122,86 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
 .sticky-bar-count{color:#fff;font-weight:700;font-size:15px}
 .sticky-bar-spacer{flex:1}
 @media(max-width:500px){.role-grid{grid-template-columns:1fr 1fr}}
+
+/* ─── MIX PANEL ─── */
+.mix-role{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:12px;transition:box-shadow 0.2s}
+.mix-role:hover{box-shadow:0 4px 16px rgba(0,0,0,0.06)}
+.mix-role-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.mix-role-icon{width:34px;height:34px;background:var(--teal-pale);border:1px solid var(--teal-mid);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.mix-role-title{font-size:15px;font-weight:700;color:var(--text);flex:1}
+.mix-role-cat{font-size:11px;color:var(--text3)}
+.mix-role-del{margin-right:auto;background:none;border:1px solid var(--border2);border-radius:7px;padding:4px 10px;font-size:12px;color:var(--text3);cursor:pointer;font-family:inherit;transition:all 0.15s;flex-shrink:0}
+.mix-role-del:hover{border-color:var(--red);color:var(--red)}
+.mix-params{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
+.level-btns{display:flex;gap:5px;flex-wrap:wrap}
+.level-btn{min-width:52px;padding:6px 8px;border-radius:9px;border:1.5px solid var(--border2);background:var(--surface);font-family:inherit;cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;gap:1px}
+.level-btn-letter{font-size:15px;font-weight:800;color:var(--text2)}
+.level-btn-rate{font-size:9px;color:var(--text3)}
+.level-btn.on{background:var(--teal);border-color:var(--teal)}
+.level-btn.on .level-btn-letter{color:#fff}
+.level-btn.on .level-btn-rate{color:rgba(255,255,255,0.75)}
+.level-btn.na{opacity:0.3;cursor:not-allowed;pointer-events:none}
+.scope-row{display:flex;align-items:center;gap:10px}
+.scope-val{font-size:18px;font-weight:800;color:var(--teal);min-width:46px}
+.slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:var(--border2);outline:none;cursor:pointer}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--teal);cursor:pointer;box-shadow:0 2px 8px rgba(13,148,136,0.4)}
+.slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--teal);cursor:pointer;border:none}
+.role-rate-row{background:var(--teal-pale);border:1px solid var(--teal-mid);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.rate-item{display:flex;flex-direction:column;gap:2px}
+.rate-label{font-size:10px;color:var(--text3)}
+.rate-val{font-size:15px;font-weight:800;color:var(--teal)}
+.mix-summary{background:var(--navy);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.mix-summary-label{font-size:12px;color:rgba(255,255,255,0.5)}
+.mix-summary-val{font-size:20px;font-weight:800;color:#fff}
+@media(max-width:550px){.mix-params{grid-template-columns:1fr}}
+
+/* ─── RESULTS ─── */
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center;transition:all 0.2s;cursor:default}
+.kpi.highlighted{background:var(--navy);border-color:var(--teal);box-shadow:0 8px 24px rgba(13,148,136,0.2)}
+.kpi-period{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.8px}
+.kpi.highlighted .kpi-period{color:var(--teal3)}
+.kpi-total{font-size:24px;font-weight:900;color:var(--text);letter-spacing:-0.5px}
+.kpi.highlighted .kpi-total{color:#fff}
+.kpi-label{font-size:11px;color:var(--text3);margin-top:4px}
+.kpi.highlighted .kpi-label{color:rgba(255,255,255,0.45)}
+.kpi-gross{font-size:11px;color:var(--text3);margin-top:2px}
+.kpi.highlighted .kpi-gross{color:rgba(255,255,255,0.3)}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.results-box{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+.results-box-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+.breakdown-table{width:100%;border-collapse:collapse;font-size:13px}
+.breakdown-table th{text-align:right;padding:6px 8px;font-size:10px;font-weight:600;color:var(--text3);border-bottom:2px solid var(--border)}
+.breakdown-table td{padding:8px 8px;border-bottom:1px solid var(--border);color:var(--text2)}
+.breakdown-table tr.total td{border-top:2px solid var(--border);border-bottom:none;font-weight:700;color:var(--text)}
+.cost-val{color:var(--teal);font-weight:700;text-align:left}
+.bar-chart{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.bar-name{width:130px;color:var(--text2);text-align:right;flex-shrink:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:10px;background:var(--bg);border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width 0.5s ease}
+.bar-val{width:68px;text-align:left;font-weight:700;color:var(--text);font-size:12px;flex-shrink:0}
+.actions-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.matching-note{background:var(--teal-pale);border:1px solid var(--teal-mid);border-radius:9px;padding:12px 16px;font-size:13px;color:#134e4a;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+@media(max-width:600px){.kpi-row{grid-template-columns:1fr}.results-grid{grid-template-columns:1fr}}
+
+/* ─── PRINT ─── */
+@media print {
+  .topbar,.wizard-progress,.nav-row,.actions-row,.sticky-bar,.btn-back{display:none !important}
+  .panel{display:block !important}
+  body{background:white}
+  .kpi.highlighted{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .bar-fill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+/* ─── ANIMATIONS ─── */
+.role-card{transition:border-color 0.18s,background 0.18s,transform 0.18s,box-shadow 0.18s}
+.role-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(13,148,136,0.12)}
+.btn-primary{transition:background 0.15s,transform 0.15s,box-shadow 0.15s}
+.mix-role{transition:box-shadow 0.2s}
+.kpi{transition:all 0.2s}
+.level-btn{transition:all 0.15s}
+.cat-pill{transition:all 0.15s}
 </style>
 </head>
 <body>
@@ -236,8 +316,49 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
       <button class="btn btn-primary" id="toStep3Btn" disabled onclick="proceedToStep3()">המשך — הגדרת תמהיל ›</button>
     </div>
   </div>
-  <div class="panel" id="p3"><div class="step-header"><h2>הגדרת תמהיל</h2><p>רמה ואחוז משרה לכל תפקיד</p></div><p style="color:var(--text3)">תוכן שלב 3 — בקרוב</p></div>
-  <div class="panel" id="p4"><div class="step-header"><h2>תוצאות ועלויות</h2><p>עלות הפרויקט המלאה</p></div><p style="color:var(--text3)">תוכן שלב 4 — בקרוב</p></div>
+  <div class="panel" id="p3">
+    <div class="step-header">
+      <h2>הגדרת תמהיל התפקידים</h2>
+      <p>לכל תפקיד — בחר רמת מומחיות ואחוז משרה</p>
+    </div>
+    <div class="mix-summary" id="mixSummary">
+      <div class="rate-item"><div class="mix-summary-label">עלות חודשית כוללת</div><div class="mix-summary-val" id="mixMonthly">₪0</div></div>
+      <div class="rate-item" style="text-align:left"><div class="mix-summary-label">עלות שנתית (אומדן)</div><div class="mix-summary-val" id="mixAnnual">₪0</div></div>
+    </div>
+    <div id="mixCards"></div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goStep(2);renderRolePicker()">‹ הוסף / הסר תפקידים</button>
+      <div class="nav-spacer"></div>
+      <button class="btn btn-primary" onclick="proceedToStep4()">חשב עלויות ›</button>
+    </div>
+  </div>
+  <div class="panel" id="p4">
+    <div class="step-header">
+      <h2>עלויות הפרויקט</h2>
+      <p id="resultsSubtitle">טוען...</p>
+    </div>
+    <div class="kpi-row" id="kpiRow"></div>
+    <div id="matchingNote"></div>
+    <div class="results-grid">
+      <div class="results-box">
+        <div class="results-box-title">פירוט לפי תפקיד</div>
+        <table class="breakdown-table" id="breakdownTable"></table>
+      </div>
+      <div class="results-box">
+        <div class="results-box-title">התפלגות עלות שנתית</div>
+        <div class="bar-chart" id="barChart"></div>
+      </div>
+    </div>
+    <div class="actions-row">
+      <button class="btn btn-primary" onclick="window.print()">הורד PDF 📄</button>
+      <button class="btn-outline" onclick="shareURL()">שתף קישור 🔗</button>
+      <button class="btn-outline" onclick="goStep(3);renderMixPanel()">‹ ערוך תמהיל</button>
+      <button class="btn-outline" onclick="resetAll()">פרויקט חדש +</button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goStep(3);renderMixPanel()">‹ חזור לתמהיל</button>
+    </div>
+  </div>
 </div>
 <script>
 const VAT = 1.17; // 17% — fixed constant
@@ -408,7 +529,220 @@ function proceedToStep3() {
   renderMixPanel();
 }
 
-function renderMixPanel() { /* stub — Task 6 */ }
+const LEVEL_LABELS = {a:'א',b:'ב',c:'ג',d:'ד'};
+const ALL_LEVELS = ['a','b','c','d'];
+
+function renderMixPanel() {
+  const container = document.getElementById('mixCards');
+  container.innerHTML = state.mix.map((m,i) => {
+    const role = ROLES_DATA.find(r => r.id === m.id);
+    const levelBtns = ALL_LEVELS.map(lv => {
+      const rate = role.rates[lv];
+      const isOn = m.level === lv;
+      const isNA = !rate;
+      return `<button class="level-btn${isOn?' on':''}${isNA?' na':''}"
+        onclick="setMixLevel(${i},'${lv}')" ${isNA?'disabled':''}>
+        <span class="level-btn-letter">${LEVEL_LABELS[lv]}</span>
+        <span class="level-btn-rate">${rate?'₪'+rate:'N/A'}</span>
+      </button>`;
+    }).join('');
+    return `
+    <div class="mix-role" id="mixRole${i}">
+      <div class="mix-role-header">
+        <div class="mix-role-icon">${CAT_ICONS[role.cat]||'👤'}</div>
+        <div>
+          <div class="mix-role-title">${role.name}</div>
+          <div class="mix-role-cat">${role.cat}</div>
+        </div>
+        <button class="mix-role-del" onclick="removeMixRole('${m.id}')">הסר ✕</button>
+      </div>
+      <div class="mix-params">
+        <div class="field" style="margin-bottom:0">
+          <div class="field-label">רמת מומחיות</div>
+          <div class="level-btns" id="levelBtns${i}">${levelBtns}</div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <div class="field-label">אחוז משרה: <span id="scopeVal${i}" style="color:var(--teal);font-weight:800">${m.scope}%</span></div>
+          <div class="scope-row">
+            <input type="range" class="slider" min="10" max="100" step="10" value="${m.scope}"
+              oninput="setMixScope(${i},parseInt(this.value))">
+          </div>
+        </div>
+      </div>
+      <div class="role-rate-row" id="rateRow${i}">
+        ${renderRateRow(m, role)}
+      </div>
+    </div>`;
+  }).join('');
+  updateMixSummary();
+}
+
+function renderRateRow(m, role) {
+  const rate = role.rates[m.level] || 0;
+  const monthly = calcRoleMonthlyCost(m);
+  const annual = monthly * 12;
+  return `
+    <div class="rate-item"><div class="rate-label">תעריף שעתי</div><div class="rate-val">₪${rate}/שעה</div></div>
+    <div class="rate-item"><div class="rate-label">עלות חודשית (כולל מע"מ)</div><div class="rate-val">${fmtCurrency(monthly,true)}</div></div>
+    <div class="rate-item"><div class="rate-label">עלות שנתית (אומדן)</div><div class="rate-val">${fmtCurrency(annual,true)}</div></div>`;
+}
+
+function setMixLevel(i, lv) {
+  state.mix[i].level = lv;
+  const role = ROLES_DATA.find(r => r.id === state.mix[i].id);
+  document.querySelectorAll(`#levelBtns${i} .level-btn`).forEach((btn,bi) => {
+    btn.classList.toggle('on', ALL_LEVELS[bi] === lv);
+  });
+  document.getElementById('rateRow'+i).innerHTML = renderRateRow(state.mix[i], role);
+  updateMixSummary();
+}
+
+function setMixScope(i, val) {
+  state.mix[i].scope = val;
+  document.getElementById('scopeVal'+i).textContent = val + '%';
+  const role = ROLES_DATA.find(r => r.id === state.mix[i].id);
+  document.getElementById('rateRow'+i).innerHTML = renderRateRow(state.mix[i], role);
+  updateMixSummary();
+}
+
+function removeMixRole(id) {
+  state.mix = state.mix.filter(m => m.id !== id);
+  state.selectedIds.delete(id);
+  if (state.mix.length === 0) { goStep(2); renderRolePicker(); return; }
+  renderMixPanel();
+}
+
+function updateMixSummary() {
+  const total = state.mix.reduce((s,m) => s + calcRoleMonthlyCost(m), 0);
+  document.getElementById('mixMonthly').textContent = fmtCurrency(total, true);
+  document.getElementById('mixAnnual').textContent = fmtCurrency(total*12, true);
+}
+
+function proceedToStep4() {
+  goStep(4);
+  renderResults();
+}
+
+const TEAL_SHADES = ['#0d9488','#14b8a6','#2dd4bf','#5eead4','#99f6e4','#ccfbf1'];
+
+function renderResults() {
+  const periods = [6, 12, 24];
+  const periodLabels = {6:'6 חודשים', 12:'שנה', 24:'שנתיים'};
+  const n = state.mix.length;
+
+  document.getElementById('resultsSubtitle').textContent =
+    `${n} תפקידים · ${periodLabels[state.period]} · תעריף גג${state.matchingOn ? ` · מאצ'ינג ${state.matchingPct}%` : ''}`;
+
+  document.getElementById('kpiRow').innerHTML = periods.map(p => {
+    const {gross, net} = calcTotalCost(state.mix, p, state.matchingOn, state.matchingPct);
+    const isHL = p === state.period;
+    return `<div class="kpi${isHL?' highlighted':''}">
+      <div class="kpi-period">${periodLabels[p]}</div>
+      <div class="kpi-total">${fmtCurrency(net, true)}</div>
+      <div class="kpi-label">עלות המשרד</div>
+      ${state.matchingOn?`<div class="kpi-gross">ברוטו: ${fmtCurrency(gross,true)}</div>`:''}
+    </div>`;
+  }).join('');
+
+  if (state.matchingOn) {
+    const {matching} = calcTotalCost(state.mix, state.period, true, state.matchingPct);
+    document.getElementById('matchingNote').innerHTML =
+      `<div class="matching-note">✅ מאצ'ינג ${state.matchingPct}% — חיסכון של ${fmtCurrency(matching,true)} לתקופה הנבחרת</div>`;
+  } else {
+    document.getElementById('matchingNote').innerHTML = '';
+  }
+
+  const {monthlyPerRole} = calcTotalCost(state.mix, state.period, false, 0);
+  const tableRows = state.mix.map((m,i) => {
+    const role = ROLES_DATA.find(r => r.id === m.id);
+    const annual = monthlyPerRole[i] * 12;
+    return `<tr>
+      <td>${role.name}</td>
+      <td style="text-align:center">${LEVEL_LABELS[m.level]}</td>
+      <td style="text-align:center">${m.scope}%</td>
+      <td class="cost-val">${fmtCurrency(annual,true)}</td>
+    </tr>`;
+  }).join('');
+  const totalAnnual = monthlyPerRole.reduce((s,v) => s+v, 0) * 12;
+  document.getElementById('breakdownTable').innerHTML = `
+    <tr><th>תפקיד</th><th style="text-align:center">רמה</th><th style="text-align:center">משרה</th><th style="text-align:left">שנתי</th></tr>
+    ${tableRows}
+    <tr class="total"><td colspan="3">סה"כ ברוטו שנתי</td><td class="cost-val">${fmtCurrency(totalAnnual,true)}</td></tr>`;
+
+  const maxAnnual = Math.max(...monthlyPerRole.map(v => v*12));
+  document.getElementById('barChart').innerHTML = state.mix.map((m,i) => {
+    const role = ROLES_DATA.find(r => r.id === m.id);
+    const annual = monthlyPerRole[i]*12;
+    const pct = maxAnnual > 0 ? Math.round(annual/maxAnnual*100) : 0;
+    const color = TEAL_SHADES[i % TEAL_SHADES.length];
+    return `<div class="bar-row">
+      <div class="bar-name" title="${role.name}">${role.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="bar-val">${fmtCurrency(annual,true)}</div>
+    </div>`;
+  }).join('');
+}
+
+function shareURL() {
+  const roles = state.mix.map(m => `${m.id}:${m.level}:${m.scope}`).join(',');
+  const hash = `v1|period=${state.period}|tariff=ceiling|matching=${state.matchingOn?1:0}|pct=${state.matchingPct}|roles=${roles}`;
+  location.hash = encodeURIComponent(hash);
+  navigator.clipboard.writeText(location.href).then(() => {
+    showToast('קישור הועתק ללוח ✓');
+  }).catch(() => {
+    showToast('העתק את הכתובת מסרגל הכתובות');
+  });
+}
+
+function loadFromURL() {
+  const raw = decodeURIComponent(location.hash.slice(1));
+  if (!raw.startsWith('v1|')) return;
+  try {
+    const parts = Object.fromEntries(raw.split('|').slice(1).map(p => p.split('=')));
+    state.period = [6,12,24].includes(+parts.period) ? +parts.period : 12;
+    state.matchingOn = parts.matching === '1';
+    state.matchingPct = Math.min(100, Math.max(1, +parts.pct || 30));
+    if (parts.roles) {
+      state.mix = parts.roles.split(',').map(r => {
+        const [id, level, scope] = r.split(':');
+        return {id, level, scope: +scope};
+      }).filter(m => ROLES_DATA.find(r => r.id === m.id));
+      state.selectedIds = new Set(state.mix.map(m => m.id));
+    }
+    if (state.mix.length > 0) { goStep(4); renderResults(); }
+  } catch(e) { /* invalid hash, ignore */ }
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all 0.25s;pointer-events:none';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; }, 2500);
+}
+
+function resetAll() {
+  state.project = {name:'', ministry:''};
+  state.period = 12;
+  state.matchingOn = true;
+  state.matchingPct = 30;
+  state.selectedIds = new Set();
+  state.mix = [];
+  location.hash = '';
+  goStep(1);
+  document.getElementById('projName').value = '';
+  document.getElementById('projMinistry').value = '';
+  document.getElementById('matchingPct').value = 30;
+  document.getElementById('matchingSw').classList.add('on');
+  document.getElementById('matchingPctRow').style.display = 'flex';
+  setPeriod(12);
+}
 
 let currentStep = 1;
 
@@ -430,6 +764,10 @@ function tryGoStep(n) {
   // Allow going back to done steps only
   if (n < currentStep) goStep(n);
 }
+
+// Initialize: try loading from URL hash, otherwise stay on step 1
+loadFromURL();
+</script>
 <div class="sticky-bar" id="stickyBar">
   <span class="sticky-bar-text">נבחרו</span>
   <span class="sticky-bar-count">0</span>
@@ -437,6 +775,5 @@ function tryGoStep(n) {
   <div class="sticky-bar-spacer"></div>
   <button class="btn btn-primary" onclick="proceedToStep3()">המשך ›</button>
 </div>
-</script>
 </body>
 </html>
