@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מחשבון תק"ם — שירותי מחשוב, דאטה ובינה מלאכותית</title>
+<title>מחשבון תכ"ם — שירותי מחשוב, דאטה ובינה מלאכותית</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -202,12 +202,55 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
 .kpi{transition:all 0.2s}
 .level-btn{transition:all 0.15s}
 .cat-pill{transition:all 0.15s}
+/* ─── AI ADVISOR ─── */
+.ai-fab{position:fixed;bottom:24px;left:24px;z-index:200;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;border:none;border-radius:50px;padding:0 20px;height:44px;font-size:14px;font-weight:700;font-family:Heebo,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(13,148,136,0.45);transition:transform .15s,box-shadow .15s}
+.ai-fab:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(13,148,136,0.55)}
+.ai-fab .fab-icon{font-size:18px}
+.ai-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px}
+.ai-overlay.hidden{display:none}
+.ai-modal{background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;direction:rtl;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.ai-modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;border-bottom:1px solid #f1f5f9;padding-bottom:16px}
+.ai-modal-head h2{margin:0;font-size:18px;font-weight:700;color:#0f172a}
+.ai-modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;line-height:1;padding:4px}
+.ai-modal-close:hover{color:#475569}
+.ai-modal-body{padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px}
+.ai-field{display:flex;flex-direction:column;gap:6px}
+.ai-label{font-size:13px;font-weight:600;color:#374151}
+.ai-sublabel{font-size:12px;color:#94a3b8}
+.ai-key-row{display:flex;gap:8px;align-items:center}
+.ai-input{flex:1;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:13px;font-family:Heebo,sans-serif;outline:none;direction:ltr}
+.ai-input:focus{border-color:#14b8a6}
+.ai-link{font-size:12px;color:#0d9488;text-decoration:none;white-space:nowrap}
+.ai-link:hover{text-decoration:underline}
+.ai-textarea{border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:13px;font-family:Heebo,sans-serif;resize:vertical;min-height:120px;outline:none;direction:rtl;width:100%;box-sizing:border-box}
+.ai-textarea:focus{border-color:#14b8a6}
+.ai-btn-analyze{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;font-family:Heebo,sans-serif;cursor:pointer;transition:opacity .2s}
+.ai-btn-analyze:disabled{opacity:.45;cursor:not-allowed}
+.ai-btn-analyze:not(:disabled):hover{opacity:.9}
+.ai-results{display:flex;flex-direction:column;gap:12px}
+.ai-results.hidden{display:none}
+.ai-results-title{font-size:15px;font-weight:700;color:#0f172a;margin:0}
+.ai-summary{font-size:13px;color:#475569;line-height:1.6;background:#f8fafc;border-radius:8px;padding:12px}
+.ai-role-row{display:flex;align-items:flex-start;gap:12px;background:#f8fafc;border-radius:10px;padding:12px;border:1px solid #e2e8f0}
+.ai-role-info{flex:1}
+.ai-role-name{font-size:14px;font-weight:700;color:#0f172a}
+.ai-role-meta{font-size:12px;color:#0d9488;margin-top:2px}
+.ai-role-reason{font-size:12px;color:#64748b;margin-top:4px}
+.ai-add-btn{background:#fff;border:1.5px solid #14b8a6;color:#0d9488;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;font-family:Heebo,sans-serif;cursor:pointer;white-space:nowrap;transition:background .15s}
+.ai-add-btn:hover:not(:disabled){background:#f0fdfa}
+.ai-add-btn:disabled{opacity:.55;cursor:default}
+.ai-add-all{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;font-family:Heebo,sans-serif;cursor:pointer;transition:opacity .2s}
+.ai-add-all:hover{opacity:.9}
+.ai-error{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:13px;color:#dc2626}
+.ai-error.hidden{display:none}
+.ai-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 <div class="topbar">
   <div class="topbar-logo">🏛️</div>
-  <span class="topbar-title">מחשבון תק"ם</span>
+  <span class="topbar-title">מחשבון תכ"ם</span>
   <div class="topbar-sep"></div>
   <span class="topbar-sub">שירותי מחשוב, דאטה ובינה מלאכותית</span>
   <div class="topbar-spacer"></div>
@@ -765,9 +808,225 @@ function tryGoStep(n) {
   if (n < currentStep) goStep(n);
 }
 
+// ── AI ADVISOR ──────────────────────────────────────────
+const AI_KEY_LS = 'takam_claude_key';
+let aiRecs = [];
+
+function openAiModal() {
+  document.getElementById('aiKeyInput').value = localStorage.getItem(AI_KEY_LS) || '';
+  updateAnalyzeBtn();
+  document.getElementById('aiOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAiModal() {
+  document.getElementById('aiOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('aiOverlay')) closeAiModal();
+}
+
+function saveApiKey() {
+  const val = document.getElementById('aiKeyInput').value.trim();
+  if (val) localStorage.setItem(AI_KEY_LS, val);
+}
+
+function updateAnalyzeBtn() {
+  const key = document.getElementById('aiKeyInput').value.trim();
+  const desc = document.getElementById('aiProjectDesc').value.trim();
+  document.getElementById('aiAnalyzeBtn').disabled = !key || !desc;
+}
+
+function buildSystemPrompt() {
+  const rolesList = ROLES_DATA.map(r => {
+    const levels = Object.keys(r.rates).join('/');
+    return `${r.id} | ${r.name} | קטגוריה: ${r.cat} | רמות: ${levels}`;
+  }).join('\n');
+  return `אתה יועץ לתמהיל משאבי IT לפרויקטים ממשלתיים ישראליים.
+הנה 35 תפקידי תכ"ם הזמינים:
+${rolesList}
+
+על בסיס תיאור הפרויקט, החזר JSON בלבד (ללא טקסט נוסף, ללא markdown, ללא קוד בלוקים) בפורמט:
+{"summary":"הסבר קצר של 2-3 משפטים","roles":[{"id":"1.1","level":"b","scope":100,"reason":"נדרש ל..."}]}
+רמות: a=בסיסי, b=מתקדם, c=מומחה, d=בכיר. scope הוא % משרה (25/50/75/100).
+החזר רק תפקידים רלוונטיים לפרויקט.`;
+}
+
+async function runAiAnalysis() {
+  const key = document.getElementById('aiKeyInput').value.trim();
+  const desc = document.getElementById('aiProjectDesc').value.trim();
+  saveApiKey();
+
+  const btn = document.getElementById('aiAnalyzeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ai-spinner"></span> מנתח...';
+  document.getElementById('aiError').classList.add('hidden');
+  document.getElementById('aiResults').classList.add('hidden');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        system: buildSystemPrompt(),
+        messages: [{ role: 'user', content: `תאר פרויקט: ${desc}` }]
+      })
+    });
+
+    if (res.status === 401) { showAiError('מפתח API שגוי — בדוק את המפתח'); return; }
+    if (!res.ok) { showAiError(`שגיאת שרת (${res.status}), נסה שוב`); return; }
+
+    const data = await res.json();
+    let raw = data.content[0].text.trim();
+    // Strip markdown code fences if present
+    raw = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch { showAiError('לא הצלחנו לנתח את התשובה, נסה שוב'); return; }
+
+    aiRecs = parsed.roles || [];
+    renderAiResults(parsed.summary, aiRecs);
+  } catch {
+    showAiError('שגיאת חיבור, בדוק אינטרנט');
+  } finally {
+    btn.innerHTML = '✨ נתח את הפרויקט';
+    updateAnalyzeBtn();
+  }
+}
+
+function showAiError(msg) {
+  const el = document.getElementById('aiError');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+const LEVEL_NAMES = { a: 'בסיסי', b: 'מתקדם', c: 'מומחה', d: 'בכיר' };
+
+function renderAiResults(summary, roles) {
+  document.getElementById('aiSummary').textContent = summary;
+
+  const list = document.getElementById('aiRolesList');
+  list.innerHTML = '';
+
+  roles.forEach((rec, idx) => {
+    const roleData = ROLES_DATA.find(r => r.id === rec.id);
+    const name = roleData ? roleData.name : rec.id;
+    const levelName = LEVEL_NAMES[rec.level] || rec.level;
+    const alreadyAdded = state.selectedIds.has(rec.id);
+
+    const row = document.createElement('div');
+    row.className = 'ai-role-row';
+    row.dataset.idx = idx;
+    row.innerHTML = `
+      <div class="ai-role-info">
+        <div class="ai-role-name">${name}</div>
+        <div class="ai-role-meta">רמה: ${levelName} | משרה: ${rec.scope}%</div>
+        ${rec.reason ? `<div class="ai-role-reason">${rec.reason}</div>` : ''}
+      </div>
+      <button class="ai-add-btn" id="aiAddBtn-${idx}"
+        onclick="addRoleFromAi(${idx})"
+        ${alreadyAdded ? 'disabled' : ''}>
+        ${alreadyAdded ? '✓ נוסף' : '+ הוסף לתמהיל'}
+      </button>`;
+    list.appendChild(row);
+  });
+
+  document.getElementById('aiResults').classList.remove('hidden');
+}
+
+function addRoleFromAi(idx) {
+  const rec = aiRecs[idx];
+  if (!rec) return;
+
+  state.selectedIds.add(rec.id);
+  const existing = state.mix.find(m => m.id === rec.id);
+  if (existing) {
+    existing.level = rec.level;
+    existing.scope = rec.scope;
+  } else {
+    state.mix.push({ id: rec.id, level: rec.level, scope: rec.scope });
+  }
+  updateStickyBar();
+
+  const btn = document.getElementById(`aiAddBtn-${idx}`);
+  if (btn) { btn.textContent = '✓ נוסף'; btn.disabled = true; }
+}
+
+function addAllAiRoles() {
+  aiRecs.forEach((_, idx) => {
+    const btn = document.getElementById(`aiAddBtn-${idx}`);
+    if (btn && !btn.disabled) addRoleFromAi(idx);
+  });
+}
+
 // Initialize: try loading from URL hash, otherwise stay on step 1
 loadFromURL();
 </script>
+<!-- ── AI ADVISOR ── -->
+<button class="ai-fab" onclick="openAiModal()">
+  <span class="fab-icon">✨</span> התייעץ עם AI
+</button>
+
+<div class="ai-overlay hidden" id="aiOverlay" onclick="handleOverlayClick(event)">
+  <div class="ai-modal" id="aiModal">
+
+    <div class="ai-modal-head">
+      <h2>✨ יועץ AI — תמהיל משאבים</h2>
+      <button class="ai-modal-close" onclick="closeAiModal()">✕</button>
+    </div>
+
+    <div class="ai-modal-body">
+
+      <!-- API Key field -->
+      <div class="ai-field">
+        <label class="ai-label">מפתח Claude API</label>
+        <div class="ai-key-row">
+          <input type="password" class="ai-input" id="aiKeyInput"
+            placeholder="sk-ant-..."
+            oninput="updateAnalyzeBtn()"
+            onblur="saveApiKey()">
+          <a class="ai-link" href="https://console.anthropic.com/" target="_blank">איך מקבלים מפתח?</a>
+        </div>
+        <span class="ai-sublabel">המפתח נשמר על המחשב שלך בלבד (localStorage)</span>
+      </div>
+
+      <!-- Project description -->
+      <div class="ai-field">
+        <label class="ai-label">תאר את הפרויקט שלך</label>
+        <textarea class="ai-textarea" id="aiProjectDesc"
+          placeholder="למשל: מערכת BI ממשלתית, 18 חודשים, 3 משרדים, כולל פיתוח, דאטה ותשתיות..."
+          oninput="updateAnalyzeBtn()"></textarea>
+      </div>
+
+      <!-- Analyze button -->
+      <button class="ai-btn-analyze" id="aiAnalyzeBtn" disabled onclick="runAiAnalysis()">
+        ✨ נתח את הפרויקט
+      </button>
+
+      <!-- Error message -->
+      <div class="ai-error hidden" id="aiError"></div>
+
+      <!-- Results area -->
+      <div class="ai-results hidden" id="aiResults">
+        <p class="ai-results-title">המלצת AI לתמהיל</p>
+        <div class="ai-summary" id="aiSummary"></div>
+        <div id="aiRolesList"></div>
+        <button class="ai-add-all" onclick="addAllAiRoles()">הוסף הכל לתמהיל</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div class="sticky-bar" id="stickyBar">
   <span class="sticky-bar-text">נבחרו</span>
   <span class="sticky-bar-count">0</span>
