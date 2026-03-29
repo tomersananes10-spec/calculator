@@ -867,8 +867,7 @@ async function runAiAnalysis() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: buildSystemPrompt() }] },
-          contents: [{ parts: [{ text: `תאר פרויקט: ${desc}` }] }]
+          contents: [{ parts: [{ text: buildSystemPrompt() + '\n\nתאר פרויקט: ' + desc }] }]
         })
       }
     );
