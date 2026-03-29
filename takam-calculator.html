@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחשבון תק"ם — שירותי מחשוב, דאטה ובינה מלאכותית</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0d9488;--teal2:#14b8a6;--teal3:#5eead4;
+  --teal-pale:#f0fdfa;--teal-mid:#ccfbf1;
+  --navy:#0f172a;--slate:#1e293b;
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --bg:#f8fafc;--surface:#ffffff;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --green:#10b981;--red:#ef4444;--amber:#f59e0b;
+  --radius:12px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--text);direction:rtl;font-size:15px;line-height:1.6;min-height:100vh}
+
+/* ─── TOPBAR ─── */
+.topbar{height:60px;background:var(--navy);display:flex;align-items:center;padding:0 24px;gap:14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.topbar-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--teal2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.3px}
+.topbar-sep{width:1px;height:20px;background:rgba(255,255,255,0.15);flex-shrink:0}
+.topbar-sub{font-size:12px;color:rgba(255,255,255,0.45)}
+.topbar-spacer{flex:1}
+.topbar-badge{background:rgba(13,148,136,0.25);border:1px solid rgba(20,184,166,0.4);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--teal3)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-logo">🏛️</div>
+  <span class="topbar-title">מחשבון תק"ם</span>
+  <div class="topbar-sep"></div>
+  <span class="topbar-sub">שירותי מחשוב, דאטה ובינה מלאכותית</span>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-badge" id="stepBadge">שלב 1 מתוך 4</div>
+</div>
+<script>console.log('skeleton ok')</script>
+</body>
+</html>
