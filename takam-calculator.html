@@ -63,8 +63,10 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
 .field:last-child{margin-bottom:0}
 .field-label{font-size:13px;font-weight:600;color:var(--text2)}
 .field-sub{font-size:11px;color:var(--text3);margin-top:-3px}
+.field-error{color:var(--red);font-size:12px;margin-top:4px;display:block}
 .input{width:100%;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;padding:10px 13px;font-size:14px;font-family:inherit;color:var(--text);outline:none;transition:border-color 0.15s}
 .input:focus{border-color:var(--teal)}
+.hidden{display:none!important}
 /* Segmented control */
 .seg{display:flex;background:#f1f5f9;border:1.5px solid var(--border);border-radius:10px;padding:3px;gap:2px}
 .seg-btn{flex:1;text-align:center;padding:8px 6px;border-radius:7px;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;transition:all 0.15s;font-family:inherit;border:none;background:transparent;white-space:nowrap}
@@ -302,8 +304,9 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
     <div class="card-box">
       <div class="setup-grid">
         <div class="field">
-          <label class="field-label">שם הפרויקט <span style="font-weight:400;color:var(--text3)">(אופציונלי)</span></label>
+          <label class="field-label">שם הפרויקט <span style="color:var(--red)">*</span></label>
           <input class="input" id="projName" type="text" placeholder="למשל: פיתוח מערכת HR">
+          <span class="field-error hidden" id="projNameError">שם הפרויקט הוא שדה חובה</span>
         </div>
         <div class="field">
           <label class="field-label">משרד / גוף <span style="font-weight:400;color:var(--text3)">(אופציונלי)</span></label>
@@ -499,7 +502,15 @@ function toggleMatching() {
 }
 
 function proceedToStep2() {
-  state.project.name = document.getElementById('projName').value;
+  const nameVal = document.getElementById('projName').value.trim();
+  const errEl = document.getElementById('projNameError');
+  if (!nameVal) {
+    errEl.classList.remove('hidden');
+    document.getElementById('projName').focus();
+    return;
+  }
+  errEl.classList.add('hidden');
+  state.project.name = nameVal;
   state.project.ministry = document.getElementById('projMinistry').value;
   goStep(2);
   renderRolePicker();
