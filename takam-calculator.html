@@ -255,6 +255,16 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
 .ai-error.hidden{display:none}
 .ai-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* ─── AI CHECK ─── */
+.ai-check-wrap{margin:16px 0 0;text-align:center}
+.btn-ai-check{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;border:none;border-radius:10px;padding:11px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.btn-ai-check:hover{opacity:.88}
+.ai-check-results{margin-top:16px}
+.ai-check-section{margin-bottom:14px}
+.ai-check-section-title{font-weight:700;font-size:13px;margin-bottom:8px;color:var(--text2)}
+.ai-check-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px;font-size:13px;line-height:1.5}
+.ai-check-item .reason{color:var(--text2);margin-top:2px}
+.ai-check-ok{color:var(--green);font-weight:600;font-size:14px;text-align:center;padding:12px}
 </style>
 </head>
 <body>
@@ -356,6 +366,9 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
     </div>
     <div class="cat-pills" id="catPills"></div>
     <div id="roleList"></div>
+    <div class="ai-check-wrap hidden" id="aiCheckWrap">
+      <button class="btn-ai-check" id="aiCheckBtn" onclick="runAiCheck()">🔍 בדוק את התמהיל שלי עם AI</button>
+    </div>
     <div class="nav-row">
       <button class="btn-back" onclick="goStep(1)">‹ חזור</button>
       <div class="nav-spacer"></div>
@@ -572,6 +585,8 @@ function updateStickyBar() {
   bar.classList.toggle('visible', n > 0);
   bar.querySelector('.sticky-bar-count').textContent = n;
   if (btn) btn.disabled = n === 0;
+  const checkWrap = document.getElementById('aiCheckWrap');
+  if (checkWrap) checkWrap.classList.toggle('hidden', n === 0);
 }
 
 function proceedToStep3() {
@@ -1001,6 +1016,100 @@ function addAllAiRoles() {
   });
 }
 
+// ── AI CHECK ─────────────────────────────────────────────
+function closeAiCheckModal() {
+  document.getElementById('aiCheckOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function handleAiCheckOverlayClick(e) {
+  if (e.target === document.getElementById('aiCheckOverlay')) closeAiCheckModal();
+}
+
+function buildCheckPrompt() {
+  const names = [...state.selectedIds].map(id => {
+    const r = ROLES_DATA.find(x => x.id === id);
+    return r ? r.name : id;
+  });
+  const projectName = state.project.name || 'לא צוין';
+  return `אתה יועץ לתמהיל משאבי IT לפרויקטים ממשלתיים ישראליים.
+בדוק את התמהיל שנבחר לפרויקט:
+שם פרויקט: ${projectName}
+תפקידים נבחרים: ${names.join(', ')}
+
+שאלות לבדיקה:
+1. האם יש תפקידים שנראים לא רלוונטיים לפרויקט מסוג זה?
+2. האם חסרים תפקידים קריטיים לפרויקט מסוג זה?
+
+החזר JSON בלבד (ללא markdown, ללא קוד בלוקים):
+{"suspicious":[{"id":"3.2","name":"טכנאי ציוד מחשבים","reason":"לא טיפוסי לפרויקט BI"}],"missing":[{"name":"מנתח מערכות","reason":"נדרש לפרויקט BI"}]}
+אם אין הערות — החזר רשימות ריקות. השתמש בשמות תפקידים בעברית.`;
+}
+
+async function runAiCheck() {
+  const overlay = document.getElementById('aiCheckOverlay');
+  const body = document.getElementById('aiCheckBody');
+  overlay.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  body.innerHTML = '<div style="text-align:center;padding:32px"><span class="ai-spinner"></span><div style="margin-top:12px;color:var(--text2);font-size:13px">מנתח תמהיל...</div></div>';
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({contents:[{parts:[{text: buildCheckPrompt()}]}]})
+      }
+    );
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      body.innerHTML = `<div class="ai-error">${data.error?.message || 'שגיאת שרת, נסה שוב'}</div>`;
+      return;
+    }
+    let raw = data.candidates[0].content.parts[0].text.trim();
+    raw = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch { body.innerHTML = '<div class="ai-error">לא הצלחנו לנתח את התשובה, נסה שוב</div>'; return; }
+
+    renderCheckResults(parsed);
+  } catch {
+    body.innerHTML = '<div class="ai-error">שגיאת חיבור, בדוק אינטרנט</div>';
+  }
+}
+
+function renderCheckResults(data) {
+  const body = document.getElementById('aiCheckBody');
+  const suspicious = data.suspicious || [];
+  const missing = data.missing || [];
+
+  if (suspicious.length === 0 && missing.length === 0) {
+    body.innerHTML = '<div class="ai-check-ok">✅ התמהיל נראה מאוזן לפרויקט מסוג זה</div>';
+    return;
+  }
+
+  let html = '<div class="ai-check-results">';
+  if (suspicious.length > 0) {
+    html += '<div class="ai-check-section">';
+    html += '<div class="ai-check-section-title">⚠️ שים לב — תפקידים לא טיפוסיים</div>';
+    suspicious.forEach(s => {
+      html += `<div class="ai-check-item"><strong>${s.name || s.id}</strong><div class="reason">${s.reason}</div></div>`;
+    });
+    html += '</div>';
+  }
+  if (missing.length > 0) {
+    html += '<div class="ai-check-section">';
+    html += '<div class="ai-check-section-title">💡 שקול להוסיף</div>';
+    missing.forEach(m => {
+      html += `<div class="ai-check-item"><strong>${m.name}</strong><div class="reason">${m.reason}</div></div>`;
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  body.innerHTML = html;
+}
+
 // Initialize: try loading from URL hash, otherwise stay on step 1
 loadFromURL();
 </script>
@@ -1044,6 +1153,18 @@ loadFromURL();
         <button class="ai-add-all" onclick="addAllAiRoles()">הוסף הכל לתמהיל</button>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<div class="ai-overlay hidden" id="aiCheckOverlay" onclick="handleAiCheckOverlayClick(event)">
+  <div class="ai-modal" style="max-width:520px">
+    <div class="ai-modal-head">
+      <h2>🔍 בדיקת תמהיל</h2>
+      <button class="ai-modal-close" onclick="closeAiCheckModal()">✕</button>
+    </div>
+    <div class="ai-modal-body" id="aiCheckBody">
+      <div class="ai-spinner" id="aiCheckSpinner"></div>
     </div>
   </div>
 </div>
