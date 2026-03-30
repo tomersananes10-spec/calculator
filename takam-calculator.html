@@ -495,7 +495,6 @@ function fmtCurrency(n, compact=false) {
 const state = {
   project: {name:'', ministry:''},
   period: 12,
-  tariff: 'ceiling',
   matchingOn: true,
   matchingPct: 30,
   selectedIds: new Set(),
@@ -761,7 +760,7 @@ function renderResults() {
 
 function shareURL() {
   const roles = state.mix.map(m => `${m.id}:${m.level}:${m.scope}`).join(',');
-  const hash = `v1|period=${state.period}|tariff=ceiling|matching=${state.matchingOn?1:0}|pct=${state.matchingPct}|roles=${roles}`;
+  const hash = `v1|period=${state.period}|matching=${state.matchingOn?1:0}|pct=${state.matchingPct}|roles=${roles}`;
   location.hash = encodeURIComponent(hash);
   navigator.clipboard.writeText(location.href).then(() => {
     showToast('קישור הועתק ללוח ✓');
@@ -810,6 +809,7 @@ function resetAll() {
   state.matchingPct = 30;
   state.selectedIds = new Set();
   state.mix = [];
+  activeCat = 'הכל';
   location.hash = '';
   goStep(1);
   document.getElementById('projName').value = '';
@@ -839,6 +839,10 @@ function goStep(n) {
 function tryGoStep(n) {
   // Allow going back to done steps only
   if (n < currentStep) goStep(n);
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── ROLE INFO POPUP ──────────────────────────────────────
@@ -940,7 +944,10 @@ async function runAiAnalysis() {
       showAiError(data.error.message || 'שגיאה, נסה שוב');
       return;
     }
-
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      showAiError('שגיאה בעיבוד התשובה, נסה שוב');
+      return;
+    }
     let raw = data.candidates[0].content.parts[0].text.trim();
     raw = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
     let parsed;
@@ -984,7 +991,7 @@ function renderAiResults(summary, roles) {
       <div class="ai-role-info">
         <div class="ai-role-name">${name}</div>
         <div class="ai-role-meta">רמה: ${levelName} | משרה: ${rec.scope}%</div>
-        ${rec.reason ? `<div class="ai-role-reason">${rec.reason}</div>` : ''}
+        ${rec.reason ? `<div class="ai-role-reason">${escapeHtml(rec.reason)}</div>` : ''}
       </div>
       <button class="ai-add-btn" id="aiAddBtn-${idx}"
         onclick="addRoleFromAi(${idx})"
@@ -1104,7 +1111,7 @@ function renderCheckResults(data) {
     html += '<div class="ai-check-section">';
     html += '<div class="ai-check-section-title">⚠️ שים לב — תפקידים לא טיפוסיים</div>';
     suspicious.forEach(s => {
-      html += `<div class="ai-check-item"><strong>${s.name || s.id}</strong><div class="reason">${s.reason}</div></div>`;
+      html += `<div class="ai-check-item"><strong>${escapeHtml(s.name || s.id)}</strong><div class="reason">${escapeHtml(s.reason)}</div></div>`;
     });
     html += '</div>';
   }
@@ -1112,7 +1119,7 @@ function renderCheckResults(data) {
     html += '<div class="ai-check-section">';
     html += '<div class="ai-check-section-title">💡 שקול להוסיף</div>';
     missing.forEach(m => {
-      html += `<div class="ai-check-item"><strong>${m.name}</strong><div class="reason">${m.reason}</div></div>`;
+      html += `<div class="ai-check-item"><strong>${escapeHtml(m.name)}</strong><div class="reason">${escapeHtml(m.reason)}</div></div>`;
     });
     html += '</div>';
   }
