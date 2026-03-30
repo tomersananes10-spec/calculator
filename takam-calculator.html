@@ -265,6 +265,10 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
 .ai-check-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px;font-size:13px;line-height:1.5}
 .ai-check-item .reason{color:var(--text2);margin-top:2px}
 .ai-check-ok{color:var(--green);font-weight:600;font-size:14px;text-align:center;padding:12px}
+/* ─── HOURS EDIT ─── */
+.hours-edit-btn{background:none;border:none;cursor:pointer;font-size:12px;opacity:.6;padding:0 4px;vertical-align:middle}
+.hours-edit-btn:hover{opacity:1}
+.hours-input{width:56px;padding:2px 6px;border:1.5px solid var(--teal);border-radius:6px;font-family:inherit;font-size:13px;text-align:center}
 </style>
 </head>
 <body>
@@ -467,7 +471,7 @@ function calcRoleMonthlyCost(mixEntry) {
   if (!role) return 0;
   const rate = role.rates[mixEntry.level];
   if (!rate) return 0;
-  const hours = HOURS_PER_MONTH * (mixEntry.scope / 100);
+  const hours = mixEntry.customHours ?? Math.round(HOURS_PER_MONTH * mixEntry.scope / 100);
   return Math.round(rate * hours * VAT);
 }
 
@@ -726,18 +730,20 @@ function renderResults() {
   const tableRows = state.mix.map((m,i) => {
     const role = ROLES_DATA.find(r => r.id === m.id);
     const annual = monthlyPerRole[i] * 12;
+    const hours = m.customHours ?? Math.round(HOURS_PER_MONTH * m.scope / 100);
     return `<tr>
       <td>${role.name}</td>
       <td style="text-align:center">${LEVEL_LABELS[m.level]}</td>
       <td style="text-align:center">${m.scope}%</td>
+      <td style="text-align:center"><span id="hoursSpan${i}">${hours}</span><button class="hours-edit-btn" onclick="editHoursInline(${i})" title="ערוך שעות חודשיות">✏️</button></td>
       <td class="cost-val">${fmtCurrency(annual,true)}</td>
     </tr>`;
   }).join('');
   const totalAnnual = monthlyPerRole.reduce((s,v) => s+v, 0) * 12;
   document.getElementById('breakdownTable').innerHTML = `
-    <tr><th>תפקיד</th><th style="text-align:center">רמה</th><th style="text-align:center">משרה</th><th style="text-align:left">שנתי</th></tr>
+    <tr><th>תפקיד</th><th style="text-align:center">רמה</th><th style="text-align:center">משרה</th><th style="text-align:center">שעות/חודש</th><th style="text-align:left">שנתי</th></tr>
     ${tableRows}
-    <tr class="total"><td colspan="3">סה"כ ברוטו שנתי</td><td class="cost-val">${fmtCurrency(totalAnnual,true)}</td></tr>`;
+    <tr class="total"><td colspan="4">סה"כ ברוטו שנתי</td><td class="cost-val">${fmtCurrency(totalAnnual,true)}</td></tr>`;
 
   const maxAnnual = Math.max(...monthlyPerRole.map(v => v*12));
   document.getElementById('barChart').innerHTML = state.mix.map((m,i) => {
@@ -1112,6 +1118,24 @@ function renderCheckResults(data) {
   }
   html += '</div>';
   body.innerHTML = html;
+}
+
+// ── HOURS EDIT ───────────────────────────────────────────
+function setCustomHours(i, val) {
+  const v = parseInt(val);
+  if (isNaN(v) || v < 1) return;
+  state.mix[i].customHours = v;
+  renderResults();
+}
+
+function editHoursInline(i) {
+  const span = document.getElementById('hoursSpan'+i);
+  if (!span) return;
+  const cur = state.mix[i].customHours ?? Math.round(HOURS_PER_MONTH * state.mix[i].scope / 100);
+  span.outerHTML = `<input class="hours-input" id="hoursInput${i}" type="number" value="${cur}" min="1" max="999"
+    onblur="setCustomHours(${i}, this.value)"
+    onkeydown="if(event.key==='Enter')this.blur()">`;
+  setTimeout(() => { const inp = document.getElementById('hoursInput'+i); if(inp){inp.focus();inp.select();} }, 0);
 }
 
 // Initialize: try loading from URL hash, otherwise stay on step 1
