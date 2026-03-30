@@ -1067,6 +1067,10 @@ async function runAiCheck() {
       body.innerHTML = `<div class="ai-error">${data.error?.message || 'שגיאת שרת, נסה שוב'}</div>`;
       return;
     }
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      body.innerHTML = '<div class="ai-error">שגיאה בעיבוד התשובה, נסה שוב</div>';
+      return;
+    }
     let raw = data.candidates[0].content.parts[0].text.trim();
     raw = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
     let parsed;
