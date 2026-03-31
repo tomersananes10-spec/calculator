@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[שם המערכת] — שירותי מחשוב, דאטה ובינה מלאכותית</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0d9488;--teal2:#14b8a6;--teal3:#5eead4;
+  --teal-pale:#f0fdfa;--teal-mid:#ccfbf1;
+  --navy:#0f172a;--slate:#1e293b;
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --bg:#f8fafc;--surface:#ffffff;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --radius:14px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--text);direction:rtl;min-height:100vh}
+
+/* ─── TOPBAR ─── */
+.topbar{height:60px;background:var(--navy);display:flex;align-items:center;padding:0 28px;gap:14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.topbar-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--teal2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.3px}
+.topbar-sep{width:1px;height:20px;background:rgba(255,255,255,0.15);flex-shrink:0}
+.topbar-sub{font-size:12px;color:rgba(255,255,255,0.4)}
+.topbar-spacer{flex:1}
+.topbar-badge{background:rgba(13,148,136,0.2);border:1px solid rgba(20,184,166,0.35);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--teal3);display:flex;align-items:center;gap:6px}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--teal3);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.topbar-avatar{width:32px;height:32px;border-radius:50%;background:var(--slate);border:2px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:rgba(255,255,255,0.7)}
+
+/* ─── MAIN ─── */
+.main{max-width:960px;margin:0 auto;padding:40px 24px 80px}
+
+/* ─── WELCOME ─── */
+.welcome{margin-bottom:36px}
+.welcome-greeting{font-size:26px;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-0.5px}
+.welcome-sub{font-size:15px;color:var(--text3)}
+
+/* ─── SECTION HEADER ─── */
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.sec-title{font-size:13px;font-weight:700;color:var(--text3);letter-spacing:0.8px;text-transform:uppercase}
+.sec-count{font-size:12px;color:var(--text3);background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:2px 10px}
+
+/* ─── MODULE GRID ─── */
+.module-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:40px}
+
+/* ─── FOOTER ─── */
+.footer-note{text-align:center;color:var(--text3);font-size:12px;padding-top:24px;border-top:1px solid var(--border)}
+
+/* ─── MODULE CARD — active ─── */
+.mod-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:22px 20px;cursor:pointer;transition:all 0.2s;text-decoration:none;display:block;position:relative;overflow:hidden}
+.mod-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(13,148,136,0.04),transparent);opacity:0;transition:opacity 0.2s}
+.mod-card:hover{border-color:var(--teal);box-shadow:0 6px 24px rgba(13,148,136,0.12);transform:translateY(-2px)}
+.mod-card:hover::before{opacity:1}
+.mod-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
+.mod-name{font-size:15px;font-weight:800;color:var(--text);margin-bottom:5px}
+.mod-desc{font-size:12px;color:var(--text3);line-height:1.5}
+.mod-arrow{position:absolute;bottom:18px;left:18px;font-size:16px;color:var(--border2);transition:all 0.2s}
+.mod-card:hover .mod-arrow{color:var(--teal);transform:translateX(-3px)}
+
+/* ─── MODULE CARD — soon ─── */
+.mod-card.soon{cursor:default;opacity:0.6;pointer-events:none}
+.soon-badge{position:absolute;top:14px;left:14px;background:#f1f5f9;border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.3px}
+
+/* ─── ICON BACKGROUND COLORS ─── */
+.ic-teal{background:#f0fdfa}
+.ic-blue{background:#eff6ff}
+.ic-purple{background:#faf5ff}
+.ic-amber{background:#fffbeb}
+.ic-rose{background:#fff1f2}
+.ic-green{background:#f0fdf4}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">🏛️</div>
+  <span class="topbar-title">[שם המערכת]</span>
+  <div class="topbar-sep"></div>
+  <span class="topbar-sub">שירותי מחשוב, דאטה ובינה מלאכותית</span>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-badge"><div class="badge-dot"></div>Beta</div>
+  <div class="topbar-avatar">ת</div>
+</div>
+
+<div class="main">
+  <div class="welcome">
+    <div class="welcome-greeting">שלום 👋</div>
+    <div class="welcome-sub">בחר מודול להתחיל</div>
+  </div>
+
+  <div class="sec-header">
+    <span class="sec-title">מודולים</span>
+    <span class="sec-count">6 מודולים · 1 פעיל</span>
+  </div>
+
+  <div class="module-grid">
+    <!-- ACTIVE -->
+    <a class="mod-card" href="takam-calculator.html">
+      <div class="mod-icon ic-teal">🧮</div>
+      <div class="mod-name">מחשבון תכ"ם</div>
+      <div class="mod-desc">חישוב עלויות פרויקט — כוח אדם, תשתיות וחומרה</div>
+      <div class="mod-arrow">←</div>
+    </a>
+
+    <!-- SOON -->
+    <div class="mod-card soon">
+      <div class="soon-badge">בקרוב</div>
+      <div class="mod-icon ic-blue">📄</div>
+      <div class="mod-name">מחולל בריפים</div>
+      <div class="mod-desc">יצירת בריף פרויקט אוטומטי</div>
+    </div>
+
+    <div class="mod-card soon">
+      <div class="soon-badge">בקרוב</div>
+      <div class="mod-icon ic-purple">⚖️</div>
+      <div class="mod-name">רובד 5</div>
+      <div class="mod-desc">ניהול תקציב ורמות אישור</div>
+    </div>
+
+    <div class="mod-card soon">
+      <div class="soon-badge">בקרוב</div>
+      <div class="mod-icon ic-amber">🏛️</div>
+      <div class="mod-name">ועדות משפטיות</div>
+      <div class="mod-desc">מסלול העלאת בריף עם ועדות</div>
+    </div>
+
+    <div class="mod-card soon">
+      <div class="soon-badge">בקרוב</div>
+      <div class="mod-icon ic-rose">✍️</div>
+      <div class="mod-name">מורשי חתימה</div>
+      <div class="mod-desc">ניהול הרשאות חתימה</div>
+    </div>
+
+    <div class="mod-card soon">
+      <div class="soon-badge">בקרוב</div>
+      <div class="mod-icon ic-green">🏆</div>
+      <div class="mod-name">ספקים זוכים</div>
+      <div class="mod-desc">רשימת ספקים זוכים — דיגיטק</div>
+    </div>
+  </div>
+
+  <div class="footer-note">מערכת בפיתוח פעיל · גרסה 0.1 · 2026</div>
+</div>
+
+</body>
+</html>

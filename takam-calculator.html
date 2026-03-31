@@ -31,6 +31,8 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
 .topbar-sub{font-size:12px;color:rgba(255,255,255,0.45)}
 .topbar-spacer{flex:1}
 .topbar-badge{background:rgba(13,148,136,0.25);border:1px solid rgba(20,184,166,0.4);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--teal3)}
+.topbar-home{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.5);text-decoration:none;padding:5px 10px;border-radius:8px;transition:all 0.15s;border:1px solid rgba(255,255,255,0.1)}
+.topbar-home:hover{color:#fff;background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2)}
 
 /* ─── WIZARD PROGRESS ─── */
 .wizard-progress{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;overflow-x:auto}
@@ -159,6 +161,20 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
 .mix-summary-val{font-size:20px;font-weight:800;color:#fff}
 @media(max-width:550px){.mix-params{grid-template-columns:1fr}}
 
+/* ─── RISK BOX ─── */
+.risk-box{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px}
+.risk-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.risk-title{font-size:14px;font-weight:700;color:var(--text)}
+.risk-badge{background:var(--amber);color:#fff;font-size:13px;font-weight:800;border-radius:20px;padding:3px 14px;min-width:52px;text-align:center;transition:background .2s}
+.risk-badge.zero{background:var(--text3)}
+.risk-slider-row{display:flex;align-items:center;gap:12px}
+.risk-pct-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px}
+.risk-totals{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.risk-total-item{display:flex;flex-direction:column;gap:1px}
+.risk-total-label{font-size:10px;color:var(--text3)}
+.risk-total-val{font-size:15px;font-weight:800;color:var(--text)}
+.risk-total-val.highlight{color:var(--teal);font-size:18px}
+
 /* ─── RESULTS ─── */
 .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
 .kpi{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center;transition:all 0.2s;cursor:default}
@@ -203,9 +219,8 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
 .role-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(13,148,136,0.12)}
 .btn-primary{transition:background 0.15s,transform 0.15s,box-shadow 0.15s}
 /* ─── ROLE INFO ─── */
-.role-info-btn{position:absolute;top:6px;left:6px;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--teal-mid);background:var(--teal-pale);color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;z-index:2}
-.role-info-btn:hover{background:var(--teal);color:#fff}
-.role-card{position:relative}
+.role-info-btn{width:15px;height:15px;border-radius:50%;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:9px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;padding:0;transition:all .15s}
+.role-info-btn:hover{border-color:var(--teal);background:var(--teal-pale);color:var(--teal)}
 .role-info-popup{position:fixed;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:12px 16px;max-width:260px;font-size:13px;z-index:500;box-shadow:0 4px 20px rgba(0,0,0,0.4);line-height:1.6;pointer-events:none}
 .role-info-popup.hidden{display:none}
 .mix-role{transition:box-shadow 0.2s}
@@ -269,6 +284,16 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
 .hours-edit-btn{background:none;border:none;cursor:pointer;font-size:12px;opacity:.6;padding:0 4px;vertical-align:middle}
 .hours-edit-btn:hover{opacity:1}
 .hours-input{width:56px;padding:2px 6px;border:1.5px solid var(--teal);border-radius:6px;font-family:inherit;font-size:13px;text-align:center}
+/* ─── CUSTOM ROLE ─── */
+.mix-role.custom{background:#fffbeb;border-color:#fcd34d}
+.mix-role.custom .mix-role-title{color:#78350f}
+.mix-role.custom .mix-role-icon{background:#fef3c7;border-color:#fcd34d}
+.custom-warn-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;line-height:1;vertical-align:middle;opacity:.85}
+.custom-warn-btn:hover{opacity:1}
+.custom-tag{font-size:10px;background:#fef3c7;border:1px solid #fcd34d;color:#92400e;border-radius:6px;padding:1px 7px;font-weight:700;display:inline-block}
+.breakdown-table tr.custom-row td{background:#fffbeb}
+/* ─── ADD ROLE MODAL ─── */
+.cr-rates-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 </style>
 </head>
 <body>
@@ -278,6 +303,7 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
   <div class="topbar-sep"></div>
   <span class="topbar-sub">שירותי מחשוב, דאטה ובינה מלאכותית</span>
   <div class="topbar-spacer"></div>
+  <a class="topbar-home" href="dashboard.html">← דשבורד</a>
   <div class="topbar-badge" id="stepBadge">שלב 1 מתוך 4</div>
 </div>
 <div class="wizard-progress">
@@ -370,9 +396,6 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
     </div>
     <div class="cat-pills" id="catPills"></div>
     <div id="roleList"></div>
-    <div class="ai-check-wrap hidden" id="aiCheckWrap">
-      <button class="btn-ai-check" id="aiCheckBtn" onclick="runAiCheck()">🔍 בדוק את התמהיל שלי עם AI</button>
-    </div>
     <div class="nav-row">
       <button class="btn-back" onclick="goStep(1)">‹ חזור</button>
       <div class="nav-spacer"></div>
@@ -386,11 +409,23 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
     </div>
     <div class="mix-summary" id="mixSummary">
       <div class="rate-item"><div class="mix-summary-label">עלות חודשית כוללת</div><div class="mix-summary-val" id="mixMonthly">₪0</div></div>
+      <div class="rate-item" style="align-items:center;gap:6px">
+        <div class="mix-summary-label" style="text-align:center">שעות/חודש</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="adjustHours(-1)" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.22)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">−</button>
+          <div style="text-align:center">
+            <div class="mix-summary-val" id="mixHours">0</div>
+            <div id="mixHoursPct" style="font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px">ברירת מחדל</div>
+          </div>
+          <button onclick="adjustHours(1)" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.22)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">+</button>
+        </div>
+      </div>
       <div class="rate-item" style="text-align:left"><div class="mix-summary-label">עלות שנתית (אומדן)</div><div class="mix-summary-val" id="mixAnnual">₪0</div></div>
     </div>
     <div id="mixCards"></div>
     <div class="nav-row">
-      <button class="btn-back" onclick="goStep(2);renderRolePicker()">‹ הוסף / הסר תפקידים</button>
+      <button class="btn-back" onclick="goStep(2);renderRolePicker()">‹ ערוך בחירת תפקידים</button>
+      <button class="btn-outline" onclick="openAddRoleModal()" style="border-color:#fcd34d;color:#92400e;background:#fffbeb">➕ הוסף תפקיד מותאם</button>
       <div class="nav-spacer"></div>
       <button class="btn btn-primary" onclick="proceedToStep4()">חשב עלויות ›</button>
     </div>
@@ -402,6 +437,22 @@ button.topbar-logo:hover{opacity:.8;transform:scale(1.08)}
     </div>
     <div class="kpi-row" id="kpiRow"></div>
     <div id="matchingNote"></div>
+    <div class="risk-box" id="riskBox">
+      <div class="risk-header">
+        <div>
+          <div class="risk-title">תוספת סיכון לפרויקט</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">אחוז הגנה על אי-ודאות ועלויות בלתי צפויות</div>
+        </div>
+        <div class="risk-badge" id="riskBadge">18%</div>
+      </div>
+      <div class="risk-slider-row">
+        <span style="font-size:11px;color:var(--text3)">0%</span>
+        <input type="range" class="slider" style="flex:1" min="0" max="50" step="1" value="18" id="riskSlider" oninput="setRiskPct(parseInt(this.value))">
+        <span style="font-size:11px;color:var(--text3)">50%</span>
+      </div>
+      <div class="risk-pct-labels"><span>ללא סיכון</span><span>נמוך (10%)</span><span>סטנדרטי (18%)</span><span>גבוה (35%)</span><span>מקסימום</span></div>
+      <div class="risk-totals" id="riskTotals"></div>
+    </div>
     <div class="results-grid">
       <div class="results-box">
         <div class="results-box-title">פירוט לפי תפקיד</div>
@@ -471,7 +522,8 @@ function calcRoleMonthlyCost(mixEntry) {
   if (!role) return 0;
   const rate = role.rates[mixEntry.level];
   if (!rate) return 0;
-  const hours = mixEntry.customHours ?? Math.round(HOURS_PER_MONTH * mixEntry.scope / 100);
+  const base = mixEntry.customHours ?? Math.round(HOURS_PER_MONTH * mixEntry.scope / 100);
+  const hours = mixEntry.customHours ? base : Math.round(base * state.hoursMultiplier);
   return Math.round(rate * hours * VAT);
 }
 
@@ -499,6 +551,8 @@ const state = {
   matchingPct: 30,
   selectedIds: new Set(),
   mix: [],
+  hoursMultiplier: 1,
+  riskPct: 18,
 };
 
 function setPeriod(months) {
@@ -558,9 +612,12 @@ function renderRoleList() {
         ${roles.map(r => `
           <div class="role-card${state.selectedIds.has(r.id)?' selected':''}" onclick="toggleRole('${r.id}')" data-id="${r.id}">
             <span class="role-card-name">${r.name}</span>
-            <span class="role-check">✓</span>
             <button class="role-info-btn" onclick="showRoleInfo(event,'${r.id}')" title="מידע על התפקיד">i</button>
+            <span class="role-check">✓</span>
           </div>`).join('')}
+      </div>
+      <div style="margin-top:10px;text-align:left">
+        <button onclick="runAiCheck('${cat}')" style="font-size:11px;font-weight:600;color:var(--teal);background:var(--teal-pale);border:1px solid var(--teal-mid);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit;transition:background .15s" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='var(--teal-pale)'">🔍 בדוק תמהיל ${cat}</button>
       </div>
     </div>`).join('') || '<p style="color:var(--text3);padding:20px 0">לא נמצאו תפקידים</p>';
   updateStickyBar();
@@ -588,8 +645,8 @@ function updateStickyBar() {
   bar.classList.toggle('visible', n > 0);
   bar.querySelector('.sticky-bar-count').textContent = n;
   if (btn) btn.disabled = n === 0;
-  const checkWrap = document.getElementById('aiCheckWrap');
-  if (checkWrap) checkWrap.classList.toggle('hidden', n === 0);
+  const fab = document.querySelector('.ai-fab');
+  if (fab) fab.style.bottom = n > 0 ? '76px' : '24px';
 }
 
 function proceedToStep3() {
@@ -600,6 +657,7 @@ function proceedToStep3() {
   });
   goStep(3);
   renderMixPanel();
+  document.getElementById('stickyBar').classList.remove('visible');
 }
 
 const LEVEL_LABELS = {a:'א',b:'ב',c:'ג',d:'ד'};
@@ -609,6 +667,9 @@ function renderMixPanel() {
   const container = document.getElementById('mixCards');
   container.innerHTML = state.mix.map((m,i) => {
     const role = ROLES_DATA.find(r => r.id === m.id);
+    if (!role) return '';
+    const isCustom = !!role.custom;
+    const icon = isCustom ? '✏️' : (CAT_ICONS[role.cat]||'👤');
     const levelBtns = ALL_LEVELS.map(lv => {
       const rate = role.rates[lv];
       const isOn = m.level === lv;
@@ -620,12 +681,12 @@ function renderMixPanel() {
       </button>`;
     }).join('');
     return `
-    <div class="mix-role" id="mixRole${i}">
+    <div class="mix-role${isCustom?' custom':''}" id="mixRole${i}">
       <div class="mix-role-header">
-        <div class="mix-role-icon">${CAT_ICONS[role.cat]||'👤'}</div>
+        <div class="mix-role-icon">${icon}</div>
         <div>
-          <div class="mix-role-title">${role.name}</div>
-          <div class="mix-role-cat">${role.cat}</div>
+          <div class="mix-role-title">${role.name}${isCustom?` <button class="custom-warn-btn" onclick="showCustomWarn(event)" title="לחץ לפרטים">⚠️</button>`:''}</div>
+          <div class="mix-role-cat">${isCustom?'<span class="custom-tag">מותאם אישית</span>':role.cat}</div>
         </div>
         <button class="mix-role-del" onclick="removeMixRole('${m.id}')">הסר ✕</button>
       </div>
@@ -689,11 +750,76 @@ function updateMixSummary() {
   const total = state.mix.reduce((s,m) => s + calcRoleMonthlyCost(m), 0);
   document.getElementById('mixMonthly').textContent = fmtCurrency(total, true);
   document.getElementById('mixAnnual').textContent = fmtCurrency(total*12, true);
+  const totalHours = state.mix.reduce((s, m) => {
+    const base = m.customHours ?? Math.round(HOURS_PER_MONTH * m.scope / 100);
+    return s + (m.customHours ? base : Math.round(base * state.hoursMultiplier));
+  }, 0);
+  const hoursEl = document.getElementById('mixHours');
+  if (hoursEl) hoursEl.textContent = totalHours + ' שע׳';
+  const pctEl = document.getElementById('mixHoursPct');
+  if (pctEl) {
+    const pct = Math.round(state.hoursMultiplier * 100);
+    pctEl.textContent = pct === 100 ? 'ברירת מחדל' : (pct > 100 ? `+${pct - 100}% מהבסיס` : `${pct - 100}% מהבסיס`);
+    pctEl.style.color = pct === 100 ? 'rgba(255,255,255,0.45)' : pct > 100 ? '#86efac' : '#fca5a5';
+  }
+}
+
+function adjustHours(dir) {
+  state.hoursMultiplier = Math.max(0.5, Math.min(2.0, Math.round((state.hoursMultiplier + dir * 0.1) * 10) / 10));
+  updateMixSummary();
+  // re-render rate rows so costs update live
+  state.mix.forEach((m, i) => {
+    const role = ROLES_DATA.find(r => r.id === m.id);
+    const el = document.getElementById('rateRow' + i);
+    if (el && role) el.innerHTML = renderRateRow(m, role);
+  });
 }
 
 function proceedToStep4() {
   goStep(4);
   renderResults();
+}
+
+function setRiskPct(val) {
+  state.riskPct = val;
+  const badge = document.getElementById('riskBadge');
+  if (badge) {
+    badge.textContent = val + '%';
+    badge.classList.toggle('zero', val === 0);
+  }
+  const slider = document.getElementById('riskSlider');
+  if (slider) slider.value = val;
+  updateRiskTotals();
+  // עדכן KPI כולל סיכון
+  const periods = [6, 12, 24];
+  const periodLabels = {6:'6 חודשים', 12:'שנה', 24:'שנתיים'};
+  document.getElementById('kpiRow').innerHTML = periods.map(p => {
+    const {net} = calcTotalCost(state.mix, p, state.matchingOn, state.matchingPct);
+    const riskAmt = Math.round(net * state.riskPct / 100);
+    const total = net + riskAmt;
+    const isHL = p === state.period;
+    return `<div class="kpi${isHL?' highlighted':''}">
+      <div class="kpi-period">${periodLabels[p]}</div>
+      <div class="kpi-total">${fmtCurrency(total, true)}</div>
+      <div class="kpi-label">כולל ${val}% סיכון</div>
+      ${val > 0 ? `<div class="kpi-gross">בסיס: ${fmtCurrency(net,true)}</div>` : ''}
+      ${state.matchingOn ? `<div class="kpi-gross">מאצ'ינג כלול</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function updateRiskTotals() {
+  const el = document.getElementById('riskTotals');
+  if (!el) return;
+  const {net} = calcTotalCost(state.mix, state.period, state.matchingOn, state.matchingPct);
+  const riskAmt = Math.round(net * state.riskPct / 100);
+  const total = net + riskAmt;
+  const periodLabels = {6:'6 חודשים', 12:'שנה', 24:'שנתיים'};
+  el.innerHTML = state.riskPct === 0
+    ? `<div class="risk-total-item"><div class="risk-total-label">עלות כוללת (${periodLabels[state.period]})</div><div class="risk-total-val highlight">${fmtCurrency(net, true)}</div></div>`
+    : `<div class="risk-total-item"><div class="risk-total-label">עלות בסיס (${periodLabels[state.period]})</div><div class="risk-total-val">${fmtCurrency(net, true)}</div></div>
+       <div class="risk-total-item"><div class="risk-total-label">תוספת סיכון ${state.riskPct}%</div><div class="risk-total-val" style="color:var(--amber)">+${fmtCurrency(riskAmt, true)}</div></div>
+       <div class="risk-total-item"><div class="risk-total-label">סה"כ כולל סיכון</div><div class="risk-total-val highlight">${fmtCurrency(total, true)}</div></div>`;
 }
 
 const TEAL_SHADES = ['#0d9488','#14b8a6','#2dd4bf','#5eead4','#99f6e4','#ccfbf1'];
@@ -708,11 +834,14 @@ function renderResults() {
 
   document.getElementById('kpiRow').innerHTML = periods.map(p => {
     const {gross, net} = calcTotalCost(state.mix, p, state.matchingOn, state.matchingPct);
+    const riskAmt = Math.round(net * state.riskPct / 100);
+    const total = net + riskAmt;
     const isHL = p === state.period;
     return `<div class="kpi${isHL?' highlighted':''}">
       <div class="kpi-period">${periodLabels[p]}</div>
-      <div class="kpi-total">${fmtCurrency(net, true)}</div>
-      <div class="kpi-label">עלות המשרד</div>
+      <div class="kpi-total">${fmtCurrency(total, true)}</div>
+      <div class="kpi-label">כולל ${state.riskPct}% סיכון</div>
+      ${state.riskPct > 0 ? `<div class="kpi-gross">בסיס: ${fmtCurrency(net,true)}</div>` : ''}
       ${state.matchingOn?`<div class="kpi-gross">ברוטו: ${fmtCurrency(gross,true)}</div>`:''}
     </div>`;
   }).join('');
@@ -729,9 +858,11 @@ function renderResults() {
   const tableRows = state.mix.map((m,i) => {
     const role = ROLES_DATA.find(r => r.id === m.id);
     const annual = monthlyPerRole[i] * 12;
-    const hours = m.customHours ?? Math.round(HOURS_PER_MONTH * m.scope / 100);
-    return `<tr>
-      <td>${role.name}</td>
+    const base = m.customHours ?? Math.round(HOURS_PER_MONTH * m.scope / 100);
+    const hours = m.customHours ? base : Math.round(base * state.hoursMultiplier);
+    const isCustom = !!role.custom;
+    return `<tr${isCustom?' class="custom-row"':''}>
+      <td>${role.name}${isCustom?` <button class="custom-warn-btn" onclick="showCustomWarn(event)" title="לחץ לפרטים">⚠️</button>`:''}</td>
       <td style="text-align:center">${LEVEL_LABELS[m.level]}</td>
       <td style="text-align:center">${m.scope}%</td>
       <td style="text-align:center"><span id="hoursSpan${i}">${hours}</span><button class="hours-edit-btn" onclick="editHoursInline(${i})" title="ערוך שעות חודשיות">✏️</button></td>
@@ -756,6 +887,13 @@ function renderResults() {
       <div class="bar-val">${fmtCurrency(annual,true)}</div>
     </div>`;
   }).join('');
+
+  // אתחל קוביית סיכון
+  const badge = document.getElementById('riskBadge');
+  if (badge) { badge.textContent = state.riskPct + '%'; badge.classList.toggle('zero', state.riskPct === 0); }
+  const slider = document.getElementById('riskSlider');
+  if (slider) slider.value = state.riskPct;
+  updateRiskTotals();
 }
 
 function shareURL() {
@@ -879,6 +1017,7 @@ function openAiModal() {
 function closeAiModal() {
   document.getElementById('aiOverlay').classList.add('hidden');
   document.body.style.overflow = '';
+  if (currentStep === 2) renderRoleList();
 }
 
 function handleOverlayClick(e) {
@@ -911,6 +1050,7 @@ async function runAiAnalysis() {
   const key = GEMINI_API_KEY;
   const desc = document.getElementById('aiProjectDesc').value.trim();
   saveApiKey();
+  state.project.desc = desc;
 
   const btn = document.getElementById('aiAnalyzeBtn');
   btn.disabled = true;
@@ -1039,29 +1179,36 @@ function handleAiCheckOverlayClick(e) {
   if (e.target === document.getElementById('aiCheckOverlay')) closeAiCheckModal();
 }
 
-function buildCheckPrompt() {
-  const names = [...state.selectedIds].map(id => {
-    const r = ROLES_DATA.find(x => x.id === id);
-    return r ? r.name : id;
-  });
+function buildCheckPrompt(cat) {
+  const catRoles = ROLES_DATA.filter(r => r.cat === cat);
+  const selectedInCat = catRoles.filter(r => state.selectedIds.has(r.id));
+  const availableList = catRoles.map(r => `${r.id} | ${r.name}`).join('\n');
+  const selectedNames = selectedInCat.map(r => r.name).join(', ') || 'אף תפקיד לא נבחר';
   const projectName = state.project.name || 'לא צוין';
+  const projectDesc = state.project.desc ? `\nתיאור: ${state.project.desc}` : '';
   return `אתה יועץ לתמהיל משאבי IT לפרויקטים ממשלתיים ישראליים.
-בדוק את התמהיל שנבחר לפרויקט:
-שם פרויקט: ${projectName}
-תפקידים נבחרים: ${names.join(', ')}
+פרויקט: ${projectName}${projectDesc}
+קטגוריה לבדיקה: ${cat}
 
-שאלות לבדיקה:
-1. האם יש תפקידים שנראים לא רלוונטיים לפרויקט מסוג זה?
-2. האם חסרים תפקידים קריטיים לפרויקט מסוג זה?
+תפקידים זמינים בקטגוריה "${cat}":
+${availableList}
+
+תפקידים שנבחרו מקטגוריה "${cat}": ${selectedNames}
+
+בדוק:
+1. האם מהתפקידים הנבחרים בקטגוריה זו יש כאלה שלא נראים רלוונטיים לפרויקט?
+2. האם חסרים תפקידים חשובים מהרשימה הזמינה בקטגוריה זו לפרויקט מסוג זה?
 
 החזר JSON בלבד (ללא markdown, ללא קוד בלוקים):
-{"suspicious":[{"id":"3.2","name":"טכנאי ציוד מחשבים","reason":"לא טיפוסי לפרויקט BI"}],"missing":[{"name":"מנתח מערכות","reason":"נדרש לפרויקט BI"}]}
+{"suspicious":[{"id":"3.2","name":"טכנאי ציוד מחשבים","reason":"לא טיפוסי לפרויקט BI"}],"missing":[{"id":"2.1","name":"מנהל פרויקט","reason":"נדרש לפרויקט BI"}]}
 אם אין הערות — החזר רשימות ריקות. השתמש בשמות תפקידים בעברית.`;
 }
 
-async function runAiCheck() {
+async function runAiCheck(cat) {
   const overlay = document.getElementById('aiCheckOverlay');
   const body = document.getElementById('aiCheckBody');
+  const titleEl = overlay.querySelector('.ai-modal-head h2');
+  if (titleEl) titleEl.textContent = `🔍 בדיקת תמהיל — ${cat}`;
   overlay.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   body.innerHTML = '<div style="text-align:center;padding:32px"><span class="ai-spinner"></span><div style="margin-top:12px;color:var(--text2);font-size:13px">מנתח תמהיל...</div></div>';
@@ -1072,7 +1219,10 @@ async function runAiCheck() {
       {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({contents:[{parts:[{text: buildCheckPrompt()}]}]})
+        body: JSON.stringify({
+          contents:[{parts:[{text: buildCheckPrompt(cat)}]}],
+          generationConfig: { temperature: 0 }
+        })
       }
     );
     const data = await res.json();
@@ -1145,6 +1295,60 @@ function editHoursInline(i) {
   setTimeout(() => { const inp = document.getElementById('hoursInput'+i); if(inp){inp.focus();inp.select();} }, 0);
 }
 
+// ── CUSTOM ROLE ──────────────────────────────────────────
+let customRoleCounter = 0;
+
+function showCustomWarn(e) {
+  e.stopPropagation();
+  const popup = document.getElementById('roleInfoPopup');
+  popup.textContent = '⚠️ תפקיד זה נוסף ידנית ואינינו חלק מהוראת התכ"ם';
+  popup.classList.remove('hidden');
+  const rect = e.currentTarget.getBoundingClientRect();
+  let top = rect.bottom + 6;
+  let left = rect.left - 130;
+  if (left < 8) left = 8;
+  if (top + 80 > window.innerHeight) top = rect.top - 86;
+  popup.style.top = top + 'px';
+  popup.style.left = left + 'px';
+  setTimeout(() => document.addEventListener('click', hideRoleInfo, {once:true}), 0);
+}
+
+function openAddRoleModal() {
+  document.getElementById('crName').value = '';
+  document.getElementById('crCat').value = 'מותאם אישית';
+  document.getElementById('crRateB').value = '';
+  document.getElementById('crRateC').value = '';
+  document.getElementById('crError').classList.add('hidden');
+  document.getElementById('addRoleOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('crName').focus(), 50);
+}
+
+function closeAddRoleModal() {
+  document.getElementById('addRoleOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function submitCustomRole() {
+  const name = document.getElementById('crName').value.trim();
+  const cat = document.getElementById('crCat').value.trim() || 'מותאם אישית';
+  const rateB = parseInt(document.getElementById('crRateB').value);
+  const rateC = parseInt(document.getElementById('crRateC').value);
+  const errEl = document.getElementById('crError');
+  if (!name) { errEl.textContent = 'שם התפקיד הוא שדה חובה'; errEl.classList.remove('hidden'); return; }
+  if (!rateB || rateB < 1) { errEl.textContent = 'תעריף ג\'וניור / מתחיל הוא שדה חובה'; errEl.classList.remove('hidden'); return; }
+  errEl.classList.add('hidden');
+  customRoleCounter++;
+  const id = 'custom_' + customRoleCounter;
+  const rates = {b: rateB};
+  if (rateC > 0) rates.c = rateC;
+  ROLES_DATA.push({id, name, cat, rates, desc: 'תפקיד מותאם אישית — אינו חלק מהוראת התכ"ם', custom: true});
+  state.mix.push({id, level: 'b', scope: 100});
+  state.selectedIds.add(id);
+  closeAddRoleModal();
+  renderMixPanel();
+}
+
 // Initialize: try loading from URL hash, otherwise stay on step 1
 loadFromURL();
 </script>
@@ -1184,8 +1388,11 @@ loadFromURL();
       <div class="ai-results hidden" id="aiResults">
         <p class="ai-results-title">המלצת AI לתמהיל</p>
         <div class="ai-summary" id="aiSummary"></div>
+        <div style="display:flex;justify-content:flex-start;margin-bottom:10px">
+          <button class="btn-outline" onclick="addAllAiRoles()" style="font-size:12px;padding:7px 14px">+ הוסף הכל</button>
+        </div>
         <div id="aiRolesList"></div>
-        <button class="ai-add-all" onclick="addAllAiRoles()">הוסף הכל לתמהיל</button>
+        <button onclick="closeAiModal()" style="margin-top:10px;width:100%;background:var(--teal);color:#fff;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">סיים — חזור לבחירת תפקידים ›</button>
       </div>
 
     </div>
@@ -1205,6 +1412,44 @@ loadFromURL();
 </div>
 
 <div id="roleInfoPopup" class="role-info-popup hidden"></div>
+
+<!-- ── ADD CUSTOM ROLE MODAL ── -->
+<div class="ai-overlay hidden" id="addRoleOverlay" onclick="if(event.target===this)closeAddRoleModal()">
+  <div class="ai-modal" style="max-width:420px">
+    <div class="ai-modal-head">
+      <h2>➕ הוסף תפקיד מותאם אישית</h2>
+      <button class="ai-modal-close" onclick="closeAddRoleModal()">✕</button>
+    </div>
+    <div class="ai-modal-body">
+      <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;line-height:1.5">
+        ⚠️ תפקיד זה אינו חלק מהוראת התכ"ם. הוא יסומן בצהוב בתמהיל ובדוח.
+      </div>
+      <div class="ai-field">
+        <label class="ai-label">שם התפקיד <span style="color:var(--red)">*</span></label>
+        <input class="ai-input" id="crName" placeholder='למשל: ראש צוות AI' style="direction:rtl" onkeydown="if(event.key==='Enter')document.getElementById('crRateB').focus()">
+      </div>
+      <div class="ai-field">
+        <label class="ai-label">קטגוריה</label>
+        <input class="ai-input" id="crCat" value="מותאם אישית" style="direction:rtl">
+      </div>
+      <div class="cr-rates-grid">
+        <div class="ai-field">
+          <label class="ai-label">תעריף שעתי — ג'וניור / מתחיל <span style="color:var(--red)">*</span></label>
+          <input class="ai-input" id="crRateB" type="number" min="1" max="9999" placeholder="₪/שעה" style="direction:ltr">
+        </div>
+        <div class="ai-field">
+          <label class="ai-label">תעריף שעתי — מומחה <span style="font-size:11px;color:var(--text3)">(אופציונלי)</span></label>
+          <input class="ai-input" id="crRateC" type="number" min="1" max="9999" placeholder="₪/שעה" style="direction:ltr">
+        </div>
+      </div>
+      <span class="field-error hidden" id="crError"></span>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn-back" onclick="closeAddRoleModal()" style="flex:1">ביטול</button>
+        <button class="btn btn-primary" onclick="submitCustomRole()" style="flex:2">➕ הוסף לתמהיל</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="sticky-bar" id="stickyBar">
   <span class="sticky-bar-text">נבחרו</span>
