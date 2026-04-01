@@ -70,35 +70,6 @@ export function Step1Setup({ state, dispatch }: Props) {
           </div>
         </div>
 
-        <div className={s.field} style={{ marginTop: 14 }}>
-          <div className={s.toggleRow}>
-            <div className={s.toggleInfo}>
-              <span className={s.toggleName}>מאצ'ינג ממשלתי</span>
-              <span className={s.toggleSub}>כולל חיסכון ממאצ'ינג בחישוב</span>
-            </div>
-            <button
-              className={`${s.sw} ${state.matchingOn ? s.swOn : ''}`}
-              onClick={() => dispatch({ type: 'TOGGLE_MATCHING' })}
-              aria-label="toggle matching"
-            />
-          </div>
-        </div>
-
-        {state.matchingOn && (
-          <div className={s.field}>
-            <label className={s.fieldLabel}>אחוז מאצ'ינג</label>
-            <div className={s.numRow}>
-              <input
-                type="number"
-                className={s.numInput}
-                min={1} max={100}
-                value={state.matchingPct}
-                onChange={e => dispatch({ type: 'SET_MATCHING_PCT', payload: Math.min(100, Math.max(1, +e.target.value || 30)) })}
-              />
-              <span style={{ fontSize: 13, color: 'var(--text2)' }}>%</span>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className={s.navRow}>

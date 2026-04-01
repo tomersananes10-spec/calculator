@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import type { CalcState, CalcAction } from './types'
 import { TEAL_SHADES, LEVEL_LABELS, HOURS_PER_MONTH } from './data'
 import { calcTotalCost, fmtCurrency } from './calc'
@@ -28,6 +29,24 @@ function showToast(msg: string) {
 
 export function Step4Results({ state, dispatch }: Props) {
   const { mix, period, matchingOn, matchingPct, riskPct, rolesData, hoursMultiplier } = state
+  const printRef = useRef<HTMLDivElement>(null)
+
+  async function downloadPDF() {
+    if (!printRef.current) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const html2pdf = (await import('html2pdf.js' as any)).default
+    const filename = `takam-${state.project.name || 'report'}.pdf`
+    html2pdf()
+      .set({
+        margin: 10,
+        filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      })
+      .from(printRef.current)
+      .save()
+  }
 
   const { matching, net, monthlyPerRole } = calcTotalCost(mix, period, matchingOn, matchingPct, rolesData, hoursMultiplier)
   const riskAmt = Math.round(net * riskPct / 100)
@@ -47,6 +66,7 @@ export function Step4Results({ state, dispatch }: Props) {
 
   return (
     <div>
+      <div ref={printRef}>
       <div className={s.stepHeader}>
         <h2>תוצאות החישוב</h2>
         <p>{mix.length} תפקידים · {PERIOD_LABELS[period]} · תעריף גג{matchingOn ? ` · מאצ'ינג ${matchingPct}%` : ''}</p>
@@ -81,7 +101,7 @@ export function Step4Results({ state, dispatch }: Props) {
       {/* Risk box */}
       <div className={s.riskBox}>
         <div className={s.riskHeader}>
-          <span className={s.riskTitle}>רזרבה לסיכון</span>
+          <span className={s.riskTitle}>תוספת אחוז סיכון</span>
           <span className={`${s.riskBadge} ${riskPct === 0 ? s.riskBadgeZero : ''}`}>{riskPct}%</span>
         </div>
         <input
@@ -115,6 +135,47 @@ export function Step4Results({ state, dispatch }: Props) {
             </>
           )}
         </div>
+      </div>
+
+      {/* Matching box */}
+      <div className={s.riskBox}>
+        <div className={s.riskHeader}>
+          <span className={s.riskTitle}>מאצ'ינג עם מערך הדיגיטל</span>
+        </div>
+        <div className={s.toggleRow}>
+          <div className={s.toggleInfo}>
+            <span className={s.toggleName}>מאצ'ינג ממשלתי</span>
+            <span className={s.toggleSub}>כולל חיסכון ממאצ'ינג בחישוב</span>
+          </div>
+          <button
+            className={`${s.sw} ${state.matchingOn ? s.swOn : ''}`}
+            onClick={() => dispatch({ type: 'TOGGLE_MATCHING' })}
+            aria-label="toggle matching"
+          />
+        </div>
+        {state.matchingOn && (
+          <div className={s.field} style={{ marginTop: 12 }}>
+            <label className={s.fieldLabel}>אחוז מאצ'ינג</label>
+            <div className={s.numRow}>
+              <input
+                type="number"
+                className={s.numInput}
+                min={1} max={100}
+                value={state.matchingPct}
+                onChange={e => dispatch({ type: 'SET_MATCHING_PCT', payload: Math.min(100, Math.max(1, +e.target.value || 30)) })}
+              />
+              <span style={{ fontSize: 13, color: 'var(--text2)' }}>%</span>
+            </div>
+          </div>
+        )}
+        {state.matchingOn && (
+          <div className={s.riskTotals} style={{ marginTop: 10 }}>
+            <div className={s.riskTotalItem}>
+              <span className={s.riskTotalLabel}>חיסכון מאצ'ינג ({state.matchingPct}%)</span>
+              <span className={s.riskTotalVal} style={{ color: 'var(--green)' }}>−{fmtCurrency(matching, true)}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Results grid */}
@@ -178,9 +239,12 @@ export function Step4Results({ state, dispatch }: Props) {
         </div>
       </div>
 
+      </div>
+
       {/* Actions */}
       <div className={s.actionsRow}>
-        <button className={`${s.btn} ${s.btnPrimary}`} onClick={() => window.print()}>🖨️ הדפס</button>
+        <button className={`${s.btn} ${s.btnPrimary}`} onClick={downloadPDF}>📥 הורד PDF</button>
+        <button className={s.btnBack} onClick={() => window.print()}>🖨️ הדפס</button>
         <button className={s.btnBack} onClick={shareURL}>🔗 שתף קישור</button>
         <button className={s.btnBack} onClick={() => dispatch({ type: 'RESET' })}>🔄 איפוס</button>
       </div>

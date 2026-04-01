@@ -17,16 +17,8 @@ export function Step3Mix({ state, dispatch }: Props) {
     (sum, m) => sum + calcRoleMonthlyCost(m, state.rolesData, state.hoursMultiplier),
     0
   )
-  const totalHours = state.mix.reduce((sum, m) => {
-    const base = m.customHours ?? Math.round(HOURS_PER_MONTH * m.scope / 100)
-    return sum + (m.customHours ? base : Math.round(base * state.hoursMultiplier))
-  }, 0)
-  const pct = Math.round(state.hoursMultiplier * 100)
-
-  function adjustMultiplier(dir: 1 | -1) {
-    const newVal = Math.max(0.5, Math.min(2.0, Math.round((state.hoursMultiplier + dir * 0.1) * 10) / 10))
-    dispatch({ type: 'SET_HOURS_MULTIPLIER', payload: newVal })
-  }
+  const HOURS_OPTIONS = [160, 176, 180, 200]
+  const selectedHours = Math.round(state.hoursMultiplier * HOURS_PER_MONTH)
 
   function confirmCustomHours(i: number) {
     const v = parseInt(editHoursVal)
@@ -55,18 +47,17 @@ export function Step3Mix({ state, dispatch }: Props) {
           <span className={s.mixSummaryLabel}>שנתי (אומדן)</span>
           <span className={s.mixSummaryValue}>{fmtCurrency(totalMonthly * 12, true)}</span>
         </div>
-        <div className={s.mixSummaryItem}>
-          <span className={s.mixSummaryLabel}>שעות/חודש</span>
-          <span className={s.mixSummaryValue}>{totalHours} שע׳</span>
-          <div className={s.hoursAdjustRow}>
-            <button className={s.hoursAdjustBtn} onClick={() => adjustMultiplier(-1)}>−</button>
-            <span className={s.hoursPct} style={{
-              color: pct === 100 ? 'rgba(255,255,255,0.45)' : pct > 100 ? '#86efac' : '#fca5a5'
-            }}>
-              {pct === 100 ? 'ברירת מחדל' : pct > 100 ? `+${pct-100}% מהבסיס` : `${pct-100}% מהבסיס`}
-            </span>
-            <button className={s.hoursAdjustBtn} onClick={() => adjustMultiplier(1)}>+</button>
-          </div>
+        <div className={s.mixSummaryItem} style={{ minWidth: 200 }}>
+          <span className={s.mixSummaryLabel}>שעות/חודש (משרה מלאה)</span>
+          <span className={s.mixSummaryValue}>{selectedHours} שע׳</span>
+          <input
+            type="range"
+            className={s.slider}
+            min={120} max={250} step={1}
+            value={selectedHours}
+            onChange={e => dispatch({ type: 'SET_HOURS_MULTIPLIER', payload: Math.round((+e.target.value / HOURS_PER_MONTH) * 100) / 100 })}
+            style={{ width: '100%', accentColor: 'rgba(255,255,255,0.7)', marginTop: 6 }}
+          />
         </div>
       </div>
 

@@ -49,4 +49,5 @@ export type CalcAction =
   | { type: 'SET_RISK_PCT'; payload: number }
   | { type: 'GO_STEP'; payload: 1 | 2 | 3 | 4 }
   | { type: 'ADD_CUSTOM_ROLE'; payload: Role }
+  | { type: 'ADD_AI_ROLE'; payload: { id: string; level: Level; scope: number } }
   | { type: 'RESET' }

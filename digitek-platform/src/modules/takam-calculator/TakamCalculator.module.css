@@ -214,17 +214,6 @@
 .mixSummaryItem { display: flex; flex-direction: column; gap: 2px; }
 .mixSummaryLabel { font-size: 11px; color: rgba(255,255,255,0.45); }
 .mixSummaryValue { font-size: 20px; font-weight: 800; color: #fff; }
-.hoursAdjustRow {
-  display: flex; align-items: center; gap: 10px; margin-top: 8px;
-}
-.hoursAdjustBtn {
-  width: 30px; height: 30px; border-radius: 8px;
-  border: 1.5px solid rgba(255,255,255,0.2); background: transparent;
-  color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
-}
-.hoursAdjustBtn:hover { background: rgba(255,255,255,0.1); }
-.hoursPct { font-size: 12px; color: rgba(255,255,255,0.45); }
 .mixRoleCard {
   background: var(--surface); border: 1.5px solid var(--border);
   border-radius: var(--radius); padding: 18px; margin-bottom: 12px;
@@ -349,3 +338,94 @@
 @media print {
   .wizardProgress, .navRow, .actionsRow { display: none !important; }
 }
+
+/* ── AI ADVISOR ── */
+.aiFab {
+  position: fixed; bottom: 24px; left: 24px; z-index: 200;
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  color: #fff; border: none; border-radius: 50px;
+  padding: 0 20px; height: 44px;
+  font-size: 14px; font-weight: 700; font-family: Heebo, sans-serif;
+  cursor: pointer; box-shadow: 0 4px 16px rgba(13,148,136,0.45);
+  transition: transform .15s, box-shadow .15s;
+}
+.aiFab:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(13,148,136,0.55); }
+
+.aiOverlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.6);
+  z-index: 300; display: flex; align-items: center;
+  justify-content: center; padding: 16px;
+}
+.aiModal {
+  background: #fff; border-radius: 16px;
+  width: 100%; max-width: 560px; max-height: 90vh;
+  overflow-y: auto; direction: rtl;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.aiModalHead {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9;
+}
+.aiModalHead h2 { margin: 0; font-size: 18px; font-weight: 700; color: #0f172a; }
+.aiModalClose {
+  background: none; border: none; font-size: 22px;
+  cursor: pointer; color: #94a3b8; line-height: 1; padding: 4px;
+}
+.aiModalClose:hover { color: #475569; }
+.aiModalBody { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+.aiField { display: flex; flex-direction: column; gap: 6px; }
+.aiLabel { font-size: 13px; font-weight: 600; color: #374151; }
+.aiTextarea {
+  border: 1.5px solid #e2e8f0; border-radius: 8px;
+  padding: 10px 12px; font-size: 13px; font-family: Heebo, sans-serif;
+  resize: vertical; outline: none; direction: rtl; width: 100%;
+}
+.aiTextarea:focus { border-color: #14b8a6; }
+
+.aiBtnAnalyze {
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  color: #fff; border: none; border-radius: 10px;
+  padding: 12px 24px; font-size: 14px; font-weight: 700;
+  font-family: Heebo, sans-serif; cursor: pointer; transition: opacity .2s;
+}
+.aiBtnAnalyze:disabled { opacity: .45; cursor: not-allowed; }
+.aiBtnAnalyze:not(:disabled):hover { opacity: .9; }
+
+.aiSpinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+  border-radius: 50%; animation: spin .7s linear infinite;
+  vertical-align: middle; margin-left: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.aiError {
+  background: #fef2f2; border: 1px solid #fecaca;
+  border-radius: 8px; padding: 12px; font-size: 13px; color: #dc2626;
+}
+.aiResults { display: flex; flex-direction: column; gap: 12px; }
+.aiResultsTitle { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; }
+.aiSummary {
+  font-size: 13px; color: #475569; line-height: 1.6;
+  background: #f8fafc; border-radius: 8px; padding: 12px;
+}
+.aiRolesList { display: flex; flex-direction: column; gap: 8px; }
+.aiRoleRow {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: #f8fafc; border-radius: 10px; padding: 12px;
+  border: 1px solid #e2e8f0;
+}
+.aiRoleInfo { flex: 1; }
+.aiRoleName { font-size: 14px; font-weight: 700; color: #0f172a; }
+.aiRoleMeta { font-size: 12px; color: #0d9488; margin-top: 2px; }
+.aiRoleReason { font-size: 12px; color: #64748b; margin-top: 4px; }
+.aiAddBtn {
+  background: #fff; border: 1.5px solid #14b8a6; color: #0d9488;
+  border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 700;
+  font-family: Heebo, sans-serif; cursor: pointer; white-space: nowrap;
+  transition: background .15s;
+}
+.aiAddBtn:hover:not(:disabled) { background: #f0fdfa; }
+.aiAddBtn:disabled { opacity: .55; cursor: default; }

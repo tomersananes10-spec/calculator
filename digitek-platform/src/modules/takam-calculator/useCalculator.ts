@@ -81,6 +81,23 @@ function reducer(state: CalcState, action: CalcAction): CalcState {
       return { ...state, currentStep: action.payload }
     case 'ADD_CUSTOM_ROLE':
       return { ...state, rolesData: [...state.rolesData, action.payload] }
+    case 'ADD_AI_ROLE': {
+      const { id, level, scope } = action.payload
+      const newIds = new Set(state.selectedIds)
+      if (newIds.has(id)) {
+        // update existing entry
+        return {
+          ...state,
+          mix: state.mix.map(m => m.id === id ? { ...m, level, scope } : m),
+        }
+      }
+      newIds.add(id)
+      return {
+        ...state,
+        selectedIds: newIds,
+        mix: [...state.mix, { id, level, scope }],
+      }
+    }
     case 'RESET':
       return { ...INITIAL_STATE, rolesData: ROLES_DATA }
     default:

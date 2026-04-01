@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
 import { useCalculator } from './useCalculator'
-import { Step1Setup }   from './Step1Setup'
-import { Step2Roles }   from './Step2Roles'
-import { Step3Mix }     from './Step3Mix'
-import { Step4Results } from './Step4Results'
-import { ROLES_DATA }   from './data'
+import { Step1Setup }       from './Step1Setup'
+import { Step2Roles }       from './Step2Roles'
+import { Step3Mix }         from './Step3Mix'
+import { Step4Results }     from './Step4Results'
+import { AiAdvisorModal }   from './AiAdvisorModal'
+import { ROLES_DATA }       from './data'
 import type { MixEntry, Level } from './types'
 import s from './TakamCalculator.module.css'
 
@@ -69,6 +70,8 @@ export function TakamCalculator() {
         {state.currentStep === 3 && <Step3Mix   state={state} dispatch={dispatch} />}
         {state.currentStep === 4 && <Step4Results state={state} dispatch={dispatch} />}
       </div>
+
+      <AiAdvisorModal state={state} dispatch={dispatch} />
     </>
   )
 }

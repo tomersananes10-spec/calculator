@@ -1,7 +1,7 @@
 import type { Role } from './types'
 
 export const VAT = 1.17
-export const HOURS_PER_MONTH = 176
+export const HOURS_PER_MONTH = 180
 export const ALL_LEVELS = ['a', 'b', 'c', 'd'] as const
 export const LEVEL_LABELS: Record<string, string> = { a: 'א', b: 'ב', c: 'ג', d: 'ד' }
 
