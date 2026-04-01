@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Login }          from './pages/Login'
 import { Dashboard }      from './pages/Dashboard'
 import { Calculator }     from './pages/Calculator'
+import { BriefGenerator } from './pages/BriefGenerator'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 export default function App() {
@@ -22,6 +23,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Calculator />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/brief-generator"
+          element={
+            <ProtectedRoute>
+              <BriefGenerator />
             </ProtectedRoute>
           }
         />

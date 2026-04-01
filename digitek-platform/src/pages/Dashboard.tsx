@@ -29,8 +29,8 @@ const MODULES: Module[] = [
     desc: 'יצירת בריף פרויקט אוטומטי',
     icon: '📄',
     iconBg: '#eff6ff',
-    href: '/briefs',
-    active: false,
+    href: '/brief-generator',
+    active: true,
   },
   {
     id: 'layer5',
