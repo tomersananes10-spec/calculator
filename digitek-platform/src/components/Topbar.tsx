@@ -5,6 +5,7 @@ interface TopbarProps {
   title: string
   subtitle?: string
   showHomeLink?: boolean
+  backHref?: string
   badge?: string
   userName?: string
 }
@@ -13,6 +14,7 @@ export function Topbar({
   title,
   subtitle = 'שירותי מחשוב, דאטה ובינה מלאכותית',
   showHomeLink = false,
+  backHref,
   badge,
   userName,
 }: TopbarProps) {
@@ -25,6 +27,9 @@ export function Topbar({
       <div className={styles.sep} />
       <span className={styles.sub}>{subtitle}</span>
       <div className={styles.spacer} />
+      {backHref && (
+        <Link to={backHref} className={styles.topbarHome}>← דשבורד</Link>
+      )}
       {showHomeLink && (
         <Link to="/" className={styles.homeLink}>← דשבורד</Link>
       )}
