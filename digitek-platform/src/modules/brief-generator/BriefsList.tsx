@@ -25,22 +25,14 @@ function StatusBadge({ status }: { status: BriefRecord['status'] }) {
 
 interface Props {
   onOpen: (briefId: string) => void
+  onNew: () => void
 }
 
-export function BriefsList({ onOpen }: Props) {
-  const { briefs, loading, createBrief, deleteBrief } = useBriefs()
-  const [creating, setCreating] = useState(false)
+export function BriefsList({ onOpen, onNew }: Props) {
+  const { briefs, loading, deleteBrief } = useBriefs()
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  async function handleNew() {
-    setCreating(true)
-    try {
-      const brief = await createBrief()
-      onOpen(brief.id)
-    } finally {
-      setCreating(false)
-    }
-  }
+
 
   async function handleDelete(id: string, e: React.MouseEvent) {
     e.stopPropagation()
@@ -62,18 +54,17 @@ export function BriefsList({ onOpen }: Props) {
           </p>
         </div>
         <button
-          onClick={handleNew}
-          disabled={creating}
+          onClick={onNew}
           style={{
             background: 'var(--teal)', color: '#fff', border: 'none',
             borderRadius: 12, padding: '12px 24px',
             fontSize: 15, fontWeight: 700, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 8,
-            opacity: creating ? 0.6 : 1, fontFamily: 'inherit',
+            opacity: 1, fontFamily: 'inherit',
           }}
         >
           <span style={{ fontSize: 20, lineHeight: 1 }}>+</span>
-          {creating ? 'יוצר...' : 'בריף חדש'}
+          '+ בריף חדש'
         </button>
       </div>
 
@@ -93,15 +84,14 @@ export function BriefsList({ onOpen }: Props) {
           <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>אין בריפים עדיין</p>
           <p style={{ fontSize: 14, margin: '0 0 20px' }}>לחץ על "בריף חדש" כדי להתחיל</p>
           <button
-            onClick={handleNew}
-            disabled={creating}
+            onClick={onNew}
             style={{
               background: 'var(--teal)', color: '#fff', border: 'none',
               borderRadius: 10, padding: '10px 24px',
               fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
-            {creating ? 'יוצר...' : '+ בריף חדש'}
+            '+ בריף חדש'
           </button>
         </div>
       )}
