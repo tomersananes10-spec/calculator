@@ -1,182 +1,157 @@
-import { useState } from 'react'
-import { clusters } from '../../data/clusters'
-import type { WizardState, Milestone } from './types'
+import { useState, useEffect, useRef } from 'react'
+import type { WizardState, DeliverableRow, WorkPackageRow } from './types'
 import { INITIAL_STATE } from './types'
-import { Step1Cluster } from './Step1Cluster'
-import { Step2Specialization } from './Step2Specialization'
-import { Step3Details } from './Step3Details'
-import { Step4Description } from './Step4Description'
-import { Step5Activities } from './Step5Activities'
-import { Step6Timeline } from './Step6Timeline'
-import { Step7Requirements } from './Step7Requirements'
-import { Step8Preview } from './Step8Preview'
+import { shouldShowArchitectureStep } from './Step3Architecture'
+import { useBriefs } from '../../hooks/useBriefs'
+import { Step1Identification } from './Step1Identification'
+import { Step2CurrentSituation } from './Step2CurrentSituation'
+import { Step3Architecture } from './Step3Architecture'
+import { Step4ProjectDescription } from './Step4ProjectDescription'
+import { Step5Deliverables } from './Step5Deliverables'
+import { Step6WorkPackages } from './Step6WorkPackages'
+import { Step7Timeline } from './Step7Timeline'
+import { Step8Management } from './Step8Management'
+import { Step9Goals } from './Step9Goals'
+import Step10Preview from './Step10Preview'
 import s from './BriefWizard.module.css'
-
-const STEP_NAMES = [
-  'בחירת אשכול',
-  'בחירת התמחות',
-  'פרטי פרויקט',
-  'תיאור הצורך',
-  'פעילויות',
-  'לוח זמנים',
-  'דרישות נוספות',
-  'תצוגה מקדימה',
+const ALL_STEPS = [
+  { n: 1,  label: 'זיהוי' },
+  { n: 2,  label: 'מצב קיים' },
+  { n: 3,  label: 'ארכיטקטורה' },
+  { n: 4,  label: 'תיאור' },
+  { n: 5,  label: 'תוצרים' },
+  { n: 6,  label: 'שו"שים' },
+  { n: 7,  label: 'לוח זמנים' },
+  { n: 8,  label: 'ניהול' },
+  { n: 9,  label: 'יעדים' },
+  { n: 10, label: 'תצוגה מקדימה' },
 ]
 
-export function BriefWizard() {
+interface Props {
+  briefId: string
+  onClose: () => void
+}
+
+function setPath(obj: Record<string, unknown>, path: string, value: unknown): Record<string, unknown> {
+  const keys = path.split('.')
+  if (keys.length === 1) return { ...obj, [keys[0]]: value }
+  const key = keys[0]
+  return {
+    ...obj,
+    [key]: setPath((obj[key] as Record<string, unknown>) ?? {}, keys.slice(1).join('.'), value),
+  }
+}
+
+export function BriefWizard({ briefId, onClose }: Props) {
   const [state, setState] = useState<WizardState>(INITIAL_STATE)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [ready, setReady] = useState(false)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { saveBrief, loadBrief } = useBriefs()
 
-  function goStep(n: number) {
-    setState(s => ({ ...s, currentStep: n }))
-  }
-
-  function next() {
-    setState(s => ({ ...s, currentStep: Math.min(8, s.currentStep + 1) }))
-  }
-
-  function back() {
-    setState(s => ({ ...s, currentStep: Math.max(1, s.currentStep - 1) }))
-  }
-
-  function selectCluster(clusterId: string) {
-    const cluster = clusters.find(c => c.id === clusterId) ?? null
-    setState(s => ({
-      ...s,
-      selectedCluster: cluster,
-      selectedSpecialization: null,
-      selectedActivities: [],
-    }))
-  }
-
-  function selectSpecialization(specId: string) {
-    const spec = state.selectedCluster?.specializations.find(sp => sp.id === specId) ?? null
-    setState(s => ({
-      ...s,
-      selectedSpecialization: spec,
-      selectedActivities: [],
-    }))
-  }
-
-  function changeDetails(field: keyof WizardState['projectDetails'], value: string | number) {
-    setState(s => {
-      const budget = field === 'estimatedBudget' ? (value as number) : s.projectDetails.estimatedBudget
-      const threshold = s.selectedSpecialization?.projectSizeThreshold ?? 200000
-      return {
-        ...s,
-        projectDetails: {
-          ...s.projectDetails,
-          [field]: value,
-          projectSize: budget > threshold ? 'large' : 'small',
-        },
-      }
+  useEffect(() => {
+    loadBrief(briefId).then(record => {
+      if (record?.state?.currentStep) setState(record.state)
+      setReady(true)
     })
-  }
+  }, [briefId])
 
-  function changeDescription(field: keyof WizardState['projectDescription'], value: string) {
-    setState(s => ({
-      ...s,
-      projectDescription: { ...s.projectDescription, [field]: value },
-    }))
-  }
+  useEffect(() => {
+    if (!ready) return
+    setSaveStatus('saving')
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(async () => {
+      try {
+        await saveBrief(briefId, state, state.identification.projectName || 'טיוטה ללא שם')
+        setSaveStatus('saved')
+        setTimeout(() => setSaveStatus('idle'), 2000)
+      } catch {
+        setSaveStatus('idle')
+      }
+    }, 500)
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
+  }, [state])
 
-  function toggleActivity(activityId: string) {
-    setState(s => ({
-      ...s,
-      selectedActivities: s.selectedActivities.includes(activityId)
-        ? s.selectedActivities.filter(id => id !== activityId)
-        : [...s.selectedActivities, activityId],
-    }))
-  }
-
-  function selectAllMandatory() {
-    const spec = state.selectedSpecialization
-    if (!spec) return
-    const mandatoryIds = spec.activities
-      .filter(a => a.deliverables.some(d => d.required === 'mandatory'))
-      .map(a => a.id)
-    setState(s => ({
-      ...s,
-      selectedActivities: Array.from(new Set([...s.selectedActivities, ...mandatoryIds])),
-    }))
-  }
-
-  function changeTimeline(field: keyof WizardState['timeline'], value: string | number | Milestone[]) {
-    setState(s => ({
-      ...s,
-      timeline: { ...s.timeline, [field]: value },
-    }))
-  }
-
-  function changeRequirements(field: keyof WizardState['requirements'], value: boolean | string | number) {
-    setState(s => ({
-      ...s,
-      requirements: { ...s.requirements, [field]: value },
-    }))
-  }
-
-  function saveDraft() {
-    localStorage.setItem('brief_draft', JSON.stringify(state))
-    alert('הטיוטה נשמרה בהצלחה!')
-  }
-
+  const showArch = shouldShowArchitectureStep(state)
+  const activeSteps = ALL_STEPS.filter(st => st.n !== 3 || showArch)
   const step = state.currentStep
+
+  function goStep(n: number) { setState(prev => ({ ...prev, currentStep: n })) }
+  function next() {
+    const idx = activeSteps.findIndex(st => st.n === step)
+    if (idx < activeSteps.length - 1) goStep(activeSteps[idx + 1].n)
+  }
+  function back() {
+    const idx = activeSteps.findIndex(st => st.n === step)
+    if (idx > 0) goStep(activeSteps[idx - 1].n)
+  }
+
+  function onChange(path: string, value: unknown) {
+    setState(prev => setPath(prev as unknown as Record<string, unknown>, path, value) as unknown as WizardState)
+  }
+  function onChangeDeliverables(rows: DeliverableRow[]) {
+    setState(prev => ({ ...prev, deliverables: rows }))
+  }
+  function onChangeWorkPackages(rows: WorkPackageRow[]) {
+    setState(prev => ({ ...prev, workPackages: rows }))
+  }
+
+  async function handleSubmit() {
+    setSaveStatus('saving')
+    try {
+      await saveBrief(briefId, state, state.identification.projectName || 'טיוטה ללא שם')
+      setSaveStatus('saved')
+      setTimeout(() => { setSaveStatus('idle'); onClose() }, 1000)
+    } catch {
+      setSaveStatus('idle')
+    }
+  }
+
+  if (!ready) {
+    return <div style={{ padding: 40, color: 'var(--text3)', textAlign: 'center' }}>טוען...</div>
+  }
+
+  const visIdx = activeSteps.findIndex(st => st.n === step)
 
   return (
     <>
       <div className={s.wizardProgress}>
         <div className={s.steps}>
-          {STEP_NAMES.map((name, i) => {
-            const n = i + 1
-            const cls = n < step ? s.stepDone : n === step ? s.stepActive : s.stepFuture
+          {activeSteps.map((st, i) => {
+            const isDone = i < visIdx
+            const isActive = st.n === step
+            const cls = isDone ? s.stepDone : isActive ? s.stepActive : s.stepFuture
             return (
-              <div
-                key={n}
-                className={`${s.step} ${cls}`}
-                onClick={() => n < step && goStep(n)}
-              >
-                <div className={s.stepNum}>{n < step ? '✓' : String(n)}</div>
+              <div key={st.n} className={s.step + ' ' + cls} onClick={() => isDone && goStep(st.n)}>
+                <div className={s.stepNum}>{isDone ? '✓' : String(i + 1)}</div>
                 <div className={s.stepInfo}>
-                  <span className={s.stepLabel}>שלב {n}</span>
-                  <span className={s.stepName}>{name}</span>
+                  <span className={s.stepName}>{st.label}</span>
                 </div>
-                {i < 7 && <span className={s.stepSep}>›</span>}
+                {i < activeSteps.length - 1 && <span className={s.stepSep}>›</span>}
               </div>
             )
           })}
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingLeft: 16 }}>
+          {saveStatus === 'saving' && <span style={{ fontSize: 12, color: 'var(--text3)' }}>שומר...</span>}
+          {saveStatus === 'saved'  && <span style={{ fontSize: 12, color: 'var(--green)' }}>נשמר ✓</span>}
+          <button onClick={onClose} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 12px', cursor: 'pointer', fontSize: 13, color: 'var(--text2)' }}>
+            חזרה לרשימה ←
+          </button>
+        </div>
       </div>
 
       <div className={s.main}>
-        {step === 1 && (
-          <Step1Cluster state={state} onSelect={selectCluster} onNext={next} />
-        )}
-        {step === 2 && (
-          <Step2Specialization state={state} onSelect={selectSpecialization} onNext={next} onBack={back} />
-        )}
-        {step === 3 && (
-          <Step3Details state={state} onChange={changeDetails} onNext={next} onBack={back} />
-        )}
-        {step === 4 && (
-          <Step4Description state={state} onChange={changeDescription} onNext={next} onBack={back} />
-        )}
-        {step === 5 && (
-          <Step5Activities
-            state={state}
-            onToggleActivity={toggleActivity}
-            onSelectAllMandatory={selectAllMandatory}
-            onNext={next}
-            onBack={back}
-          />
-        )}
-        {step === 6 && (
-          <Step6Timeline state={state} onChangeTimeline={changeTimeline} onNext={next} onBack={back} />
-        )}
-        {step === 7 && (
-          <Step7Requirements state={state} onChange={changeRequirements} onNext={next} onBack={back} />
-        )}
-        {step === 8 && (
-          <Step8Preview state={state} onBack={back} onSaveDraft={saveDraft} />
-        )}
+        {step === 1  && <Step1Identification state={state} onChange={onChange} onNext={next} />}
+        {step === 2  && <Step2CurrentSituation state={state} onChange={onChange} onNext={next} onBack={back} />}
+        {step === 3  && <Step3Architecture state={state} onChange={onChange} onNext={next} onBack={back} />}
+        {step === 4  && <Step4ProjectDescription state={state} onChange={onChange} onNext={next} onBack={back} />}
+        {step === 5  && <Step5Deliverables state={state} onChangeDeliverables={onChangeDeliverables} onNext={next} onBack={back} />}
+        {step === 6  && <Step6WorkPackages state={state} onChangeWorkPackages={onChangeWorkPackages} onNext={next} onBack={back} />}
+        {step === 7  && <Step7Timeline state={state} onChange={onChange} onNext={next} onBack={back} />}
+        {step === 8  && <Step8Management state={state} onChange={onChange} onNext={next} onBack={back} />}
+        {step === 9  && <Step9Goals state={state} onChange={onChange} onNext={next} onBack={back} />}
+        {step === 10 && <Step10Preview state={state} onBack={back} onSubmit={handleSubmit} saving={saveStatus === 'saving'} />}
       </div>
     </>
   )

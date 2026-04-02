@@ -323,3 +323,110 @@
   background: #fff; color: var(--teal);
   font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
+
+/* ─── STEP HEADER TITLES ─── */
+.stepTitle    { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.stepSubtitle { font-size: 14px; color: var(--text2); }
+
+/* ─── CLUSTER / SPEC ACTIVE ALIASES ─── */
+.clusterCardActive {
+  border-color: var(--teal);
+  background: var(--teal-pale);
+  box-shadow: 0 0 0 3px rgba(0,164,153,0.12);
+}
+.specCardActive {
+  border-color: var(--teal);
+  background: var(--teal-pale);
+  box-shadow: 0 0 0 3px rgba(0,164,153,0.12);
+}
+.cardTitle { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.cardNote  { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* ─── FORM SELECT ─── */
+.select {
+  width: 100%; background: var(--surface);
+  border: 1.5px solid var(--border2); border-radius: 10px;
+  padding: 10px 13px; font-size: 14px; font-family: inherit;
+  color: var(--text); outline: none; transition: border-color 0.15s;
+  box-sizing: border-box; appearance: none; cursor: pointer;
+}
+.select:focus { border-color: var(--teal); }
+
+/* ─── FIELD ROW (inline fields) ─── */
+.fieldRow { display: flex; gap: 14px; }
+.fieldRow .field { flex: 1; }
+
+/* ─── CHECKBOX ROW ─── */
+.checkRow  { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.checkRow:last-child { border-bottom: none; }
+.checkLabel { font-size: 14px; color: var(--text); font-weight: 500; cursor: pointer; flex: 1; }
+
+/* ─── TABLE WRAP ─── */
+.tableWrap { overflow-x: auto; margin-bottom: 10px; }
+
+/* ─── TABLE INPUT SMALL ─── */
+.tableInputSm {
+  width: 72px; border: 1px solid var(--border2); border-radius: 6px;
+  padding: 5px 7px; font-size: 13px; font-family: inherit;
+  color: var(--text); background: var(--surface); outline: none; text-align: center;
+}
+.tableInputSm:focus { border-color: var(--teal); }
+
+/* ─── ROW DIMMED (unselected deliverable) ─── */
+.rowDimmed td { opacity: 0.45; }
+
+/* ─── SIZE BADGE VARIANTS ─── */
+.sizeBadgeSmall2 { background: #dcfce7; color: #166534; }
+.sizeBadgeMedium { background: #dbeafe; color: #1e40af; }
+.sizeBadgeLargeV { background: #fef9c3; color: #854d0e; }
+.sizeBadgeFixed  { background: #f1f5f9; color: var(--text3); }
+
+/* ─── EMPTY NOTE ─── */
+.emptyNote {
+  text-align: center; padding: 32px; color: var(--text3);
+  font-size: 14px; border: 1.5px dashed var(--border2);
+  border-radius: var(--radius);
+}
+
+/* ─── WEIGHT ERROR ─── */
+.weightError { color: var(--red); font-size: 12px; margin-top: 6px; font-weight: 600; }
+
+/* ─── PREVIEW (Step10) ─── */
+.previewBody { display: flex; flex-direction: column; gap: 0; }
+
+.previewSection {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.previewSectionTitle {
+  font-size: 14px; font-weight: 700; color: var(--teal);
+  background: var(--teal-pale); padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+}
+
+.previewField {
+  display: flex; gap: 10px; padding: 8px 18px;
+  border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.previewField:last-child { border-bottom: none; }
+
+.previewLabel { font-weight: 600; color: var(--text2); flex-shrink: 0; min-width: 140px; }
+.previewValue { color: var(--text); white-space: pre-wrap; }
+
+.previewTable {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.previewTable th {
+  background: #f8fafc; text-align: right;
+  padding: 8px 14px; font-size: 12px; font-weight: 700;
+  color: var(--text3); border-bottom: 1.5px solid var(--border);
+}
+.previewTable td {
+  padding: 8px 14px; border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.previewTable tr:last-child td { border-bottom: none; }
