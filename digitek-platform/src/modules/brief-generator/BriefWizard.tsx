@@ -45,6 +45,7 @@ function setPath(obj: Record<string, unknown>, path: string, value: unknown): Re
 export function BriefWizard({ briefId, onClose }: Props) {
   const [state, setState] = useState<WizardState>(INITIAL_STATE)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [toast, setToast] = useState(false)
   const [ready, setReady] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { saveBrief, loadBrief } = useBriefs()
@@ -96,6 +97,19 @@ export function BriefWizard({ briefId, onClose }: Props) {
     setState(prev => ({ ...prev, workPackages: rows }))
   }
 
+  async function handleSaveNow() {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    setSaveStatus('saving')
+    try {
+      await saveBrief(briefId, state, state.identification.projectName || 'טיוטה ללא שם')
+      setSaveStatus('saved')
+      setToast(true)
+      setTimeout(() => { setSaveStatus('idle'); setToast(false) }, 2500)
+    } catch {
+      setSaveStatus('idle')
+    }
+  }
+
   async function handleSubmit() {
     setSaveStatus('saving')
     try {
@@ -132,7 +146,7 @@ export function BriefWizard({ briefId, onClose }: Props) {
             )
           })}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingLeft: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 16 }}>
           {saveStatus === 'saving' && <span style={{ fontSize: 12, color: 'var(--text3)' }}>שומר...</span>}
           {saveStatus === 'saved'  && <span style={{ fontSize: 12, color: 'var(--green)' }}>נשמר ✓</span>}
           <button onClick={onClose} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 12px', cursor: 'pointer', fontSize: 13, color: 'var(--text2)' }}>
@@ -142,17 +156,30 @@ export function BriefWizard({ briefId, onClose }: Props) {
       </div>
 
       <div className={s.main}>
-        {step === 1  && <Step1Identification state={state} onChange={onChange} onNext={next} />}
-        {step === 2  && <Step2CurrentSituation state={state} onChange={onChange} onNext={next} onBack={back} />}
-        {step === 3  && <Step3Architecture state={state} onChange={onChange} onNext={next} onBack={back} />}
-        {step === 4  && <Step4ProjectDescription state={state} onChange={onChange} onNext={next} onBack={back} />}
-        {step === 5  && <Step5Deliverables state={state} onChangeDeliverables={onChangeDeliverables} onNext={next} onBack={back} />}
-        {step === 6  && <Step6WorkPackages state={state} onChangeWorkPackages={onChangeWorkPackages} onNext={next} onBack={back} />}
-        {step === 7  && <Step7Timeline state={state} onChange={onChange} onNext={next} onBack={back} />}
-        {step === 8  && <Step8Management state={state} onChange={onChange} onNext={next} onBack={back} />}
-        {step === 9  && <Step9Goals state={state} onChange={onChange} onNext={next} onBack={back} />}
+        {step === 1  && <Step1Identification state={state} onChange={onChange} onNext={next} onBack={onClose} onSave={handleSaveNow} />}
+        {step === 2  && <Step2CurrentSituation state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
+        {step === 3  && <Step3Architecture state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
+        {step === 4  && <Step4ProjectDescription state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
+        {step === 5  && <Step5Deliverables state={state} onChangeDeliverables={onChangeDeliverables} onNext={next} onBack={back} onSave={handleSaveNow} />}
+        {step === 6  && <Step6WorkPackages state={state} onChangeWorkPackages={onChangeWorkPackages} onNext={next} onBack={back} onSave={handleSaveNow} />}
+        {step === 7  && <Step7Timeline state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
+        {step === 8  && <Step8Management state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
+        {step === 9  && <Step9Goals state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
         {step === 10 && <Step10Preview state={state} onBack={back} onSubmit={handleSubmit} saving={saveStatus === 'saving'} />}
       </div>
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          background: '#1a1a2e', color: '#fff', borderRadius: 12,
+          padding: '12px 24px', fontSize: 14, fontWeight: 600,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+          display: 'flex', alignItems: 'center', gap: 10,
+          zIndex: 9999, animation: 'fadeInUp 0.25s ease',
+        }}>
+          <span style={{ fontSize: 18 }}>✓</span>
+          הבריף נשמר בהצלחה
+        </div>
+      )}
     </>
   )
 }

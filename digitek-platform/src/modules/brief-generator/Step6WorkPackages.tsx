@@ -8,13 +8,14 @@ interface Props {
   onChangeWorkPackages: (rows: WorkPackageRow[]) => void
   onNext: () => void
   onBack: () => void
+  onSave: () => void
 }
 
 const SIZE_LABEL: Record<string, string> = {
   small: "קטן", medium: "בינוני", large: "גדול", fixed: "קבוע",
 }
 
-export function Step6WorkPackages({ state, onChangeWorkPackages, onNext, onBack }: Props) {
+export function Step6WorkPackages({ state, onChangeWorkPackages, onNext, onBack, onSave }: Props) {
   const clusterId = state.identification.selectedCluster?.id ?? ""
 
   useEffect(() => {
@@ -104,7 +105,10 @@ export function Step6WorkPackages({ state, onChangeWorkPackages, onNext, onBack 
 
       <div className={s.navBtns}>
         <button className={s.btnSecondary} onClick={onBack}>חזרה</button>
-        <button className={s.btnPrimary} onClick={onNext}>המשך</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className={s.btnSecondary} onClick={onSave}>שמור</button>
+          <button className={s.btnPrimary} onClick={onNext}>המשך</button>
+        </div>
       </div>
     </div>
   )

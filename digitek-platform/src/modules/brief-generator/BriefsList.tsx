@@ -1,9 +1,15 @@
 import { useState } from 'react'
 import { useBriefs } from '../../hooks/useBriefs'
+import { clusters } from '../../data/clusters'
 import type { BriefRecord } from './types'
 
 function fmtDate(d: string) {
   return new Date(d).toLocaleDateString('he-IL', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function getCluster(id: string | null) {
+  if (!id) return null
+  return clusters.find(c => c.id === id) ?? null
 }
 
 function StatusBadge({ status }: { status: BriefRecord['status'] }) {
@@ -26,13 +32,12 @@ function StatusBadge({ status }: { status: BriefRecord['status'] }) {
 interface Props {
   onOpen: (briefId: string) => void
   onNew: () => void
+  onBack: () => void
 }
 
-export function BriefsList({ onOpen, onNew }: Props) {
+export function BriefsList({ onOpen, onNew, onBack }: Props) {
   const { briefs, loading, deleteBrief } = useBriefs()
   const [deletingId, setDeletingId] = useState<string | null>(null)
-
-
 
   async function handleDelete(id: string, e: React.MouseEvent) {
     e.stopPropagation()
@@ -48,6 +53,12 @@ export function BriefsList({ onOpen, onNew }: Props) {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
         <div>
+          <button
+            onClick={onBack}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text3)', padding: '0 0 6px', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}
+          >
+            ← חזרה
+          </button>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text)', margin: '0 0 6px' }}>הבריפים שלי</h1>
           <p style={{ fontSize: 14, color: 'var(--text3)', margin: 0 }}>
             {loading ? '' : briefs.length === 0 ? 'עדיין אין בריפים' : briefs.length + ' בריפים'}
@@ -60,11 +71,10 @@ export function BriefsList({ onOpen, onNew }: Props) {
             borderRadius: 12, padding: '12px 24px',
             fontSize: 15, fontWeight: 700, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 8,
-            opacity: 1, fontFamily: 'inherit',
+            fontFamily: 'inherit',
           }}
         >
-          <span style={{ fontSize: 20, lineHeight: 1 }}>+</span>
-          '+ בריף חדש'
+          + בריף חדש
         </button>
       </div>
 
@@ -91,7 +101,7 @@ export function BriefsList({ onOpen, onNew }: Props) {
               fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
-            '+ בריף חדש'
+            + בריף חדש
           </button>
         </div>
       )}
@@ -99,82 +109,86 @@ export function BriefsList({ onOpen, onNew }: Props) {
       {/* Brief cards */}
       {!loading && briefs.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {briefs.map(brief => (
-            <div
-              key={brief.id}
-              onClick={() => onOpen(brief.id)}
-              style={{
-                background: 'var(--surface)',
-                border: '1.5px solid var(--border)',
-                borderRadius: 14,
-                padding: '16px 20px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 16,
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--teal)'
-                ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(0,164,153,0.12)'
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'
-                ;(e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
-              }}
-            >
-              {/* Icon */}
-              <div style={{
-                width: 42, height: 42, borderRadius: 10, flexShrink: 0,
-                background: 'var(--teal-pale)', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', fontSize: 20,
-              }}>
-                📄
-              </div>
-
-              {/* Info */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>
-                  {brief.title || 'טיוטה ללא שם'}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--text3)' }}>
-                  {brief.cluster_id ? 'אשכול ' + brief.cluster_id : 'אשכול טרם נבחר'}
-                  {' · '}
-                  עודכן {fmtDate(brief.updated_at)}
-                </div>
-              </div>
-
-              {/* Status */}
-              <StatusBadge status={brief.status} />
-
-              {/* Delete */}
-              <button
-                onClick={e => handleDelete(brief.id, e)}
-                disabled={deletingId === brief.id}
+          {briefs.map(brief => {
+            const cluster = getCluster(brief.cluster_id)
+            return (
+              <div
+                key={brief.id}
+                onClick={() => onOpen(brief.id)}
                 style={{
-                  background: 'none', border: '1px solid var(--border2)',
-                  borderRadius: 8, cursor: 'pointer',
-                  color: 'var(--text3)', fontSize: 14,
-                  padding: '6px 10px', transition: 'all 0.15s',
-                  opacity: deletingId === brief.id ? 0.4 : 1,
-                  flexShrink: 0,
+                  background: 'var(--surface)',
+                  border: '1.5px solid var(--border)',
+                  borderRadius: 14,
+                  padding: '16px 20px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 16,
+                  transition: 'all 0.15s',
                 }}
                 onMouseEnter={e => {
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = '#fca5a5'
-                  ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--red)'
-                  ;(e.currentTarget as HTMLButtonElement).style.background = '#fef2f2'
+                  (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--teal)'
+                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(0,164,153,0.12)'
                 }}
                 onMouseLeave={e => {
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'
-                  ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--text3)'
-                  ;(e.currentTarget as HTMLButtonElement).style.background = 'none'
+                  (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'
+                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
                 }}
-                title="מחק בריף"
               >
-                🗑
-              </button>
-            </div>
-          ))}
+                {/* Cluster icon */}
+                <div style={{
+                  width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+                  background: cluster ? 'var(--teal-pale)' : '#f1f5f9',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: cluster ? 22 : 18,
+                }}>
+                  {cluster ? cluster.icon : '📄'}
+                </div>
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>
+                    {brief.title || 'טיוטה ללא שם'}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text3)' }}>
+                    {cluster ? cluster.icon + ' ' + cluster.name : 'אשכול טרם נבחר'}
+                    {' · עודכן '}
+                    {fmtDate(brief.updated_at)}
+                  </div>
+                </div>
+
+                {/* Status */}
+                <StatusBadge status={brief.status} />
+
+                {/* Delete */}
+                <button
+                  onClick={e => handleDelete(brief.id, e)}
+                  disabled={deletingId === brief.id}
+                  style={{
+                    background: 'none', border: '1px solid var(--border2)',
+                    borderRadius: 8, cursor: 'pointer',
+                    color: 'var(--text3)', fontSize: 14,
+                    padding: '6px 10px', transition: 'all 0.15s',
+                    opacity: deletingId === brief.id ? 0.4 : 1,
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = '#fca5a5'
+                    ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--red)'
+                    ;(e.currentTarget as HTMLButtonElement).style.background = '#fef2f2'
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'
+                    ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--text3)'
+                    ;(e.currentTarget as HTMLButtonElement).style.background = 'none'
+                  }}
+                  title="מחק בריף"
+                >
+                  🗑
+                </button>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

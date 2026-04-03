@@ -1,4 +1,3 @@
-import { clusters } from "../../data/clusters"
 import type { WizardState } from "./types"
 import s from "./BriefWizard.module.css"
 
@@ -6,12 +5,13 @@ interface Props {
   state: WizardState
   onChange: (field: string, value: unknown) => void
   onNext: () => void
+  onBack: () => void
+  onSave: () => void
 }
 
-export function Step1Identification({ state, onChange, onNext }: Props) {
+export function Step1Identification({ state, onChange, onNext, onBack, onSave }: Props) {
   const { identification } = state
   const selectedCluster = identification.selectedCluster
-  const specs = selectedCluster?.specializations ?? []
 
   const canContinue =
     identification.projectName.trim() &&
@@ -53,52 +53,58 @@ export function Step1Identification({ state, onChange, onNext }: Props) {
             <label className={s.fieldLabel}>תאריך כתיבה</label>
             <input className={s.input} type="date" value={identification.writtenDate}
               onChange={e => onChange("identification.writtenDate", e.target.value)} />
+            {identification.writtenDate && (
+              <span style={{ fontSize: 11, color: 'var(--text3)', marginTop: 3, display: 'block' }}>
+                {identification.writtenDate.split('-').reverse().join('/')}
+              </span>
+            )}
           </div>
         </div>
       </div>
 
       <div className={s.cardBox}>
-        <label className={s.fieldLabel}>בחר אשכול *</label>
-        <div className={s.clusterGrid}>
-          {clusters.map(c => (
-            <button
-              key={c.id}
-              className={c.id === selectedCluster?.id ? s.clusterCardActive : s.clusterCard}
-              onClick={() => onChange("identification.selectedCluster", c)}
-              type="button"
-            >
-              <span className={s.clusterIcon}>{c.icon}</span>
-              <span className={s.clusterName}>{c.name}</span>
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <label className={s.fieldLabel}>אשכול והתמחות</label>
+          <button
+            type="button"
+            onClick={onBack}
+            style={{ background: 'none', border: '1px solid var(--border2)', borderRadius: 8, padding: '4px 12px', cursor: 'pointer', fontSize: 12, color: 'var(--text2)', fontFamily: 'inherit' }}
+          >
+            שנה ←
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {selectedCluster && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'var(--teal-pale)', border: '1.5px solid var(--teal)',
+              borderRadius: 8, padding: '6px 14px', fontSize: 13, fontWeight: 700, color: 'var(--teal)'
+            }}>
+              {selectedCluster.icon} {selectedCluster.name}
+            </span>
+          )}
+          {identification.selectedSpecialization && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'var(--teal-pale)', border: '1.5px solid var(--teal)',
+              borderRadius: 8, padding: '6px 14px', fontSize: 13, fontWeight: 700, color: 'var(--teal)'
+            }}>
+              {identification.selectedSpecialization.name}
+            </span>
+          )}
         </div>
       </div>
-
-      {specs.length > 0 && (
-        <div className={s.cardBox}>
-          <label className={s.fieldLabel}>בחר התמחות *</label>
-          <div className={s.specList}>
-            {specs.map(sp => (
-              <button
-                key={sp.id}
-                className={sp.id === identification.selectedSpecialization?.id ? s.specCardActive : s.specCard}
-                onClick={() => onChange("identification.selectedSpecialization", sp)}
-                type="button"
-              >
-                <div className={s.specName}>{sp.name}</div>
-                <div className={s.specDesc}>{(sp as any).description ?? ""}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className={s.cardBox}>
         <div className={s.fieldRow}>
           <div className={s.field}>
             <label className={s.fieldLabel}>הערכת תקציב (שח)</label>
             <input className={s.input} type="number" value={identification.estimatedBudget || ""}
-              onChange={e => onChange("identification.estimatedBudget", Number(e.target.value))}
+              onChange={e => {
+                const val = Number(e.target.value)
+                onChange("identification.estimatedBudget", val)
+                onChange("identification.projectSize", val > 200000 ? 'large' : 'small')
+              }}
               placeholder="0" />
           </div>
           <div className={s.field}>
@@ -114,10 +120,13 @@ export function Step1Identification({ state, onChange, onNext }: Props) {
       </div>
 
       <div className={s.navBtns}>
-        <div />
-        <button className={s.btnPrimary} onClick={onNext} disabled={!canContinue}>
-          המשך
+        <button className={s.btnSecondary} onClick={onBack}>
+          ← חזרה
         </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className={s.btnSecondary} onClick={onSave}>שמור</button>
+          <button className={s.btnPrimary} onClick={onNext} disabled={!canContinue}>המשך</button>
+        </div>
       </div>
     </div>
   )

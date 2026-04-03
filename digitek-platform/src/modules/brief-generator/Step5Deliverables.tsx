@@ -8,9 +8,10 @@ interface Props {
   onChangeDeliverables: (rows: DeliverableRow[]) => void
   onNext: () => void
   onBack: () => void
+  onSave: () => void
 }
 
-export function Step5Deliverables({ state, onChangeDeliverables, onNext, onBack }: Props) {
+export function Step5Deliverables({ state, onChangeDeliverables, onNext, onBack, onSave }: Props) {
   const clusterId = state.identification.selectedCluster?.id ?? ""
 
   useEffect(() => {
@@ -102,9 +103,10 @@ export function Step5Deliverables({ state, onChangeDeliverables, onNext, onBack 
 
       <div className={s.navBtns}>
         <button className={s.btnSecondary} onClick={onBack}>חזרה</button>
-        <button className={s.btnPrimary} onClick={onNext} disabled={!hasSelected && rows.length > 0}>
-          המשך
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className={s.btnSecondary} onClick={onSave}>שמור</button>
+          <button className={s.btnPrimary} onClick={onNext} disabled={!hasSelected && rows.length > 0}>המשך</button>
+        </div>
       </div>
     </div>
   )

@@ -6,9 +6,10 @@ interface Props {
   onChange: (field: string, value: unknown) => void
   onNext: () => void
   onBack: () => void
+  onSave: () => void
 }
 
-export function Step7Timeline({ state, onChange, onNext, onBack }: Props) {
+export function Step7Timeline({ state, onChange, onNext, onBack, onSave }: Props) {
   const { timeline } = state
 
   function updatePhase(id: string, field: keyof TimelinePhase, value: unknown) {
@@ -113,7 +114,10 @@ export function Step7Timeline({ state, onChange, onNext, onBack }: Props) {
 
       <div className={s.navBtns}>
         <button className={s.btnSecondary} onClick={onBack}>חזרה</button>
-        <button className={s.btnPrimary} onClick={onNext}>המשך</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className={s.btnSecondary} onClick={onSave}>שמור</button>
+          <button className={s.btnPrimary} onClick={onNext}>המשך</button>
+        </div>
       </div>
     </div>
   )
