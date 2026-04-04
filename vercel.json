@@ -1,0 +1,4 @@
+{
+  "buildCommand": "cd digitek-platform && npm install && npm run build",
+  "outputDirectory": "digitek-platform/dist"
+}
