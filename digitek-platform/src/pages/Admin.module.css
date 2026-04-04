@@ -1,0 +1,125 @@
+.main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.sub {
+  font-size: 14px;
+  color: var(--text3);
+}
+
+.backBtn {
+  padding: 8px 18px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text2);
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+
+.backBtn:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.empty {
+  text-align: center;
+  color: var(--text3);
+  padding: 60px 0;
+  font-size: 15px;
+}
+
+.table {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.tableHead {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 1fr;
+  padding: 12px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 1fr;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  font-size: 14px;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.id {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--text3);
+}
+
+.date {
+  color: var(--text2);
+  font-size: 13px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+
+.badge:hover {
+  opacity: 0.8;
+}
+
+.badgeAdmin {
+  background: #f0fdf4;
+  color: var(--green);
+  border: 1px solid #bbf7d0;
+}
+
+.badgeUser {
+  background: var(--bg);
+  color: var(--text3);
+  border: 1px solid var(--border);
+}

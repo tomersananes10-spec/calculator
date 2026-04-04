@@ -73,7 +73,7 @@ const MODULES: Module[] = [
 const activeCount = MODULES.filter(m => m.active).length
 
 export function Dashboard() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, isAdmin } = useAuth()
   const fullName = user?.user_metadata?.full_name ?? ''
   const firstName = fullName.split(' ')[0] || 'משתמש'
 
@@ -114,6 +114,22 @@ export function Dashboard() {
             )
           )}
         </div>
+
+        {isAdmin && (
+          <>
+            <div className={styles.secHeader}>
+              <span className={styles.secTitle}>ניהול</span>
+            </div>
+            <div className={styles.grid} style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+              <Link to="/admin" className={styles.card}>
+                <div className={styles.icon} style={{ background: '#fff7ed' }}>⚙️</div>
+                <div className={styles.name}>פאנל אדמין</div>
+                <div className={styles.desc}>ניהול משתמשים והרשאות מערכת</div>
+                <div className={styles.arrow}>←</div>
+              </Link>
+            </div>
+          </>
+        )}
 
         <div className={styles.footer}>מערכת בפיתוח פעיל · גרסה 0.1 · 2026</div>
       </div>

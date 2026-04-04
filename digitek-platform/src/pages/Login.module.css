@@ -138,3 +138,87 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.forgotLink {
+  background: none;
+  border: none;
+  color: var(--teal);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: right;
+  padding: 0;
+  text-decoration: underline;
+  align-self: flex-start;
+}
+
+.forgotLink:hover {
+  color: var(--teal2);
+}
+
+.forgotHeader {
+  margin-bottom: 24px;
+  text-align: right;
+}
+
+.forgotTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.forgotSub {
+  font-size: 13px;
+  color: var(--text3);
+}
+
+.successMsg {
+  font-size: 13px;
+  color: var(--green);
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  text-align: center;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 16px;
+  color: var(--text3);
+  font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.googleBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.googleBtn:hover {
+  border-color: var(--teal);
+  background: var(--teal-pale);
+}

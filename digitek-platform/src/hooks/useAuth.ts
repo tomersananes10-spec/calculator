@@ -5,14 +5,18 @@ import { supabase } from '../lib/supabase'
 interface AuthState {
   user: User | null
   loading: boolean
+  isAdmin: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
+  resetPassword: (email: string) => Promise<{ error: Error | null }>
+  signInWithGoogle: () => Promise<{ error: Error | null }>
 }
 
 export function useAuth(): AuthState {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -26,6 +30,19 @@ export function useAuth(): AuthState {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (!user) {
+      setIsAdmin(false)
+      return
+    }
+    supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => setIsAdmin(data?.is_admin ?? false))
+  }, [user])
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -45,5 +62,20 @@ export function useAuth(): AuthState {
     await supabase.auth.signOut()
   }
 
-  return { user, loading, signIn, signUp, signOut }
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login`,
+    })
+    return { error }
+  }
+
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/` },
+    })
+    return { error }
+  }
+
+  return { user, loading, isAdmin, signIn, signUp, signOut, resetPassword, signInWithGoogle }
 }
