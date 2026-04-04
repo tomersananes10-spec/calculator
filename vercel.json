@@ -1,4 +1,4 @@
 {
-  "buildCommand": "cd digitek-platform && npm install && npm run build",
+  "buildCommand": "cd digitek-platform && npm install && npx vite build",
   "outputDirectory": "digitek-platform/dist"
 }
