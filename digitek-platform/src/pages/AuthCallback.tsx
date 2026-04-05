@@ -23,10 +23,8 @@ export function AuthCallback() {
       if (event === 'SIGNED_IN' && session) {
         subscription.unsubscribe()
         navigate('/', { replace: true })
-      } else if (event === 'INITIAL_SESSION' && !session) {
-        subscription.unsubscribe()
-        navigate('/login', { replace: true })
       }
+      // INITIAL_SESSION fires with session=null before code exchange completes — ignore it
     })
 
     // Fallback: if no event fires in 5s, check session directly
