@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 type Mode = 'login' | 'register' | 'forgot'
@@ -15,6 +15,12 @@ export function Login() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const { signIn, signUp, resetPassword, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const authError = searchParams.get('auth_error')
+    if (authError) setError('כניסה עם Google נכשלה: ' + authError)
+  }, [searchParams])
 
   const clearMessages = () => { setError(null); setSuccess(null) }
 
