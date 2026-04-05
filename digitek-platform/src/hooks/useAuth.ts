@@ -19,23 +19,20 @@ export function useAuth(): AuthState {
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // INITIAL_SESSION fires after detectSessionInUrl finishes processing OAuth tokens.
+    // Only then do we resolve loading — this avoids the race condition where
+    // getSession() returns null mid-exchange and ProtectedRoute bounces to /login.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
-      setLoading(false)
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        setLoading(false)
+      }
     })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-
     return () => subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
-    if (!user) {
-      setIsAdmin(false)
-      return
-    }
+    if (!user) { setIsAdmin(false); return }
     supabase
       .from('profiles')
       .select('is_admin')
@@ -72,7 +69,7 @@ export function useAuth(): AuthState {
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
     return { error }
   }
