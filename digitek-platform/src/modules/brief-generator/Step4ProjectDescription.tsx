@@ -6,10 +6,10 @@ interface Props {
   onChange: (field: string, value: string) => void
   onNext: () => void
   onBack: () => void
-  onSave: () => void
+  onSave?: () => void
 }
 
-export function Step4ProjectDescription({ state, onChange, onNext, onBack, onSave }: Props) {
+export function Step4ProjectDescription({ state, onChange, onNext, onBack }: Props) {
   const { projectDescription } = state
   const canContinue = projectDescription.general.trim().length > 0
 

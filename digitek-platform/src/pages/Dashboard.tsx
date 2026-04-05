@@ -73,7 +73,7 @@ const MODULES: Module[] = [
 const activeCount = MODULES.filter(m => m.active).length
 
 export function Dashboard() {
-  const { user, signOut, isAdmin } = useAuth()
+  const { user, isAdmin } = useAuth()
   const fullName = user?.user_metadata?.full_name ?? ''
   const firstName = fullName.split(' ')[0] || 'משתמש'
 

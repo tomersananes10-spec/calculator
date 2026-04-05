@@ -6,10 +6,10 @@ interface Props {
   onChange: (field: string, value: string) => void
   onNext: () => void
   onBack: () => void
-  onSave: () => void
+  onSave?: () => void
 }
 
-export function Step2CurrentSituation({ state, onChange, onNext, onBack, onSave }: Props) {
+export function Step2CurrentSituation({ state, onChange, onNext, onBack }: Props) {
   const { currentSituation } = state
   const canContinue = currentSituation.businessProblem.trim().length > 0
 

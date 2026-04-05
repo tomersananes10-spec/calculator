@@ -17,7 +17,6 @@ export function Step3Mix({ state, dispatch }: Props) {
     (sum, m) => sum + calcRoleMonthlyCost(m, state.rolesData, state.hoursMultiplier),
     0
   )
-  const HOURS_OPTIONS = [160, 176, 180, 200]
   const selectedHours = Math.round(state.hoursMultiplier * HOURS_PER_MONTH)
 
   function confirmCustomHours(i: number) {

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { clusters } from '../../data/clusters'
 import type { Cluster, Specialization } from '../../data/clusters'
-import styles from '../../pages/Dashboard.module.css'
 
 interface Props {
   onSelect: (cluster: Cluster, spec: Specialization) => void
