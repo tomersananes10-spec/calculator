@@ -20,11 +20,13 @@ export function AuthCallback() {
     // detectSessionInUrl:true handles code exchange automatically.
     // We just wait for the session to appear (SIGNED_IN / INITIAL_SESSION).
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+      if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+        // SIGNED_IN: exchange completed after listener registered
+        // INITIAL_SESSION with session: exchange completed before listener registered
         subscription.unsubscribe()
         navigate('/', { replace: true })
       }
-      // INITIAL_SESSION fires with session=null before code exchange completes — ignore it
+      // INITIAL_SESSION with no session: exchange still in progress — wait for SIGNED_IN or timeout
     })
 
     // Fallback: if no event fires in 5s, check session directly
