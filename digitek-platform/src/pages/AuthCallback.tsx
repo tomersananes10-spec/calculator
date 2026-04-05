@@ -12,32 +12,31 @@ export function AuthCallback() {
     const errorParam = search.get('error') || hash.get('error')
     const errorDesc = search.get('error_description') || hash.get('error_description')
     if (errorParam) {
-      const msg = errorDesc ? `oauth_error:${errorParam}:${errorDesc}` : `oauth_error:${errorParam}`
+      const msg = errorDesc ? `${errorParam}: ${errorDesc}` : errorParam
       navigate(`/login?auth_error=${encodeURIComponent(msg)}`, { replace: true })
       return
     }
 
-    // PKCE flow: Supabase returns ?code=...
-    const code = search.get('code')
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code)
-        .then(({ error }) => navigate(error ? '/login' : '/', { replace: true }))
-      return
-    }
-
-    // Implicit flow fallback: tokens arrive as #access_token=...
-    const accessToken = hash.get('access_token')
-    const refreshToken = hash.get('refresh_token') ?? ''
-    if (accessToken) {
-      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-        .then(({ error }) => navigate(error ? '/login' : '/', { replace: true }))
-      return
-    }
-
-    // No params — maybe session was already set by detectSessionInUrl
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      navigate(session ? '/' : '/login', { replace: true })
+    // detectSessionInUrl:true handles code exchange automatically.
+    // We just wait for the session to appear (SIGNED_IN / INITIAL_SESSION).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        subscription.unsubscribe()
+        navigate('/', { replace: true })
+      } else if (event === 'INITIAL_SESSION' && !session) {
+        subscription.unsubscribe()
+        navigate('/login', { replace: true })
+      }
     })
+
+    // Fallback: if no event fires in 5s, check session directly
+    const timeout = setTimeout(async () => {
+      subscription.unsubscribe()
+      const { data: { session } } = await supabase.auth.getSession()
+      navigate(session ? '/' : '/login', { replace: true })
+    }, 5000)
+
+    return () => { subscription.unsubscribe(); clearTimeout(timeout) }
   }, [navigate])
 
   return (
