@@ -17,19 +17,21 @@ export function AuthCallback() {
       return
     }
 
-    const code = params.get('code')
-    if (!code) {
-      navigate('/login', { replace: true })
-      return
-    }
-
-    supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-      if (error) {
-        navigate(`/login?auth_error=${encodeURIComponent(error.message)}`, { replace: true })
-      } else {
+    // detectSessionInUrl:true auto-exchanges the code.
+    // Poll getSession every 500ms until it appears (max 10s).
+    let attempts = 0
+    const poll = setInterval(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        clearInterval(poll)
         navigate('/', { replace: true })
+      } else if (++attempts >= 20) {
+        clearInterval(poll)
+        navigate('/login', { replace: true })
       }
-    })
+    }, 500)
+
+    return () => clearInterval(poll)
   }, [navigate])
 
   return (
