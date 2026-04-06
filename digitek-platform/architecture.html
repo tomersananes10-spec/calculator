@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Digitek Platform — ארכיטקטורה מערכת</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    padding: 32px;
+    font-size: 13px;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #0d9488;
+  }
+  .header h1 { font-size: 28px; font-weight: 900; color: #0d9488; }
+  .header p  { font-size: 14px; color: #64748b; margin-top: 4px; }
+  .date { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+
+  /* ── Print button ── */
+  .print-btn {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    padding: 8px 16px;
+    background: #0d9488;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Heebo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 100;
+  }
+  .print-btn:hover { background: #0f766e; }
+  @media print { .print-btn { display: none; } }
+
+  /* ── Layout ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .grid-full {
+    margin-bottom: 16px;
+  }
+
+  /* ── Cards ── */
+  .layer {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+    break-inside: avoid;
+  }
+  .layer-header {
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .layer-body { padding: 14px 16px; }
+
+  /* Colors */
+  .c-teal   .layer-header { background: #0d9488; }
+  .c-blue   .layer-header { background: #2563eb; }
+  .c-purple .layer-header { background: #7c3aed; }
+  .c-slate  .layer-header { background: #475569; }
+  .c-amber  .layer-header { background: #d97706; }
+  .c-green  .layer-header { background: #16a34a; }
+  .c-rose   .layer-header { background: #e11d48; }
+
+  .c-teal   { border-color: #0d9488; }
+  .c-blue   { border-color: #2563eb; }
+  .c-purple { border-color: #7c3aed; }
+  .c-slate  { border-color: #475569; }
+  .c-amber  { border-color: #d97706; }
+  .c-green  { border-color: #16a34a; }
+  .c-rose   { border-color: #e11d48; }
+
+  /* ── Component list ── */
+  .comp-list { list-style: none; }
+  .comp-list li {
+    padding: 5px 0;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .comp-list li:last-child { border-bottom: none; }
+  .comp-name { font-weight: 600; color: #1e293b; min-width: 130px; }
+  .comp-desc { color: #64748b; font-size: 12px; text-align: left; direction: ltr; }
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .badge-page   { background: #dbeafe; color: #1e40af; }
+  .badge-hook   { background: #ede9fe; color: #5b21b6; }
+  .badge-module { background: #d1fae5; color: #065f46; }
+  .badge-lib    { background: #fef3c7; color: #92400e; }
+  .badge-comp   { background: #fce7f3; color: #9d174d; }
+
+  /* ── Flow arrows ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 8px 0;
+    flex-wrap: wrap;
+  }
+  .flow-box {
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    text-align: center;
+  }
+  .flow-arrow {
+    color: #94a3b8;
+    font-size: 18px;
+    padding: 0 6px;
+  }
+  .flow-box.highlight {
+    background: #f0fdfa;
+    border-color: #0d9488;
+    color: #0d9488;
+  }
+
+  /* ── Data table ── */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #f1f5f9; padding: 7px 10px; text-align: right; font-weight: 700; color: #475569; }
+  td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.mono { font-family: monospace; font-size: 11px; color: #7c3aed; direction: ltr; text-align: left; }
+  td.dir-ltr { direction: ltr; text-align: left; }
+
+  /* ── Section title ── */
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    margin: 12px 0 6px;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #475569; }
+
+  @media print {
+    body { padding: 16px; font-size: 11px; background: #fff; }
+    .layer { break-inside: avoid; }
+    .grid, .grid-2 { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">הדפס PDF ⬇</button>
+
+<div class="header">
+  <h1>🏛️ Digitek Platform — ארכיטקטורת מערכת</h1>
+  <p>React SPA · Supabase BaaS · Vercel Deployment</p>
+  <p class="date">נוצר: אפריל 2026</p>
+</div>
+
+<!-- Row 1: Auth Flow -->
+<div class="grid-full">
+  <div class="layer c-teal">
+    <div class="layer-header">🔐 זרימת אימות — Auth Flow (Google OAuth PKCE + Email/Password)</div>
+    <div class="layer-body">
+      <div class="flow">
+        <div class="flow-box">משתמש לוחץ<br>"כניסה עם Google"</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">Login.tsx<br>signInWithOAuth()</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Supabase Auth<br>יוצר PKCE challenge</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Google OAuth<br>consent screen</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">redirect:<br>/auth/callback?code=...</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">AuthCallback.tsx<br>poll getSession()</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">navigate('/')<br>Dashboard</div>
+      </div>
+      <div class="flow" style="margin-top:6px">
+        <div class="flow-box">משתמש מזין<br>email + password</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">Login.tsx<br>signInWithPassword()</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Supabase Auth<br>JWT token</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">useAuth.ts<br>onAuthStateChange()</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">ProtectedRoute<br>מרנדר route</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">navigate('/')<br>Dashboard</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 2: Frontend Pages + Components -->
+<div class="grid">
+  <div class="layer c-blue">
+    <div class="layer-header">📄 Pages — דפים</div>
+    <div class="layer-body">
+      <ul class="comp-list">
+        <li>
+          <span class="comp-name">Login.tsx</span>
+          <span class="badge badge-page">Page</span>
+        </li>
+        <li><span class="comp-desc" style="direction:rtl;text-align:right;font-size:11px">3 מצבים: login / register / forgot. Email+Password ו-Google OAuth ישירות מ-supabase</span></li>
+
+        <li>
+          <span class="comp-name">Dashboard.tsx</span>
+          <span class="badge badge-page">Page</span>
+        </li>
+        <li><span class="comp-desc" style="direction:rtl;text-align:right;font-size:11px">מרכז ניווט — 4 כרטיסיות מודולים: מחשבון, Brief, Admin, TAKAM</span></li>
+
+        <li>
+          <span class="comp-name">Calculator.tsx</span>
+          <span class="badge badge-page">Page</span>
+        </li>
+        <li><span class="comp-desc" style="direction:rtl;text-align:right;font-size:11px">עטיפה ל-TakamCalculator module</span></li>
+
+        <li>
+          <span class="comp-name">BriefGenerator.tsx</span>
+          <span class="badge badge-page">Page</span>
+        </li>
+        <li><span class="comp-desc" style="direction:rtl;text-align:right;font-size:11px">עטיפה ל-BriefWizard module + BriefsList</span></li>
+
+        <li>
+          <span class="comp-name">Admin.tsx</span>
+          <span class="badge badge-page">Page</span>
+        </li>
+        <li><span class="comp-desc" style="direction:rtl;text-align:right;font-size:11px">ממשק ניהול — גישה רק ל-isAdmin=true מ-profiles</span></li>
+
+        <li>
+          <span class="comp-name">AuthCallback.tsx</span>
+          <span class="badge badge-page">Page</span>
+        </li>
+        <li><span class="comp-desc" style="direction:rtl;text-align:right;font-size:11px">מטפל בחזרה מ-OAuth: פולינג getSession() כל 500ms עד 10 שניות</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="layer c-purple">
+    <div class="layer-header">🧩 Components &amp; Hooks</div>
+    <div class="layer-body">
+      <div class="section-title">Components</div>
+      <ul class="comp-list">
+        <li>
+          <span class="comp-name">Topbar.tsx</span>
+          <span class="badge badge-comp">Component</span>
+        </li>
+        <li><span class="comp-desc" style="direction:rtl;text-align:right;font-size:11px">פס ניווט עליון אחיד — לוגו, שם משתמש, כפתור logout</span></li>
+
+        <li>
+          <span class="comp-name">ProtectedRoute.tsx</span>
+          <span class="badge badge-comp">Component</span>
+        </li>
+        <li><span class="comp-desc" style="direction:rtl;text-align:right;font-size:11px">Guard: בודק loading+user → מפנה ל-/login אם אין session</span></li>
+      </ul>
+
+      <div class="section-title" style="margin-top:10px">Hooks</div>
+      <ul class="comp-list">
+        <li>
+          <span class="comp-name">useAuth.ts</span>
+          <span class="badge badge-hook">Hook</span>
+        </li>
+        <li><span class="comp-desc" style="direction:rtl;text-align:right;font-size:11px">מנהל: user, loading, isAdmin. מאזין onAuthStateChange. בודק profiles.is_admin</span></li>
+
+        <li>
+          <span class="comp-name">useBriefs.ts</span>
+          <span class="badge badge-hook">Hook</span>
+        </li>
+        <li><span class="comp-desc" style="direction:rtl;text-align:right;font-size:11px">CRUD על טבלת briefs: create, save, load, delete, fetch</span></li>
+      </ul>
+
+      <div class="section-title" style="margin-top:10px">Lib</div>
+      <ul class="comp-list">
+        <li>
+          <span class="comp-name">lib/supabase.ts</span>
+          <span class="badge badge-lib">Client</span>
+        </li>
+        <li><span class="comp-desc" style="direction:rtl;text-align:right;font-size:11px">createClient עם PKCE + detectSessionInUrl + autoRefreshToken</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="layer c-slate">
+    <div class="layer-header">📦 App Shell</div>
+    <div class="layer-body">
+      <div class="section-title">Router (App.tsx)</div>
+      <ul class="comp-list">
+        <li><span class="comp-name">/login</span><span class="comp-desc">→ Login</span></li>
+        <li><span class="comp-name">/auth/callback</span><span class="comp-desc">→ AuthCallback</span></li>
+        <li><span class="comp-name">/</span><span class="comp-desc">→ ProtectedRoute → Dashboard</span></li>
+        <li><span class="comp-name">/calculator</span><span class="comp-desc">→ ProtectedRoute → Calculator</span></li>
+        <li><span class="comp-name">/brief-generator</span><span class="comp-desc">→ ProtectedRoute → BriefGenerator</span></li>
+        <li><span class="comp-name">/admin</span><span class="comp-desc">→ ProtectedRoute → Admin</span></li>
+        <li><span class="comp-name">/*</span><span class="comp-desc">→ Navigate to /</span></li>
+      </ul>
+
+      <div class="section-title" style="margin-top:10px">Entry Point</div>
+      <ul class="comp-list">
+        <li><span class="comp-name">main.tsx</span><span class="comp-desc">ReactDOM.createRoot → &lt;App/&gt;</span></li>
+        <li><span class="comp-name">styles/theme.css</span><span class="comp-desc">CSS vars: --teal, --bg, --surface, --text...</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Row 3: Modules -->
+<div class="grid-2">
+  <div class="layer c-green">
+    <div class="layer-header">🔢 Module: TAKAM Calculator (מחשבון התכ"ם)</div>
+    <div class="layer-body">
+      <div class="section-title">קבצים</div>
+      <ul class="comp-list">
+        <li><span class="comp-name">TakamCalculator.tsx</span><span class="comp-desc">מנהל wizard 4 שלבים + dispatch</span></li>
+        <li><span class="comp-name">useCalculator.ts</span><span class="comp-desc">useReducer — CalcState + CalcAction</span></li>
+        <li><span class="comp-name">Step1Setup.tsx</span><span class="comp-desc">פרטי פרויקט, תקופה, ריסק</span></li>
+        <li><span class="comp-name">Step2Roles.tsx</span><span class="comp-desc">בחירת תפקידים מ-data.ts</span></li>
+        <li><span class="comp-name">Step3Mix.tsx</span><span class="comp-desc">רמות + % עיסוק לכל תפקיד</span></li>
+        <li><span class="comp-name">Step4Results.tsx</span><span class="comp-desc">סיכום עלויות, ייצוא PDF</span></li>
+        <li><span class="comp-name">AiAdvisorModal.tsx</span><span class="comp-desc">AI advisor — חיבור ל-Anthropic API</span></li>
+        <li><span class="comp-name">calc.ts</span><span class="comp-desc">לוגיקת חישוב: calcRoleMonthlyCost, fmtCurrency</span></li>
+        <li><span class="comp-name">data.ts</span><span class="comp-desc">ALL_LEVELS, HOURS_PER_MONTH, רשימת תפקידים</span></li>
+        <li><span class="comp-name">types.ts</span><span class="comp-desc">Role, MixEntry, CalcState, CalcAction</span></li>
+      </ul>
+      <div class="section-title" style="margin-top:10px">זרימת נתונים</div>
+      <div class="flow">
+        <div class="flow-box">data.ts<br>תפקידים</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">useCalculator<br>reducer</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">calc.ts<br>חישוב</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Step4<br>תוצאות</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer c-amber">
+    <div class="layer-header">📝 Module: Brief Generator (מחולל מכרזים)</div>
+    <div class="layer-body">
+      <div class="section-title">קבצים</div>
+      <ul class="comp-list">
+        <li><span class="comp-name">BriefWizard.tsx</span><span class="comp-desc">Wizard ראשי — 10 שלבים + save אוטומטי</span></li>
+        <li><span class="comp-name">BriefsList.tsx</span><span class="comp-desc">רשימת טיוטות מ-Supabase (useBriefs)</span></li>
+        <li><span class="comp-name">NewBriefSelector.tsx</span><span class="comp-desc">בחירת cluster + specialization</span></li>
+        <li><span class="comp-name">Step1–Step9.tsx</span><span class="comp-desc">9 שלבי עריכה: זיהוי, מצב קיים, ארכיטקטורה, תיאור, תוצרים, חבילות עבודה, לוחות זמנים, ניהול, יעדים</span></li>
+        <li><span class="comp-name">Step10Preview.tsx</span><span class="comp-desc">תצוגה מקדימה + ייצוא Word</span></li>
+        <li><span class="comp-name">briefAIHelper.ts</span><span class="comp-desc">עוזר AI למילוי חכם</span></li>
+        <li><span class="comp-name">wordExport.ts</span><span class="comp-desc">ייצוא מסמך Word (.docx)</span></li>
+        <li><span class="comp-name">briefData.ts</span><span class="comp-desc">תבניות ברירת מחדל לשלבים</span></li>
+        <li><span class="comp-name">types.ts</span><span class="comp-desc">WizardState, BriefRecord, DeliverableRow...</span></li>
+      </ul>
+      <div class="section-title" style="margin-top:10px">זרימת נתונים</div>
+      <div class="flow">
+        <div class="flow-box">clusters.ts<br>מאגר</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">WizardState<br>10 שלבים</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">useBriefs<br>שמירה ל-DB</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Word Export<br>PDF</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 4: Backend -->
+<div class="grid-2">
+  <div class="layer c-teal">
+    <div class="layer-header">🗄️ Backend: Supabase — Auth &amp; Database</div>
+    <div class="layer-body">
+      <div class="section-title">Auth Service</div>
+      <table>
+        <tr><th>שיטה</th><th>פרמטרים</th><th>תגובה</th></tr>
+        <tr>
+          <td>signInWithPassword</td>
+          <td class="mono">{ email, password }</td>
+          <td>session + JWT</td>
+        </tr>
+        <tr>
+          <td>signUp</td>
+          <td class="mono">{ email, password, data.full_name }</td>
+          <td>user object</td>
+        </tr>
+        <tr>
+          <td>signInWithOAuth</td>
+          <td class="mono">provider: 'google', redirectTo</td>
+          <td>redirect URL</td>
+        </tr>
+        <tr>
+          <td>resetPasswordForEmail</td>
+          <td class="mono">{ email, redirectTo }</td>
+          <td>email sent</td>
+        </tr>
+        <tr>
+          <td>getSession</td>
+          <td class="mono">—</td>
+          <td>{ session }</td>
+        </tr>
+        <tr>
+          <td>onAuthStateChange</td>
+          <td class="mono">callback(event, session)</td>
+          <td>subscription</td>
+        </tr>
+      </table>
+
+      <div class="section-title" style="margin-top:12px">Database Tables (PostgreSQL)</div>
+      <table>
+        <tr><th>טבלה</th><th>עמודות עיקריות</th><th>RLS</th></tr>
+        <tr>
+          <td><strong>profiles</strong></td>
+          <td class="mono">id (FK → auth.users), is_admin bool</td>
+          <td>user = own row</td>
+        </tr>
+        <tr>
+          <td><strong>briefs</strong></td>
+          <td class="mono">id, user_id, title, cluster_id, specialization_id, status, state (JSONB), created_at, updated_at</td>
+          <td>user_id = auth.uid()</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="layer c-rose">
+    <div class="layer-header">🌐 External Services &amp; Infrastructure</div>
+    <div class="layer-body">
+      <div class="section-title">שירותים חיצוניים</div>
+      <table>
+        <tr><th>שירות</th><th>שימוש</th><th>סטטוס</th></tr>
+        <tr>
+          <td><strong>Google OAuth 2.0</strong></td>
+          <td>כניסה עם Google — דרך Supabase Auth Provider</td>
+          <td>✅ פעיל</td>
+        </tr>
+        <tr>
+          <td><strong>Anthropic API</strong></td>
+          <td>AI Advisor ב-TAKAM Calculator — ניתוח צוות + המלצות</td>
+          <td>⚠️ חסום (חסר API key)</td>
+        </tr>
+        <tr>
+          <td><strong>Vercel</strong></td>
+          <td>Hosting, CI/CD, Preview Deployments, Edge CDN</td>
+          <td>✅ פעיל</td>
+        </tr>
+        <tr>
+          <td><strong>GitHub</strong></td>
+          <td>Source Control + Trigger Vercel deploys על push</td>
+          <td>✅ פעיל</td>
+        </tr>
+      </table>
+
+      <div class="section-title" style="margin-top:12px">CI/CD Pipeline</div>
+      <div class="flow">
+        <div class="flow-box">git push<br>develop</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">GitHub<br>trigger</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Vercel<br>npm run build</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">Preview<br>Deployment</div>
+      </div>
+      <div class="flow" style="margin-top:4px">
+        <div class="flow-box">PR merge<br>→ main</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">Production<br>Deployment</div>
+      </div>
+
+      <div class="section-title" style="margin-top:10px">Environment Variables</div>
+      <table>
+        <tr><th>משתנה</th><th>ערך</th></tr>
+        <tr><td class="mono">VITE_SUPABASE_URL</td><td class="dir-ltr">https://kkiuclzq...supabase.co</td></tr>
+        <tr><td class="mono">VITE_SUPABASE_ANON_KEY</td><td>JWT anon key (public)</td></tr>
+        <tr><td class="mono">VITE_ANTHROPIC_API_KEY</td><td>⚠️ ריק — AI Advisor לא פעיל</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Row 5: Data flow summary -->
+<div class="grid-full">
+  <div class="layer c-slate">
+    <div class="layer-header">↕️ זרימת נתונים מלאה — Full Data Flow</div>
+    <div class="layer-body">
+      <table>
+        <tr>
+          <th>פעולה</th>
+          <th>קובץ מקור</th>
+          <th>קובץ יעד / שירות</th>
+          <th>כיוון</th>
+          <th>נתונים שעוברים</th>
+        </tr>
+        <tr>
+          <td>כניסה עם Google</td>
+          <td class="mono">Login.tsx → handleGoogle()</td>
+          <td>Supabase Auth → Google OAuth</td>
+          <td>OUT → IN</td>
+          <td>redirectTo URL → JWT session token</td>
+        </tr>
+        <tr>
+          <td>חזרה מ-OAuth</td>
+          <td class="mono">AuthCallback.tsx</td>
+          <td>supabase.auth.getSession()</td>
+          <td>POLL</td>
+          <td>?code= param → session object</td>
+        </tr>
+        <tr>
+          <td>בדיקת הרשאות</td>
+          <td class="mono">useAuth.ts</td>
+          <td>Supabase: profiles table</td>
+          <td>OUT → IN</td>
+          <td>user.id → { is_admin: bool }</td>
+        </tr>
+        <tr>
+          <td>שמירת brief</td>
+          <td class="mono">useBriefs.ts → saveBrief()</td>
+          <td>Supabase: briefs table</td>
+          <td>OUT</td>
+          <td>{ id, state: WizardState (JSONB), title, cluster_id }</td>
+        </tr>
+        <tr>
+          <td>טעינת briefs</td>
+          <td class="mono">useBriefs.ts → fetchBriefs()</td>
+          <td>Supabase: briefs table</td>
+          <td>IN</td>
+          <td>BriefRecord[] ordered by updated_at</td>
+        </tr>
+        <tr>
+          <td>חישוב TAKAM</td>
+          <td class="mono">calc.ts → calcRoleMonthlyCost()</td>
+          <td>—</td>
+          <td>LOCAL</td>
+          <td>MixEntry + rolesData + hoursMultiplier → ₪ עלות</td>
+        </tr>
+        <tr>
+          <td>AI Advisor</td>
+          <td class="mono">AiAdvisorModal.tsx → briefAIHelper.ts</td>
+          <td>Anthropic API (claude-*)</td>
+          <td>OUT → IN</td>
+          <td>CalcState JSON → המלצות טקסט</td>
+        </tr>
+        <tr>
+          <td>ייצוא Word</td>
+          <td class="mono">wordExport.ts</td>
+          <td>—</td>
+          <td>LOCAL</td>
+          <td>WizardState → .docx blob → download</td>
+        </tr>
+        <tr>
+          <td>ייצוא PDF</td>
+          <td class="mono">Step4Results.tsx</td>
+          <td>html2pdf.js (client-side)</td>
+          <td>LOCAL</td>
+          <td>DOM → PDF blob → download</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><span class="badge badge-page">Page</span> דף ראשי</div>
+  <div class="legend-item"><span class="badge badge-comp">Component</span> רכיב משותף</div>
+  <div class="legend-item"><span class="badge badge-hook">Hook</span> React Hook</div>
+  <div class="legend-item"><span class="badge badge-module">Module</span> מודול עצמאי</div>
+  <div class="legend-item"><span class="badge badge-lib">Lib</span> ספריית בסיס</div>
+  <div class="legend-item" style="margin-right:auto;color:#94a3b8;font-size:11px">
+    Stack: React 18 + TypeScript · Vite 8 · React Router v6 · Supabase JS v2 · Vercel Hobby
+  </div>
+</div>
+
+</body>
+</html>
