@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
-const BYPASS_AUTH = import.meta.env.VITE_BYPASS_AUTH === 'true'
+const BYPASS_AUTH = true // dev mode — remove before production
 
 interface ProtectedRouteProps {
   children: React.ReactNode
