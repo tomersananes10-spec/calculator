@@ -35,11 +35,11 @@ const MODULES: Module[] = [
   {
     id: 'layer5',
     name: 'רובד 5',
-    desc: 'ניהול תקציב ורמות אישור',
+    desc: 'קטלוג שירותי ענן מאושרים עם חיפוש AI',
     icon: '⚖️',
     iconBg: '#faf5ff',
     href: '/layer5',
-    active: false,
+    active: true,
   },
   {
     id: 'committees',

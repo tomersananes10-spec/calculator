@@ -5,6 +5,7 @@ import { Calculator }     from './pages/Calculator'
 import { BriefGenerator } from './pages/BriefGenerator'
 import { Admin }          from './pages/Admin'
 import { AuthCallback }   from './pages/AuthCallback'
+import { Roved5Page }     from './pages/Roved5Page'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 export default function App() {
@@ -42,6 +43,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Admin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/layer5"
+          element={
+            <ProtectedRoute>
+              <Roved5Page />
             </ProtectedRoute>
           }
         />
