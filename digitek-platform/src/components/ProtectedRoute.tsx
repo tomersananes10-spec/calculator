@@ -1,12 +1,16 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
+const BYPASS_AUTH = import.meta.env.VITE_BYPASS_AUTH === 'true'
+
 interface ProtectedRouteProps {
   children: React.ReactNode
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
+
+  if (BYPASS_AUTH) return <>{children}</>
 
   if (loading) {
     return (
