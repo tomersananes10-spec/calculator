@@ -5,11 +5,18 @@ interface Props {
   service: Roved5Service
   aiResult?: AISearchResult
   onClick: () => void
+  animationDelay?: number
 }
 
-export function ServiceCard({ service, aiResult, onClick }: Props) {
+export function ServiceCard({ service, aiResult, onClick, animationDelay }: Props) {
+  const cloudClass = service.cloud === 'AWS' ? styles.cardAWS : styles.cardGCP
+
   return (
-    <div className={styles.card} onClick={onClick}>
+    <div
+      className={`${styles.card} ${cloudClass}`}
+      onClick={onClick}
+      style={animationDelay !== undefined ? { animationDelay: `${animationDelay}ms` } : undefined}
+    >
       <div className={styles.cardHeader}>
         <span className={`${styles.cloudBadge} ${styles[`cloud${service.cloud}`]}`}>
           {service.cloud}
