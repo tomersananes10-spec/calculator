@@ -33,6 +33,7 @@ const ALL_STEPS = [
 interface Props {
   briefId: string
   onClose: () => void
+  initialState?: WizardState
 }
 
 function setPath(obj: Record<string, unknown>, path: string, value: unknown): Record<string, unknown> {
@@ -45,19 +46,22 @@ function setPath(obj: Record<string, unknown>, path: string, value: unknown): Re
   }
 }
 
-export function BriefWizard({ briefId, onClose }: Props) {
-  const [state, setState] = useState<WizardState>(INITIAL_STATE)
+export function BriefWizard({ briefId, onClose, initialState }: Props) {
+  const [state, setState] = useState<WizardState>(initialState ?? INITIAL_STATE)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [toast, setToast] = useState(false)
-  const [ready, setReady] = useState(false)
+  const [ready, setReady] = useState(!!initialState)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { saveBrief, loadBrief } = useBriefs()
 
   useEffect(() => {
-    loadBrief(briefId).then(record => {
-      if (record?.state?.currentStep) setState(record.state)
-      setReady(true)
-    })
+    if (initialState) return  // already have state, skip Supabase load
+    loadBrief(briefId)
+      .then(record => {
+        if (record?.state?.currentStep) setState(record.state)
+      })
+      .catch(() => { /* Supabase unavailable — continue with current state */ })
+      .finally(() => setReady(true))
   }, [briefId])
 
   useEffect(() => {
