@@ -12,12 +12,17 @@ export function useBriefs() {
 
   async function fetchBriefs() {
     setLoading(true)
-    const { data } = await supabase
-      .from('briefs')
-      .select('*')
-      .order('updated_at', { ascending: false })
-    setBriefs((data as BriefRecord[]) ?? [])
-    setLoading(false)
+    try {
+      const { data } = await supabase
+        .from('briefs')
+        .select('*')
+        .order('updated_at', { ascending: false })
+      setBriefs((data as BriefRecord[]) ?? [])
+    } catch {
+      setBriefs([])
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function createBrief(): Promise<BriefRecord> {

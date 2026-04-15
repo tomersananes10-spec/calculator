@@ -28,7 +28,7 @@ export default function App() {
         <Route path="/login"          element={<Login />} />
         <Route path="/auth/callback"  element={<AuthCallback />} />
         <Route path="/"               element={<Protected><Dashboard /></Protected>} />
-        <Route path="/briefs"         element={<Protected><BriefsList /></Protected>} />
+        <Route path="/briefs"         element={<Protected><BriefGenerator /></Protected>} />
         <Route path="/calculator"     element={<Protected><Calculator /></Protected>} />
         <Route path="/brief-generator" element={<Protected><BriefGenerator /></Protected>} />
         <Route path="/layer5"         element={<Protected><Roved5Page /></Protected>} />
