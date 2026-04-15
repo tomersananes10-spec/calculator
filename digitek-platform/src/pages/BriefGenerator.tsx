@@ -14,32 +14,23 @@ export function BriefGenerator() {
   const [view, setView] = useState<View>('new')
   const [activeBriefId, setActiveBriefId] = useState<string | null>(null)
   const [activeInitialState, setActiveInitialState] = useState<typeof INITIAL_STATE | undefined>(undefined)
-  const [creating, setCreating] = useState(false)
 
-  async function handleStartNew(cluster: Cluster, spec: Specialization) {
-    setCreating(true)
+  function handleStartNew(cluster: Cluster, spec: Specialization) {
+    // Open the wizard immediately — no Supabase round-trip needed to start
     const template = getBriefTemplate(cluster, spec)
     const prefilledState = {
       ...INITIAL_STATE,
       ...template,
       identification: { ...INITIAL_STATE.identification, selectedCluster: cluster, selectedSpecialization: spec },
     }
-    try {
-      let briefId: string
-      try {
-        const brief = await createBrief()
-        briefId = brief.id
-        await saveBrief(briefId, prefilledState, 'טיוטה ללא שם')
-        setActiveInitialState(undefined)  // Supabase has it — load normally
-      } catch {
-        briefId = crypto.randomUUID()
-        setActiveInitialState(prefilledState)  // Pass directly when Supabase unavailable
-      }
-      setActiveBriefId(briefId)
-      setView('wizard')
-    } finally {
-      setCreating(false)
-    }
+    setActiveInitialState(prefilledState)
+    setActiveBriefId(crypto.randomUUID())
+    setView('wizard')
+
+    // Fire-and-forget: persist in background (non-blocking)
+    createBrief()
+      .then(brief => saveBrief(brief.id, prefilledState, 'טיוטה ללא שם'))
+      .catch(() => { /* Supabase unavailable — wizard still works locally */ })
   }
 
   function handleOpen(briefId: string) {
@@ -58,7 +49,7 @@ export function BriefGenerator() {
         <BriefsList onOpen={handleOpen} onNew={() => setView('new')} onBack={() => setView('new')} />
       )}
       {view === 'new' && (
-        <NewBriefSelector onSelect={handleStartNew} loading={creating} onMyBriefs={() => setView("list")} />
+        <NewBriefSelector onSelect={handleStartNew} onMyBriefs={() => setView("list")} />
       )}
       {view === 'wizard' && activeBriefId && (
         <BriefWizard briefId={activeBriefId} onClose={handleClose} initialState={activeInitialState} />
