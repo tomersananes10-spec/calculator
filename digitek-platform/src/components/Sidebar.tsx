@@ -10,13 +10,13 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/',           label: 'דשבורד',     icon: '🏠' },
+  { href: '/',           label: 'בית',        icon: '🏠' },
   { href: '/briefs',     label: 'בריפים',     icon: '📋', badge: 24 },
-  { href: '/calculator', label: 'מחשבון',     icon: '🧮' },
-  { href: '/layer5',     label: 'רובד 5',     icon: '⚖️' },
-  { href: '/approvals',  label: 'אישורים',    icon: '✅', badge: 5 },
-  { href: '/suppliers',  label: 'ספקים',      icon: '🏢' },
-  { href: '/projects',   label: 'פרויקטים',   icon: '📊' },
+  { href: '/calculator', label: 'מחשבון תכ"ם', icon: '🧮' },
+  { href: '/layer5',     label: 'רובד 5',      icon: '⚖️' },
+  { href: '/approvals',  label: 'מורשי חתימה', icon: '✅', badge: 5 },
+  { href: '/suppliers',  label: 'ספקים זוכים - דיגיטק', icon: '🏢' },
+  // { href: '/projects',   label: 'פרויקטים',   icon: '📊' },
 ]
 
 const BOTTOM_ITEMS: NavItem[] = [
