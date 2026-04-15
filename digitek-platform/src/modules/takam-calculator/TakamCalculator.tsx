@@ -43,8 +43,19 @@ export function TakamCalculator() {
     if (n < state.currentStep) dispatch({ type: 'GO_STEP', payload: n })
   }
 
+  const isResultsStep = state.currentStep === 4
+
   return (
-    <>
+    <div className={s.page}>
+      {/* Page Header */}
+      <div className={s.pageHeader}>
+        <div>
+          <h1 className={s.pageTitle}>מחשבון תכ"ם</h1>
+          <p className={s.pageSub}>חישוב עלויות כוח אדם וענן לפרויקט</p>
+        </div>
+      </div>
+
+      {/* Step Progress */}
       <div className={s.wizardProgress}>
         <div className={s.steps}>
           {STEP_NAMES.map((name, i) => {
@@ -64,7 +75,8 @@ export function TakamCalculator() {
         </div>
       </div>
 
-      <div className={s.main}>
+      {/* Content */}
+      <div className={isResultsStep ? s.mainWide : s.main}>
         {state.currentStep === 1 && <Step1Setup state={state} dispatch={dispatch} />}
         {state.currentStep === 2 && <Step2Roles state={state} dispatch={dispatch} />}
         {state.currentStep === 3 && <Step3Mix   state={state} dispatch={dispatch} />}
@@ -72,6 +84,6 @@ export function TakamCalculator() {
       </div>
 
       <AiAdvisorModal state={state} dispatch={dispatch} />
-    </>
+    </div>
   )
 }

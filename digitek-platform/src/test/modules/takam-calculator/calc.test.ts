@@ -15,15 +15,15 @@ describe('calcRoleMonthlyCost', () => {
   })
 
   it('calculates full-time developer cost correctly', () => {
-    // role 2.3 מפתח תוכנה, level b = 192, 100% scope = 176h, *1.17 VAT
+    // role 2.3 מפתח תוכנה, level b = 192, 100% scope = 180h, *1.17 VAT
     const result = calcRoleMonthlyCost({ id: '2.3', level: 'b', scope: 100 }, ROLES_DATA, 1)
-    expect(result).toBe(Math.round(192 * 176 * 1.17))
+    expect(result).toBe(Math.round(192 * 180 * 1.17))
   })
 
   it('calculates 50% scope correctly', () => {
-    // scope 50% → 88 hours
+    // scope 50% → 90 hours
     const result = calcRoleMonthlyCost({ id: '2.3', level: 'b', scope: 50 }, ROLES_DATA, 1)
-    expect(result).toBe(Math.round(192 * 88 * 1.17))
+    expect(result).toBe(Math.round(192 * 90 * 1.17))
   })
 
   it('uses customHours when provided, ignoring scope', () => {
@@ -33,7 +33,7 @@ describe('calcRoleMonthlyCost', () => {
 
   it('applies hoursMultiplier to non-custom hours', () => {
     const result = calcRoleMonthlyCost({ id: '2.3', level: 'b', scope: 100 }, ROLES_DATA, 1.5)
-    const baseHours = Math.round(176 * 100 / 100)
+    const baseHours = Math.round(180 * 100 / 100)
     const adjustedHours = Math.round(baseHours * 1.5)
     expect(result).toBe(Math.round(192 * adjustedHours * 1.17))
   })
@@ -50,7 +50,7 @@ describe('calcTotalCost', () => {
 
   it('calculates gross = monthly * months', () => {
     const mix = [{ id: '2.3', level: 'b' as const, scope: 100 }]
-    const monthly = Math.round(192 * 176 * 1.17)
+    const monthly = Math.round(192 * 180 * 1.17)
     const result = calcTotalCost(mix, 12, false, 30, ROLES_DATA, 1)
     expect(result.gross).toBe(monthly * 12)
     expect(result.net).toBe(monthly * 12)
@@ -58,7 +58,7 @@ describe('calcTotalCost', () => {
 
   it('subtracts matching from gross', () => {
     const mix = [{ id: '2.3', level: 'b' as const, scope: 100 }]
-    const monthly = Math.round(192 * 176 * 1.17)
+    const monthly = Math.round(192 * 180 * 1.17)
     const gross = monthly * 12
     const result = calcTotalCost(mix, 12, true, 30, ROLES_DATA, 1)
     expect(result.matching).toBe(Math.round(gross * 0.30))

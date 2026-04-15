@@ -7,11 +7,24 @@
 }
 
 :root {
-  --teal: #0d9488;
-  --teal2: #14b8a6;
-  --teal3: #5eead4;
-  --teal-pale: #f0fdfa;
-  --teal-mid: #ccfbf1;
+  /* Primary - Blue */
+  --primary: #1e40af;
+  --primary-light: #3b82f6;
+  --primary-bg: #dbeafe;
+  --primary-dark: #1e3a8a;
+
+  /* Secondary - Purple */
+  --secondary: #7c3aed;
+  --secondary-bg: #ede9fe;
+
+  /* Legacy aliases (keep for existing components) */
+  --teal: #1e40af;
+  --teal2: #3b82f6;
+  --teal3: #93c5fd;
+  --teal-pale: #dbeafe;
+  --teal-mid: #bfdbfe;
+
+  /* Neutrals */
   --navy: #0f172a;
   --slate: #1e293b;
   --text: #0f172a;
@@ -21,10 +34,20 @@
   --surface: #ffffff;
   --border: #e2e8f0;
   --border2: #cbd5e1;
-  --green: #10b981;
-  --red: #ef4444;
-  --amber: #f59e0b;
+
+  /* Status */
+  --green: #059669;
+  --green-bg: #d1fae5;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --amber: #d97706;
+  --amber-bg: #fef3c7;
+
+  /* Layout */
   --radius: 12px;
+  --sidebar-w: 260px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.10);
+  --shadow-lg: 0 4px 6px rgba(0,0,0,0.07);
 }
 
 html {

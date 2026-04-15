@@ -2,16 +2,14 @@ import { describe, it, expect, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useAuth } from '../../hooks/useAuth'
 
-// Mock supabase
+// Mock supabase — onAuthStateChange fires INITIAL_SESSION asynchronously so
+// initial loading=true can be observed, then resolves after a microtask.
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: vi.fn().mockResolvedValue({
-        data: { session: null },
-        error: null,
-      }),
-      onAuthStateChange: vi.fn().mockReturnValue({
-        data: { subscription: { unsubscribe: vi.fn() } },
+      onAuthStateChange: vi.fn().mockImplementation((callback) => {
+        Promise.resolve().then(() => callback('INITIAL_SESSION', null))
+        return { data: { subscription: { unsubscribe: vi.fn() } } }
       }),
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),

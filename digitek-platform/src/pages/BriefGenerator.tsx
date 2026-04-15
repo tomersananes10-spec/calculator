@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { Topbar } from '../components/Topbar'
-import { useAuth } from '../hooks/useAuth'
 import { useBriefs } from '../hooks/useBriefs'
 import { BriefWizard } from '../modules/brief-generator/BriefWizard'
 import { NewBriefSelector } from '../modules/brief-generator/NewBriefSelector'
@@ -12,8 +10,6 @@ import { getBriefTemplate } from '../data/briefTemplates'
 type View = 'list' | 'new' | 'wizard'
 
 export function BriefGenerator() {
-  const { user } = useAuth()
-  const fullName = user?.user_metadata?.full_name ?? ''
   const { createBrief, saveBrief } = useBriefs()
   const [view, setView] = useState<View>('new')
   const [activeBriefId, setActiveBriefId] = useState<string | null>(null)
@@ -49,12 +45,6 @@ export function BriefGenerator() {
 
   return (
     <>
-      <Topbar
-        title="מחולל בריפים"
-        badge="Beta"
-        userName={fullName}
-        backHref="/"
-      />
       {view === 'list' && (
         <BriefsList onOpen={handleOpen} onNew={() => setView('new')} onBack={() => setView('new')} />
       )}

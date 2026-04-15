@@ -36,6 +36,18 @@ export interface SlaRow {
   penaltyNIS: number
 }
 
+export interface CloudServiceItem {
+  id: string
+  serviceId: string
+  serviceName: string
+  provider: 'GCP' | 'AWS'
+  unitType: 'per_month' | 'per_hour' | 'per_gb' | 'per_user'
+  quantity: number
+  months: number
+  discountPct: number
+  monthlyCost: number
+}
+
 export interface WizardState {
   currentStep: number
   identification: {
@@ -95,6 +107,7 @@ export interface WizardState {
     sla: SlaRow[]
     maintenancePeriodMonths: number
   }
+  cloudServices: CloudServiceItem[]
   goals: {
     kpis: string
     successCriteria: string
@@ -171,6 +184,7 @@ export const INITIAL_STATE: WizardState = {
   },
   deliverables: [],
   workPackages: [],
+  cloudServices: [],
   timeline: {
     estimatedStartDate: '',
     totalDurationMonths: 12,

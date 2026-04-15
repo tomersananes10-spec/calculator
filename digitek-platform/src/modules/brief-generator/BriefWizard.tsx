@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import type { WizardState, DeliverableRow, WorkPackageRow } from './types'
+import type { WizardState, DeliverableRow, WorkPackageRow, CloudServiceItem } from './types'
 import { INITIAL_STATE } from './types'
 import { shouldShowArchitectureStep } from './Step3Architecture'
 import { useBriefs } from '../../hooks/useBriefs'
@@ -12,8 +12,10 @@ import { Step6WorkPackages } from './Step6WorkPackages'
 import { Step7Timeline } from './Step7Timeline'
 import { Step8Management } from './Step8Management'
 import { Step9Goals } from './Step9Goals'
-import Step10Preview from './Step10Preview'
+import { Step10CloudServices } from './Step10CloudServices'
+import Step11Preview from './Step10Preview'
 import s from './BriefWizard.module.css'
+
 const ALL_STEPS = [
   { n: 1,  label: 'זיהוי' },
   { n: 2,  label: 'מצב קיים' },
@@ -24,7 +26,8 @@ const ALL_STEPS = [
   { n: 7,  label: 'לוח זמנים' },
   { n: 8,  label: 'ניהול' },
   { n: 9,  label: 'יעדים' },
-  { n: 10, label: 'תצוגה מקדימה' },
+  { n: 10, label: 'שירותי ענן' },
+  { n: 11, label: 'תצוגה מקדימה' },
 ]
 
 interface Props {
@@ -96,6 +99,9 @@ export function BriefWizard({ briefId, onClose }: Props) {
   function onChangeWorkPackages(rows: WorkPackageRow[]) {
     setState(prev => ({ ...prev, workPackages: rows }))
   }
+  function onChangeCloudServices(items: CloudServiceItem[]) {
+    setState(prev => ({ ...prev, cloudServices: items }))
+  }
 
   async function handleSaveNow() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
@@ -165,7 +171,8 @@ export function BriefWizard({ briefId, onClose }: Props) {
         {step === 7  && <Step7Timeline state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
         {step === 8  && <Step8Management state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
         {step === 9  && <Step9Goals state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
-        {step === 10 && <Step10Preview state={state} onBack={back} onSubmit={handleSubmit} saving={saveStatus === 'saving'} />}
+        {step === 10 && <Step10CloudServices state={state} onChangeCloudServices={onChangeCloudServices} onNext={next} onBack={back} onSave={handleSaveNow} />}
+        {step === 11 && <Step11Preview state={state} onBack={back} onSubmit={handleSubmit} saving={saveStatus === 'saving'} />}
       </div>
       {toast && (
         <div style={{

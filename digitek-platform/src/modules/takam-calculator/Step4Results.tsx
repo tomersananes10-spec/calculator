@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import type { CalcState, CalcAction } from './types'
-import { TEAL_SHADES, LEVEL_LABELS, HOURS_PER_MONTH } from './data'
+import { LEVEL_LABELS, HOURS_PER_MONTH } from './data'
 import { calcTotalCost, fmtCurrency } from './calc'
 import s from './TakamCalculator.module.css'
 
@@ -10,228 +10,218 @@ interface Props {
 }
 
 const PERIOD_LABELS: Record<number, string> = { 6: '6 חודשים', 12: 'שנה', 24: 'שנתיים' }
-
-function showToast(msg: string) {
-  let t = document.getElementById('calcToast') as HTMLDivElement | null
-  if (!t) {
-    t = document.createElement('div')
-    t.id = 'calcToast'
-    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all 0.25s;pointer-events:none'
-    document.body.appendChild(t)
-  }
-  t.textContent = msg
-  t.style.opacity = '1'
-  t.style.transform = 'translateX(-50%) translateY(0)'
-  setTimeout(() => {
-    if (t) { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(20px)' }
-  }, 2500)
-}
+const VAT_RATE = 0.17
+const OVERHEAD_RATE = 0.10
+const CONTINGENCY_RATE = 0.05
 
 export function Step4Results({ state, dispatch }: Props) {
   const { mix, period, matchingOn, matchingPct, riskPct, rolesData, hoursMultiplier } = state
   const printRef = useRef<HTMLDivElement>(null)
 
-  async function downloadPDF() {
-    if (!printRef.current) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const html2pdf = (await import('html2pdf.js' as any)).default
-    const filename = `takam-${state.project.name || 'report'}.pdf`
-    html2pdf()
-      .set({
-        margin: 10,
-        filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      })
-      .from(printRef.current)
-      .save()
-  }
-
-  const { matching, net, monthlyPerRole } = calcTotalCost(mix, period, matchingOn, matchingPct, rolesData, hoursMultiplier)
-  const riskAmt = Math.round(net * riskPct / 100)
-  const totalWithRisk = net + riskAmt
-  const totalAnnual = monthlyPerRole.reduce((s, v) => s + v, 0) * 12
-  const maxAnnual = Math.max(...monthlyPerRole.map(v => v * 12), 1)
+  const { net: netManpower, matching, monthlyPerRole } = calcTotalCost(mix, period, matchingOn, matchingPct, rolesData, hoursMultiplier)
+  const riskAmt      = Math.round(netManpower * riskPct / 100)
+  const manpowerTotal = netManpower + riskAmt
+  const overhead      = Math.round(manpowerTotal * OVERHEAD_RATE)
+  const contingency   = Math.round((manpowerTotal + overhead) * CONTINGENCY_RATE)
+  const subtotalPreVAT = manpowerTotal + overhead + contingency
+  const vatAmt        = Math.round(subtotalPreVAT * VAT_RATE)
+  const grandTotal    = subtotalPreVAT + vatAmt
 
   function shareURL() {
     const roles = mix.map(m => `${m.id}:${m.level}:${m.scope}`).join(',')
     const hash = `v1|period=${period}|matching=${matchingOn ? 1 : 0}|pct=${matchingPct}|roles=${roles}`
     location.hash = encodeURIComponent(hash)
-    navigator.clipboard.writeText(location.href).then(
-      () => showToast('קישור הועתק ללוח ✓'),
-      () => showToast('העתק את הכתובת מסרגל הכתובות')
-    )
+    navigator.clipboard.writeText(location.href).catch(() => undefined)
+  }
+
+  async function downloadPDF() {
+    if (!printRef.current) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const html2pdf = (await import('html2pdf.js' as any)).default
+    html2pdf().set({
+      margin: 10,
+      filename: `takam-${state.project.name || 'report'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    }).from(printRef.current).save()
   }
 
   return (
-    <div>
-      <div ref={printRef}>
-      <div className={s.stepHeader}>
-        <h2>תוצאות החישוב</h2>
-        <p>{mix.length} תפקידים · {PERIOD_LABELS[period]} · תעריף גג{matchingOn ? ` · מאצ'ינג ${matchingPct}%` : ''}</p>
-      </div>
-
-      {/* KPI Row */}
-      <div className={s.kpiRow}>
-        {([6, 12, 24] as const).map(p => {
-          const { net: n } = calcTotalCost(mix, p, matchingOn, matchingPct, rolesData, hoursMultiplier)
-          const ra = Math.round(n * riskPct / 100)
-          const total = n + ra
-          const isHL = p === period
-          return (
-            <div key={p} className={`${s.kpi} ${isHL ? s.kpiHighlighted : ''}`}>
-              <div className={s.kpiPeriod}>{PERIOD_LABELS[p]}</div>
-              <div className={s.kpiTotal}>{fmtCurrency(total, true)}</div>
-              <div className={s.kpiLabel}>כולל {riskPct}% סיכון</div>
-              {riskPct > 0 && <div className={s.kpiGross}>בסיס: {fmtCurrency(n, true)}</div>}
-              {matchingOn && <div className={s.kpiGross}>ברוטו: {fmtCurrency(calcTotalCost(mix, p, false, 0, rolesData, hoursMultiplier).gross, true)}</div>}
+    <div ref={printRef}>
+      <div className={s.twoCol}>
+        {/* ── LEFT: Input tables ── */}
+        <div className={s.leftPanel}>
+          {/* Manpower table */}
+          <div className={s.panel}>
+            <div className={s.panelHeader}>
+              <span className={s.panelTitle}>כוח אדם</span>
+              <button className={s.editBtn} onClick={() => dispatch({ type: 'GO_STEP', payload: 3 })}>
+                ✏️ ערוך
+              </button>
             </div>
-          )
-        })}
-      </div>
-
-      {/* Matching note */}
-      {matchingOn && (
-        <div className={s.matchingNote}>
-          ✅ מאצ'ינג {matchingPct}% — חיסכון של {fmtCurrency(matching, true)} לתקופה הנבחרת
-        </div>
-      )}
-
-      {/* Risk box */}
-      <div className={s.riskBox}>
-        <div className={s.riskHeader}>
-          <span className={s.riskTitle}>תוספת אחוז סיכון</span>
-          <span className={`${s.riskBadge} ${riskPct === 0 ? s.riskBadgeZero : ''}`}>{riskPct}%</span>
-        </div>
-        <input
-          type="range"
-          className={s.slider}
-          min={0} max={50} step={1}
-          value={riskPct}
-          onChange={e => dispatch({ type: 'SET_RISK_PCT', payload: +e.target.value })}
-          style={{ width: '100%', accentColor: 'var(--amber)' }}
-        />
-        <div className={s.riskTotals}>
-          {riskPct === 0 ? (
-            <div className={s.riskTotalItem}>
-              <span className={s.riskTotalLabel}>עלות כוללת ({PERIOD_LABELS[period]})</span>
-              <span className={`${s.riskTotalVal} ${s.riskTotalValHighlight}`}>{fmtCurrency(net, true)}</span>
-            </div>
-          ) : (
-            <>
-              <div className={s.riskTotalItem}>
-                <span className={s.riskTotalLabel}>עלות בסיס ({PERIOD_LABELS[period]})</span>
-                <span className={s.riskTotalVal}>{fmtCurrency(net, true)}</span>
-              </div>
-              <div className={s.riskTotalItem}>
-                <span className={s.riskTotalLabel}>תוספת סיכון {riskPct}%</span>
-                <span className={s.riskTotalVal} style={{ color: 'var(--amber)' }}>+{fmtCurrency(riskAmt, true)}</span>
-              </div>
-              <div className={s.riskTotalItem}>
-                <span className={s.riskTotalLabel}>סה"כ כולל סיכון</span>
-                <span className={`${s.riskTotalVal} ${s.riskTotalValHighlight}`}>{fmtCurrency(totalWithRisk, true)}</span>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Matching box */}
-      <div className={s.riskBox}>
-        <div className={s.riskHeader}>
-          <span className={s.riskTitle}>מאצ'ינג עם מערך הדיגיטל</span>
-        </div>
-        <div className={s.toggleRow}>
-          <div className={s.toggleInfo}>
-            <span className={s.toggleName}>מאצ'ינג ממשלתי</span>
-            <span className={s.toggleSub}>כולל חיסכון ממאצ'ינג בחישוב</span>
-          </div>
-          <button
-            className={`${s.sw} ${state.matchingOn ? s.swOn : ''}`}
-            onClick={() => dispatch({ type: 'TOGGLE_MATCHING' })}
-            aria-label="toggle matching"
-          />
-        </div>
-        {state.matchingOn && (
-          <div className={s.field} style={{ marginTop: 12 }}>
-            <label className={s.fieldLabel}>אחוז מאצ'ינג</label>
-            <div className={s.numRow}>
-              <input
-                type="number"
-                className={s.numInput}
-                min={1} max={100}
-                value={state.matchingPct}
-                onChange={e => dispatch({ type: 'SET_MATCHING_PCT', payload: Math.min(100, Math.max(1, +e.target.value || 30)) })}
-              />
-              <span style={{ fontSize: 13, color: 'var(--text2)' }}>%</span>
-            </div>
-          </div>
-        )}
-        {state.matchingOn && (
-          <div className={s.riskTotals} style={{ marginTop: 10 }}>
-            <div className={s.riskTotalItem}>
-              <span className={s.riskTotalLabel}>חיסכון מאצ'ינג ({state.matchingPct}%)</span>
-              <span className={s.riskTotalVal} style={{ color: 'var(--green)' }}>−{fmtCurrency(matching, true)}</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Results grid */}
-      <div className={s.resultsGrid}>
-        <div className={s.cardBox}>
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>פירוט לפי תפקיד</div>
-          <table className={s.breakdownTable}>
-            <thead>
-              <tr>
-                <th>תפקיד</th>
-                <th style={{ textAlign: 'center' }}>רמה</th>
-                <th style={{ textAlign: 'center' }}>משרה</th>
-                <th style={{ textAlign: 'center' }}>שעות/חודש</th>
-                <th style={{ textAlign: 'left' }}>שנתי</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mix.map((m, i) => {
-                const role = rolesData.find(r => r.id === m.id)
-                if (!role) return null
-                const annual = monthlyPerRole[i] * 12
-                const base = m.customHours ?? Math.round(HOURS_PER_MONTH * m.scope / 100)
-                const hours = m.customHours ? base : Math.round(base * hoursMultiplier)
-                return (
-                  <tr key={m.id} className={role.custom ? s.customRowHighlight : ''}>
-                    <td>{role.name}{role.custom && <span title="תפקיד מותאם אישית" style={{ marginRight: 4 }}>⚠️</span>}</td>
-                    <td style={{ textAlign: 'center' }}>{LEVEL_LABELS[m.level]}</td>
-                    <td style={{ textAlign: 'center' }}>{m.scope}%</td>
-                    <td style={{ textAlign: 'center' }}>{hours}</td>
-                    <td className={s.costVal}>{fmtCurrency(annual, true)}</td>
+            <div className={s.tableWrap}>
+              <table className={s.dataTable}>
+                <thead>
+                  <tr>
+                    <th>תפקיד</th>
+                    <th>רמה</th>
+                    <th>משרה</th>
+                    <th>שעות/חודש</th>
+                    <th>תעריף ₪/שעה</th>
+                    <th>סה״כ ₪</th>
                   </tr>
-                )
-              })}
-              <tr className={s.totalRow}>
-                <td colSpan={4}>סה"כ ברוטו שנתי</td>
-                <td className={s.costVal}>{fmtCurrency(totalAnnual, true)}</td>
-              </tr>
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {mix.map((m, i) => {
+                    const role = rolesData.find(r => r.id === m.id)
+                    if (!role) return null
+                    const rate  = role.rates[m.level] ?? 0
+                    const base  = m.customHours ?? Math.round(HOURS_PER_MONTH * m.scope / 100)
+                    const hours = m.customHours ? base : Math.round(base * hoursMultiplier)
+                    const total = monthlyPerRole[i] * period
+                    return (
+                      <tr key={m.id}>
+                        <td>{role.name}{role.custom && <span style={{ marginRight: 4, opacity: 0.6 }}>✱</span>}</td>
+                        <td><span className={s.levelBadge}>{LEVEL_LABELS[m.level]}</span></td>
+                        <td>{m.scope}%</td>
+                        <td>{hours}</td>
+                        <td>{rate.toLocaleString('he-IL')} ₪</td>
+                        <td className={s.costCell}>{fmtCurrency(total, true)}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {mix.length === 0 && (
+              <p className={s.emptyMsg}>לא נוספו תפקידים. <button className={s.linkBtn} onClick={() => dispatch({ type: 'GO_STEP', payload: 2 })}>הוסף תפקיד ←</button></p>
+            )}
+          </div>
+
+          {/* Matching + Risk controls */}
+          <div className={s.panel}>
+            <div className={s.panelHeader}>
+              <span className={s.panelTitle}>הגדרות חישוב</span>
+            </div>
+            <div className={s.controlsGrid}>
+              <div className={s.controlItem}>
+                <label className={s.controlLabel}>מאצ'ינג</label>
+                <div className={s.controlRow}>
+                  <button
+                    className={`${s.sw} ${matchingOn ? s.swOn : ''}`}
+                    onClick={() => dispatch({ type: 'TOGGLE_MATCHING' })}
+                    aria-label="toggle matching"
+                  />
+                  {matchingOn && (
+                    <input
+                      type="number"
+                      className={s.numInput}
+                      min={1} max={100}
+                      value={matchingPct}
+                      onChange={e => dispatch({ type: 'SET_MATCHING_PCT', payload: Math.min(100, Math.max(1, +e.target.value || 30)) })}
+                    />
+                  )}
+                  {matchingOn && <span className={s.unit}>%</span>}
+                </div>
+              </div>
+              <div className={s.controlItem}>
+                <label className={s.controlLabel}>תוספת סיכון: {riskPct}%</label>
+                <input
+                  type="range"
+                  min={0} max={50} step={1}
+                  value={riskPct}
+                  onChange={e => dispatch({ type: 'SET_RISK_PCT', payload: +e.target.value })}
+                  style={{ accentColor: 'var(--amber)', width: '100%' }}
+                />
+              </div>
+              <div className={s.controlItem}>
+                <label className={s.controlLabel}>תקופה</label>
+                <div className={s.seg}>
+                  {([6, 12, 24] as const).map(p => (
+                    <button
+                      key={p}
+                      className={`${s.segBtn} ${period === p ? s.segBtnActive : ''}`}
+                      onClick={() => dispatch({ type: 'SET_PERIOD', payload: p })}
+                    >
+                      {PERIOD_LABELS[p]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className={s.cardBox}>
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>חלוקה גרפית (שנתי)</div>
-          <div className={s.barChart}>
-            {mix.map((m, i) => {
-              const role = rolesData.find(r => r.id === m.id)
-              if (!role) return null
-              const annual = monthlyPerRole[i] * 12
-              const pct = Math.round(annual / maxAnnual * 100)
+        {/* ── RIGHT: Cost Summary ── */}
+        <div className={s.rightPanel}>
+          <div className={s.summaryCard}>
+            <div className={s.summaryTitle}>עלות כוללת לפרויקט</div>
+            <div className={s.summaryGrand}>{fmtCurrency(grandTotal)}</div>
+
+            <div className={s.summaryBreakdown}>
+              <div className={s.summaryRow}>
+                <span>כוח אדם (נטו)</span>
+                <span>{fmtCurrency(manpowerTotal, true)}</span>
+              </div>
+              {matchingOn && (
+                <div className={s.summaryRow} style={{ color: 'rgba(255,255,255,0.65)' }}>
+                  <span>חיסכון מאצ'ינג {matchingPct}%</span>
+                  <span>−{fmtCurrency(matching, true)}</span>
+                </div>
+              )}
+              {riskPct > 0 && (
+                <div className={s.summaryRow} style={{ color: 'rgba(255,255,255,0.65)' }}>
+                  <span>סיכון {riskPct}%</span>
+                  <span>+{fmtCurrency(riskAmt, true)}</span>
+                </div>
+              )}
+              <div className={s.summaryRow}>
+                <span>תקורה ({Math.round(OVERHEAD_RATE * 100)}%)</span>
+                <span>{fmtCurrency(overhead, true)}</span>
+              </div>
+              <div className={s.summaryRow}>
+                <span>מרווח ({Math.round(CONTINGENCY_RATE * 100)}%)</span>
+                <span>{fmtCurrency(contingency, true)}</span>
+              </div>
+            </div>
+
+            <div className={s.summaryDivider} />
+
+            <div className={s.summaryVAT}>
+              <span>מע"מ 17%</span>
+              <span>{fmtCurrency(vatAmt, true)}</span>
+            </div>
+            <div className={s.summaryTotal}>
+              <span>סה״כ כולל מע"מ</span>
+              <span>{fmtCurrency(grandTotal, true)}</span>
+            </div>
+
+            <div className={s.summaryActions}>
+              <button className={s.summaryBtn} onClick={downloadPDF}>📥 ייצוא PDF</button>
+              <button className={s.summaryBtnGhost} onClick={shareURL}>🔗 שתף</button>
+              <button className={s.summaryBtnGhost} onClick={() => dispatch({ type: 'RESET' })}>🔄 איפוס</button>
+            </div>
+          </div>
+
+          {/* Period comparison */}
+          <div className={s.panel} style={{ marginTop: 16 }}>
+            <div className={s.panelHeader}>
+              <span className={s.panelTitle}>השוואת תקופות</span>
+            </div>
+            {([6, 12, 24] as const).map(p => {
+              const { net: n } = calcTotalCost(mix, p, matchingOn, matchingPct, rolesData, hoursMultiplier)
+              const ra = Math.round(n * riskPct / 100)
+              const oh = Math.round((n + ra) * OVERHEAD_RATE)
+              const cg = Math.round((n + ra + oh) * CONTINGENCY_RATE)
+              const sp = n + ra + oh + cg
+              const vt = Math.round(sp * VAT_RATE)
+              const total = sp + vt
               return (
-                <div key={m.id} className={s.barRow}>
-                  <div className={s.barName} title={role.name}>{role.name}</div>
-                  <div className={s.barTrack}>
-                    <div className={s.barFill} style={{ width: pct + '%', background: TEAL_SHADES[i % TEAL_SHADES.length] }} />
-                  </div>
-                  <div className={s.barVal}>{fmtCurrency(annual, true)}</div>
+                <div key={p} className={`${s.periodRow} ${p === period ? s.periodRowActive : ''}`}
+                  onClick={() => dispatch({ type: 'SET_PERIOD', payload: p })}>
+                  <span className={s.periodLabel}>{PERIOD_LABELS[p]}</span>
+                  <span className={s.periodVal}>{fmtCurrency(total, true)}</span>
                 </div>
               )
             })}
@@ -239,19 +229,9 @@ export function Step4Results({ state, dispatch }: Props) {
         </div>
       </div>
 
-      </div>
-
-      {/* Actions */}
-      <div className={s.actionsRow}>
-        <button className={`${s.btn} ${s.btnPrimary}`} onClick={downloadPDF}>📥 הורד PDF</button>
-        <button className={s.btnBack} onClick={() => window.print()}>🖨️ הדפס</button>
-        <button className={s.btnBack} onClick={shareURL}>🔗 שתף קישור</button>
-        <button className={s.btnBack} onClick={() => dispatch({ type: 'RESET' })}>🔄 איפוס</button>
-      </div>
-
-      <div className={s.navRow}>
+      {/* Back button */}
+      <div style={{ marginTop: 16 }}>
         <button className={s.btnBack} onClick={() => dispatch({ type: 'GO_STEP', payload: 3 })}>→ חזור לעריכה</button>
-        <span className={s.stepBadge}>שלב 4 מתוך 4</span>
       </div>
     </div>
   )
