@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Sidebar } from './Sidebar'
 import styles from './AppLayout.module.css'
@@ -10,14 +10,19 @@ interface Props {
 export function AppLayout({ children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  // Prevent body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [sidebarOpen])
+
   return (
     <div className={styles.layout}>
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />
-      )}
 
       <div className={styles.mainWrapper}>
         {/* Mobile top bar */}

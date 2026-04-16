@@ -169,19 +169,19 @@
   }
 }
 
-/* ── Mobile (≤768px): sidebar as drawer ── */
+/* ── Mobile (≤768px): sidebar as full-screen drawer ── */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
     top: 0;
     right: 0;
     height: 100vh;
-    width: 280px;
-    min-width: 280px;
+    width: 100vw;
+    min-width: unset;
     transform: translateX(100%);
     transition: transform 0.28s ease;
     z-index: 300;
-    box-shadow: -4px 0 24px rgba(0,0,0,0.3);
+    box-shadow: none;
   }
 
   .sidebarOpen {
@@ -193,20 +193,20 @@
     align-items: center;
     justify-content: center;
     position: absolute;
-    top: 12px;
-    left: 12px;
-    width: 36px;
-    height: 36px;
-    background: rgba(255,255,255,0.1);
-    border: none;
-    border-radius: 8px;
-    color: rgba(255,255,255,0.8);
-    font-size: 16px;
+    top: 14px;
+    left: 16px;
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 20px;
     cursor: pointer;
     z-index: 1;
   }
 
   .brand {
-    padding-right: 52px;
+    padding-right: 60px;
   }
 }
