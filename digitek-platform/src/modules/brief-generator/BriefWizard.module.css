@@ -468,56 +468,61 @@
 /* ─── RESPONSIVE ─── */
 @media (max-width: 768px) {
   /* Progress bar scrolls horizontally */
-  .wizardProgress {
-    padding: 0 8px;
-  }
-  .step {
-    padding: 10px 8px;
-    gap: 6px;
-  }
-  .stepInfo { display: none; }   /* Hide step name, keep only number */
+  .wizardProgress { padding: 0 8px; }
+  .step     { padding: 10px 8px; gap: 6px; }
+  .stepInfo { display: none; }
   .stepSep  { padding: 0; font-size: 14px; }
 
-  /* Back to list button — shorter */
-  .wizardProgress > div:last-child button {
-    font-size: 12px;
-    padding: 4px 8px;
-  }
-
   /* Main area */
-  .main {
-    padding: 16px 12px 80px;
-  }
+  .main { padding: 16px 12px 80px; }
 
   .stepTitle    { font-size: 18px; }
-  .cardBox      { padding: 14px 14px; }
+  .stepSubtitle { font-size: 13px; }
+  .cardBox      { padding: 14px; }
 
   /* Field rows stack on mobile */
   .fieldRow { flex-direction: column; gap: 0; }
 
-  /* Nav buttons */
-  .navBtns { gap: 8px; }
+  /* Nav buttons: wrap and shrink */
+  .navBtns      { flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .navBtnsRight { flex-wrap: wrap; gap: 8px; margin-right: 0; width: 100%; justify-content: flex-end; }
   .btnPrimary   { padding: 11px 20px; font-size: 13px; }
-  .btnSecondary { padding: 11px 14px; font-size: 13px; }
-  .btnOutline   { padding: 11px 14px; font-size: 13px; }
+  .btnSecondary { padding: 11px 12px; font-size: 13px; }
+  .btnOutline   { padding: 11px 12px; font-size: 13px; }
 
   /* Tables scroll */
   .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
   /* Preview */
-  .briefPreview  { padding: 16px 16px; }
-  .briefMeta     { grid-template-columns: 1fr; }
-  .previewLabel  { min-width: 100px; }
+  .briefPreview { padding: 16px; }
+  .briefMeta    { grid-template-columns: 1fr; }
+  .previewLabel { min-width: 100px; }
+  .exportBtns   { flex-wrap: wrap; }
 
-  /* Cloud total */
-  .cloudTotal { font-size: 13px; }
+  /* Spec cards */
+  .specCard  { padding: 12px 14px; gap: 10px; }
+  .specName  { font-size: 13px; }
+
+  /* Cloud */
+  .cloudTotal        { font-size: 13px; flex-wrap: wrap; }
   .cloudTotal strong { font-size: 15px; }
 
   /* Cluster grid */
-  .clusterGrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  .clusterGrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+
+  /* Size badge */
+  .sizeNote { font-size: 11px; }
+
+  /* AI button row */
+  .aiBtnRow { justify-content: flex-start; }
+  .aiBtn    { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 480px) {
   .clusterGrid { grid-template-columns: repeat(2, 1fr); }
   .statsGrid   { grid-template-columns: repeat(2, 1fr); }
+
+  /* Preview fields stack */
+  .previewField { flex-direction: column; gap: 3px; }
+  .previewLabel { min-width: unset; font-size: 11px; }
 }

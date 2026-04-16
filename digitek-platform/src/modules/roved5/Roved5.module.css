@@ -271,3 +271,67 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .pageHeader  { padding: 20px 20px 0; }
+  .searchBar   { padding: 0 20px; }
+  .filterRow   { padding: 0 20px; }
+  .resultsInfo { padding: 0 20px; }
+  .tableCard   { margin: 0 20px; }
+  .pagination  { padding: 16px 20px 0; }
+}
+
+/* ── Mobile (≤768px) ── */
+@media (max-width: 768px) {
+  .pageHeader  { padding: 16px 14px 0; }
+  .pageTitle   { font-size: 18px; }
+
+  /* Search bar: stack AI button below */
+  .searchBar {
+    padding: 0 14px;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .aiBtn {
+    width: 100%;
+    padding: 11px;
+    text-align: center;
+  }
+
+  .filterRow   { padding: 0 14px; gap: 5px; }
+  .resultsInfo { padding: 0 14px; }
+
+  /* Table: horizontal scroll with smaller padding */
+  .tableCard { margin: 0 14px; overflow-x: auto; }
+  .table th  { padding: 10px 10px; font-size: 11px; }
+  .table td  { padding: 10px 10px; }
+
+  /* Hide less-important columns: SKU and Discount */
+  .table th:nth-child(1),
+  .table td:nth-child(1),
+  .table th:nth-child(5),
+  .table td:nth-child(5) {
+    display: none;
+  }
+
+  .serviceDesc { max-width: 180px; }
+
+  .pagination { padding: 14px 14px 0; gap: 4px; }
+  .pageBtn    { min-width: 32px; height: 32px; font-size: 12px; }
+}
+
+/* ── Small mobile (≤480px) ── */
+@media (max-width: 480px) {
+  /* Also hide Supplier column */
+  .table th:nth-child(3),
+  .table td:nth-child(3) {
+    display: none;
+  }
+
+  /* Actions: one button */
+  .rowActions { flex-direction: column; gap: 4px; }
+  .actionBtn  { padding: 6px 8px; font-size: 11px; }
+
+  .chip { padding: 5px 10px; font-size: 11px; }
+}
