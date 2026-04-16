@@ -1005,10 +1005,22 @@ function hideRoleInfo() {
 }
 
 // ── AI ADVISOR ──────────────────────────────────────────
-const GEMINI_API_KEY = 'AIzaSyDzPyl4bQ4IqynKqGGEQsVc4p6XdwZXcTQ';
+const GEMINI_MODEL = 'gemini-2.0-flash';
 let aiRecs = [];
 
+function loadApiKey() {
+  return localStorage.getItem('gemini_api_key') || '';
+}
+
+function saveApiKey() {
+  const val = document.getElementById('aiKeyInput')?.value.trim() || '';
+  if (val) localStorage.setItem('gemini_api_key', val);
+}
+
 function openAiModal() {
+  const saved = loadApiKey();
+  const keyInput = document.getElementById('aiKeyInput');
+  if (keyInput && saved) keyInput.value = saved;
   updateAnalyzeBtn();
   document.getElementById('aiOverlay').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -1024,11 +1036,10 @@ function handleOverlayClick(e) {
   if (e.target === document.getElementById('aiOverlay')) closeAiModal();
 }
 
-function saveApiKey() {}
-
 function updateAnalyzeBtn() {
   const desc = document.getElementById('aiProjectDesc').value.trim();
-  document.getElementById('aiAnalyzeBtn').disabled = !desc;
+  const key = document.getElementById('aiKeyInput')?.value.trim() || loadApiKey();
+  document.getElementById('aiAnalyzeBtn').disabled = !(desc && key);
 }
 
 function buildSystemPrompt() {
@@ -1047,10 +1058,12 @@ ${rolesList}
 }
 
 async function runAiAnalysis() {
-  const key = GEMINI_API_KEY;
-  const desc = document.getElementById('aiProjectDesc').value.trim();
   saveApiKey();
+  const key = loadApiKey();
+  const desc = document.getElementById('aiProjectDesc').value.trim();
   state.project.desc = desc;
+
+  if (!key) { showAiError('נדרש מפתח API — הזן מפתח מ-aistudio.google.com'); return; }
 
   const btn = document.getElementById('aiAnalyzeBtn');
   btn.disabled = true;
@@ -1060,7 +1073,7 @@ async function runAiAnalysis() {
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1213,9 +1226,15 @@ async function runAiCheck(cat) {
   document.body.style.overflow = 'hidden';
   body.innerHTML = '<div style="text-align:center;padding:32px"><span class="ai-spinner"></span><div style="margin-top:12px;color:var(--text2);font-size:13px">מנתח תמהיל...</div></div>';
 
+  const apiKey = loadApiKey();
+  if (!apiKey) {
+    body.innerHTML = '<div class="ai-error">נדרש מפתח API — פתח את ✨ יועץ AI והזן מפתח תחילה</div>';
+    return;
+  }
+
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
@@ -1367,6 +1386,16 @@ loadFromURL();
 
     <div class="ai-modal-body">
 
+      <!-- API Key -->
+      <div class="ai-field">
+        <label class="ai-label">מפתח Gemini API <span class="ai-sublabel">(נשמר בדפדפן שלך בלבד)</span></label>
+        <div class="ai-key-row">
+          <input class="ai-input" id="aiKeyInput" type="password"
+            placeholder="AIza..."
+            oninput="updateAnalyzeBtn()" autocomplete="off" />
+          <a class="ai-link" href="https://aistudio.google.com/apikey" target="_blank">קבל מפתח חינם</a>
+        </div>
+      </div>
 
       <!-- Project description -->
       <div class="ai-field">

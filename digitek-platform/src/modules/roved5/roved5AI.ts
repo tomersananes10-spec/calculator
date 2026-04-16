@@ -1,6 +1,6 @@
 import type { Roved5Service, AISearchResult } from './types'
 
-const GEMINI_API_KEY = 'AIzaSyDzPyl4bQ4IqynKqGGEQsVc4p6XdwZXcTQ'
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
 
 export async function aiSearch(query: string, services: Roved5Service[]): Promise<AISearchResult[]> {
