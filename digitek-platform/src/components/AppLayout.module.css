@@ -4,9 +4,81 @@
   direction: rtl;
 }
 
-.main {
+.mainWrapper {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
   background: var(--bg);
   overflow-y: auto;
+  min-height: 0;
+}
+
+/* Overlay for mobile sidebar */
+.overlay {
+  display: none;
+}
+
+/* Mobile top bar — hidden on desktop */
+.mobileTopbar {
+  display: none;
+}
+
+/* ── Mobile (≤768px) ── */
+@media (max-width: 768px) {
+  .mobileTopbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    height: 52px;
+    background: var(--navy);
+    color: #fff;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .hamburger {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 8px;
+  }
+  .hamburger:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  .mobileTitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 299;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
 }

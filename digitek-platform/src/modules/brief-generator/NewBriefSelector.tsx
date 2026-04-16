@@ -178,7 +178,7 @@ export function NewBriefSelector({ onSelect, loading, onMyBriefs }: Props) {
   const techClusters = clusters.filter(c => c.type === 'tech')
 
   return (
-    <div style={{ maxWidth: 1300, margin: '0 auto', padding: '20px 24px 40px' }}>
+    <div style={{ maxWidth: 1300, margin: '0 auto', padding: 'clamp(12px, 3vw, 20px) clamp(12px, 3vw, 24px) 40px' }}>
       {/* Page header */}
       <div style={{
         display: 'flex', alignItems: 'center',
@@ -223,7 +223,7 @@ export function NewBriefSelector({ onSelect, loading, onMyBriefs }: Props) {
       <SectionLabel label="דיגיטל" count={digitalClusters.length} />
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(min(220px, 100%), 1fr))',
         gap: 12,
         marginBottom: 28,
       }}>
@@ -236,7 +236,7 @@ export function NewBriefSelector({ onSelect, loading, onMyBriefs }: Props) {
       <SectionLabel label="טכנולוגיה" count={techClusters.length} />
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(min(220px, 100%), 1fr))',
         gap: 12,
       }}>
         {techClusters.map(c => (

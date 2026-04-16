@@ -229,7 +229,67 @@
 }
 .clusterPct { font-size: 12px; font-weight: 600; color: var(--text3); width: 32px; text-align: left; }
 
+/* ── Tablet ── */
 @media (max-width: 900px) {
   .statsGrid { grid-template-columns: repeat(2, 1fr); }
   .bottomGrid { grid-template-columns: 1fr; }
+  .clusterMeta { width: 140px; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .page {
+    padding: 16px 14px 40px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .greeting { font-size: 20px; }
+
+  .headerActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .newBriefBtn {
+    padding: 9px 16px;
+    font-size: 13px;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .statCard { padding: 14px 14px 12px; }
+  .statValue { font-size: 22px; }
+
+  .card { padding: 16px; }
+
+  /* Hide less important table columns on mobile */
+  .table th:nth-child(1),
+  .table td:nth-child(1),
+  .table th:nth-child(3),
+  .table td:nth-child(3),
+  .table th:nth-child(6),
+  .table td:nth-child(6) {
+    display: none;
+  }
+
+  .bottomGrid { grid-template-columns: 1fr; gap: 12px; }
+
+  .approvalItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .approvalRight { align-items: flex-start; }
+
+  .clusterMeta { width: 120px; }
+  .clusterName { font-size: 12px; }
 }

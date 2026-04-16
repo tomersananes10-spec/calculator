@@ -464,3 +464,60 @@
   from { opacity: 0; transform: translateX(-50%) translateY(12px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  /* Progress bar scrolls horizontally */
+  .wizardProgress {
+    padding: 0 8px;
+  }
+  .step {
+    padding: 10px 8px;
+    gap: 6px;
+  }
+  .stepInfo { display: none; }   /* Hide step name, keep only number */
+  .stepSep  { padding: 0; font-size: 14px; }
+
+  /* Back to list button — shorter */
+  .wizardProgress > div:last-child button {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  /* Main area */
+  .main {
+    padding: 16px 12px 80px;
+  }
+
+  .stepTitle    { font-size: 18px; }
+  .cardBox      { padding: 14px 14px; }
+
+  /* Field rows stack on mobile */
+  .fieldRow { flex-direction: column; gap: 0; }
+
+  /* Nav buttons */
+  .navBtns { gap: 8px; }
+  .btnPrimary   { padding: 11px 20px; font-size: 13px; }
+  .btnSecondary { padding: 11px 14px; font-size: 13px; }
+  .btnOutline   { padding: 11px 14px; font-size: 13px; }
+
+  /* Tables scroll */
+  .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Preview */
+  .briefPreview  { padding: 16px 16px; }
+  .briefMeta     { grid-template-columns: 1fr; }
+  .previewLabel  { min-width: 100px; }
+
+  /* Cloud total */
+  .cloudTotal { font-size: 13px; }
+  .cloudTotal strong { font-size: 15px; }
+
+  /* Cluster grid */
+  .clusterGrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+}
+
+@media (max-width: 480px) {
+  .clusterGrid { grid-template-columns: repeat(2, 1fr); }
+  .statsGrid   { grid-template-columns: repeat(2, 1fr); }
+}

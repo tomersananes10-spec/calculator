@@ -23,7 +23,12 @@ const BOTTOM_ITEMS: NavItem[] = [
   { href: '/admin', label: 'הגדרות', icon: '⚙️' },
 ]
 
-export function Sidebar() {
+interface Props {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export function Sidebar({ isOpen, onClose }: Props) {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const fullName = user?.user_metadata?.full_name ?? user?.email ?? 'משתמש'
@@ -35,7 +40,12 @@ export function Sidebar() {
   }
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
+      {/* Mobile close button */}
+      <button className={styles.closeBtn} onClick={onClose} aria-label="סגור תפריט">
+        ✕
+      </button>
+
       {/* Org / Brand */}
       <div className={styles.brand}>
         <div className={styles.brandIcon}>🏛️</div>
@@ -55,6 +65,7 @@ export function Sidebar() {
             className={({ isActive }) =>
               `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
             }
+            onClick={onClose}
           >
             <span className={styles.navIcon}>{item.icon}</span>
             <span className={styles.navLabel}>{item.label}</span>
@@ -74,6 +85,7 @@ export function Sidebar() {
             className={({ isActive }) =>
               `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
             }
+            onClick={onClose}
           >
             <span className={styles.navIcon}>{item.icon}</span>
             <span className={styles.navLabel}>{item.label}</span>
