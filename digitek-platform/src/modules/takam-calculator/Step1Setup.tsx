@@ -19,12 +19,6 @@ export function Step1Setup({ state, dispatch }: Props) {
     if (showHint) nameRef.current?.focus()
   }, [showHint])
 
-  useEffect(() => {
-    if (showHint && state.project.name.trim() && state.project.ministry.trim()) {
-      dispatch({ type: 'SET_AI_NEEDS_FILL', payload: false })
-      dispatch({ type: 'GO_STEP', payload: 3 })
-    }
-  }, [showHint, state.project.name, state.project.ministry, dispatch])
 
   function proceed() {
     const missingName = !state.project.name.trim()
