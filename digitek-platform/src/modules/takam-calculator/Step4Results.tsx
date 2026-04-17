@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import type { CalcState, CalcAction } from './types'
 import { LEVEL_LABELS, HOURS_PER_MONTH } from './data'
 import { calcTotalCost, fmtCurrency } from './calc'
@@ -27,11 +27,34 @@ export function Step4Results({ state, dispatch }: Props) {
   const vatAmt        = Math.round(subtotalPreVAT * VAT_RATE)
   const grandTotal    = subtotalPreVAT + vatAmt
 
+  const [copied, setCopied] = useState(false)
+
   function shareURL() {
     const roles = mix.map(m => `${m.id}:${m.level}:${m.scope}`).join(',')
     const hash = `v1|period=${period}|matching=${matchingOn ? 1 : 0}|pct=${matchingPct}|roles=${roles}`
     location.hash = encodeURIComponent(hash)
-    navigator.clipboard.writeText(location.href).catch(() => undefined)
+    const url = location.href
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }).catch(() => fallbackCopy(url))
+    } else {
+      fallbackCopy(url)
+    }
+  }
+
+  function fallbackCopy(text: string) {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   async function downloadPDF() {
@@ -199,7 +222,7 @@ export function Step4Results({ state, dispatch }: Props) {
 
             <div className={s.summaryActions}>
               <button className={s.summaryBtn} onClick={downloadPDF}>📥 ייצוא PDF</button>
-              <button className={s.summaryBtnGhost} onClick={shareURL}>🔗 שתף</button>
+              <button className={s.summaryBtnGhost} onClick={shareURL}>{copied ? '✓ הקישור הועתק!' : '🔗 שתף'}</button>
               <button className={s.summaryBtnGhost} onClick={() => dispatch({ type: 'RESET' })}>🔄 איפוס</button>
             </div>
           </div>
