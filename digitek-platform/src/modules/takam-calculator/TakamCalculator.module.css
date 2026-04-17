@@ -93,6 +93,22 @@
   color: var(--text); outline: none; transition: border-color 0.15s;
 }
 .input:focus { border-color: var(--teal); }
+.inputError { border-color: var(--red); }
+.inputError:focus { border-color: var(--red); }
+.required { color: var(--red); font-weight: 700; }
+
+.aiHintBanner {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, rgba(13,148,136,0.08), rgba(20,184,166,0.12));
+  border: 1.5px solid var(--teal-mid);
+  border-radius: var(--radius); padding: 14px 18px;
+  margin-bottom: 16px; font-size: 14px; font-weight: 600;
+  color: #134e4a; animation: hintPulse 0.5s ease;
+}
+@keyframes hintPulse {
+  0% { transform: scale(0.97); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
 
 /* ─── SEGMENTED CONTROL ─── */
 .seg {

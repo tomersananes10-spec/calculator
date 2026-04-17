@@ -47,6 +47,15 @@ export function AiAdvisorModal({ state, dispatch }: Props) {
   }
 
   function closeModal() {
+    const hasAiRoles = added.size > 0 || (recs.length > 0 && recs.some(r => state.selectedIds.has(r.id)))
+    if (hasAiRoles && state.currentStep === 1) {
+      const filled = state.project.name.trim() && state.project.ministry.trim()
+      if (filled) {
+        dispatch({ type: 'GO_STEP', payload: 3 })
+      } else {
+        dispatch({ type: 'SET_AI_NEEDS_FILL', payload: true })
+      }
+    }
     setOpen(false)
   }
 

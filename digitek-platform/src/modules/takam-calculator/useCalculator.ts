@@ -13,6 +13,7 @@ export const INITIAL_STATE: CalcState = {
   riskPct: 18,
   currentStep: 1,
   rolesData: ROLES_DATA,
+  aiNeedsFill: false,
 }
 
 function reducer(state: CalcState, action: CalcAction): CalcState {
@@ -98,6 +99,8 @@ function reducer(state: CalcState, action: CalcAction): CalcState {
         mix: [...state.mix, { id, level, scope }],
       }
     }
+    case 'SET_AI_NEEDS_FILL':
+      return { ...state, aiNeedsFill: action.payload }
     case 'RESET':
       return { ...INITIAL_STATE, rolesData: ROLES_DATA }
     default:
