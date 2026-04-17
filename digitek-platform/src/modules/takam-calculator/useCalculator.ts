@@ -14,6 +14,7 @@ export const INITIAL_STATE: CalcState = {
   currentStep: 1,
   rolesData: ROLES_DATA,
   aiNeedsFill: false,
+  viewOnly: false,
 }
 
 function reducer(state: CalcState, action: CalcAction): CalcState {
@@ -101,6 +102,8 @@ function reducer(state: CalcState, action: CalcAction): CalcState {
     }
     case 'SET_AI_NEEDS_FILL':
       return { ...state, aiNeedsFill: action.payload }
+    case 'SET_VIEW_ONLY':
+      return { ...state, viewOnly: action.payload }
     case 'RESET':
       return { ...INITIAL_STATE, rolesData: ROLES_DATA }
     default:

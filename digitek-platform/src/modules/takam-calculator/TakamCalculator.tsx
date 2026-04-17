@@ -34,13 +34,16 @@ export function TakamCalculator() {
           dispatch({ type: 'SET_LEVEL', payload: { index: i, level: m.level } })
           dispatch({ type: 'SET_SCOPE', payload: { index: i, scope: m.scope } })
         })
-        if (mix.length > 0) dispatch({ type: 'GO_STEP', payload: 4 })
+        if (mix.length > 0) {
+          dispatch({ type: 'SET_VIEW_ONLY', payload: true })
+          dispatch({ type: 'GO_STEP', payload: 4 })
+        }
       }
     } catch { /* invalid hash */ }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function tryGoStep(n: 1 | 2 | 3 | 4) {
-    if (n < state.currentStep) dispatch({ type: 'GO_STEP', payload: n })
+    if (!state.viewOnly && n < state.currentStep) dispatch({ type: 'GO_STEP', payload: n })
   }
 
   const isResultsStep = state.currentStep === 4
@@ -83,7 +86,7 @@ export function TakamCalculator() {
         {state.currentStep === 4 && <Step4Results state={state} dispatch={dispatch} />}
       </div>
 
-      <AiAdvisorModal state={state} dispatch={dispatch} />
+      {!state.viewOnly && <AiAdvisorModal state={state} dispatch={dispatch} />}
     </div>
   )
 }

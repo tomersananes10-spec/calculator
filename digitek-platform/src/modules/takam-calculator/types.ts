@@ -33,6 +33,7 @@ export interface CalcState {
   currentStep: 1 | 2 | 3 | 4
   rolesData: Role[]
   aiNeedsFill: boolean
+  viewOnly: boolean
 }
 
 export type CalcAction =
@@ -52,4 +53,5 @@ export type CalcAction =
   | { type: 'ADD_CUSTOM_ROLE'; payload: Role }
   | { type: 'ADD_AI_ROLE'; payload: { id: string; level: Level; scope: number } }
   | { type: 'SET_AI_NEEDS_FILL'; payload: boolean }
+  | { type: 'SET_VIEW_ONLY'; payload: boolean }
   | { type: 'RESET' }

@@ -15,7 +15,7 @@ const OVERHEAD_RATE = 0.10
 const CONTINGENCY_RATE = 0.05
 
 export function Step4Results({ state, dispatch }: Props) {
-  const { mix, period, matchingOn, matchingPct, riskPct, rolesData, hoursMultiplier } = state
+  const { mix, period, matchingOn, matchingPct, riskPct, rolesData, hoursMultiplier, viewOnly } = state
   const printRef = useRef<HTMLDivElement>(null)
 
   const { net: netManpower, matching, monthlyPerRole } = calcTotalCost(mix, period, matchingOn, matchingPct, rolesData, hoursMultiplier)
@@ -28,12 +28,18 @@ export function Step4Results({ state, dispatch }: Props) {
   const grandTotal    = subtotalPreVAT + vatAmt
 
   const [copied, setCopied] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
 
-  function shareURL() {
+  function getShareURL() {
     const roles = mix.map(m => `${m.id}:${m.level}:${m.scope}`).join(',')
     const hash = `v1|period=${period}|matching=${matchingOn ? 1 : 0}|pct=${matchingPct}|roles=${roles}`
-    location.hash = encodeURIComponent(hash)
-    const url = location.href
+    const base = location.origin + location.pathname
+    return `${base}#${encodeURIComponent(hash)}`
+  }
+
+  function copyLink() {
+    const url = getShareURL()
+    location.hash = encodeURIComponent(url.split('#')[1] || '')
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(() => {
         setCopied(true)
@@ -42,6 +48,7 @@ export function Step4Results({ state, dispatch }: Props) {
     } else {
       fallbackCopy(url)
     }
+    setShareOpen(false)
   }
 
   function fallbackCopy(text: string) {
@@ -55,6 +62,21 @@ export function Step4Results({ state, dispatch }: Props) {
     document.body.removeChild(ta)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  function shareWhatsApp() {
+    const url = getShareURL()
+    const text = `הצעת מחיר תכ"ם — ${fmtCurrency(grandTotal, true)}\n${url}`
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+    setShareOpen(false)
+  }
+
+  function shareEmail() {
+    const url = getShareURL()
+    const subject = `הצעת מחיר תכ"ם — ${fmtCurrency(grandTotal, true)}`
+    const body = `צפה בהצעת המחיר:\n${url}`
+    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+    setShareOpen(false)
   }
 
   async function downloadPDF() {
@@ -79,9 +101,11 @@ export function Step4Results({ state, dispatch }: Props) {
           <div className={s.panel}>
             <div className={s.panelHeader}>
               <span className={s.panelTitle}>כוח אדם</span>
-              <button className={s.editBtn} onClick={() => dispatch({ type: 'GO_STEP', payload: 3 })}>
-                ✏️ ערוך
-              </button>
+              {!viewOnly && (
+                <button className={s.editBtn} onClick={() => dispatch({ type: 'GO_STEP', payload: 3 })}>
+                  ✏️ ערוך
+                </button>
+              )}
             </div>
             <div className={s.tableWrap}>
               <table className={s.dataTable}>
@@ -123,6 +147,7 @@ export function Step4Results({ state, dispatch }: Props) {
           </div>
 
           {/* Matching + Risk controls */}
+          {!viewOnly && (
           <div className={s.panel}>
             <div className={s.panelHeader}>
               <span className={s.panelTitle}>הגדרות חישוב</span>
@@ -174,6 +199,7 @@ export function Step4Results({ state, dispatch }: Props) {
               </div>
             </div>
           </div>
+          )}
         </div>
 
         {/* ── RIGHT: Cost Summary ── */}
@@ -222,8 +248,21 @@ export function Step4Results({ state, dispatch }: Props) {
 
             <div className={s.summaryActions}>
               <button className={s.summaryBtn} onClick={downloadPDF}>📥 ייצוא PDF</button>
-              <button className={s.summaryBtnGhost} onClick={shareURL}>{copied ? '✓ הקישור הועתק!' : '🔗 שתף'}</button>
-              <button className={s.summaryBtnGhost} onClick={() => dispatch({ type: 'RESET' })}>🔄 איפוס</button>
+              <div style={{ position: 'relative' }}>
+                <button className={s.summaryBtnGhost} onClick={() => setShareOpen(!shareOpen)} style={{ width: '100%' }}>
+                  {copied ? '✓ הקישור הועתק!' : '🔗 שתף'}
+                </button>
+                {shareOpen && (
+                  <div className={s.shareMenu}>
+                    <button className={s.shareMenuItem} onClick={copyLink}>📋 העתק קישור</button>
+                    <button className={s.shareMenuItem} onClick={shareWhatsApp}>💬 שלח בוואטסאפ</button>
+                    <button className={s.shareMenuItem} onClick={shareEmail}>📧 שלח במייל</button>
+                  </div>
+                )}
+              </div>
+              {!viewOnly && (
+                <button className={s.summaryBtnGhost} onClick={() => dispatch({ type: 'RESET' })}>🔄 איפוס</button>
+              )}
             </div>
           </div>
 
@@ -242,7 +281,8 @@ export function Step4Results({ state, dispatch }: Props) {
               const total = sp + vt
               return (
                 <div key={p} className={`${s.periodRow} ${p === period ? s.periodRowActive : ''}`}
-                  onClick={() => dispatch({ type: 'SET_PERIOD', payload: p })}>
+                  onClick={() => !viewOnly && dispatch({ type: 'SET_PERIOD', payload: p })}
+                  style={viewOnly ? { cursor: 'default' } : undefined}>
                   <span className={s.periodLabel}>{PERIOD_LABELS[p]}</span>
                   <span className={s.periodVal}>{fmtCurrency(total, true)}</span>
                 </div>
@@ -253,9 +293,11 @@ export function Step4Results({ state, dispatch }: Props) {
       </div>
 
       {/* Back button */}
-      <div style={{ marginTop: 16 }}>
-        <button className={s.btnBack} onClick={() => dispatch({ type: 'GO_STEP', payload: 3 })}>→ חזור לעריכה</button>
-      </div>
+      {!viewOnly && (
+        <div style={{ marginTop: 16 }}>
+          <button className={s.btnBack} onClick={() => dispatch({ type: 'GO_STEP', payload: 3 })}>→ חזור לעריכה</button>
+        </div>
+      )}
     </div>
   )
 }
