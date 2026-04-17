@@ -18,7 +18,7 @@ export async function generateBriefSuggestion(
       messages: [
         {
           role: 'user',
-          content: `אתה עוזר לכתוב בריפים לפניות פרטניות במכרז הדיגיטק הממשלתי.
+          content: `אתה עוזר לכתוב בריפים לפניות פרטניות במכרז LIBA הממשלתי.
 
 ההתמחות: ${specialization.name}
 תיאור ההתמחות: ${specialization.description}

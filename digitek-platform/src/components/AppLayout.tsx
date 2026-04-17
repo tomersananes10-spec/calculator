@@ -34,7 +34,7 @@ export function AppLayout({ children }: Props) {
           >
             ☰
           </button>
-          <span className={styles.mobileTitle}>Digitek</span>
+          <span className={styles.mobileTitle}>LIBA</span>
         </header>
 
         <main className={styles.main}>

@@ -15,7 +15,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/calculator', label: 'מחשבון תכ"ם', icon: '🧮' },
   { href: '/layer5',     label: 'רובד 5',      icon: '⚖️' },
   { href: '/approvals',  label: 'מורשי חתימה', icon: '✅', badge: 5 },
-  { href: '/suppliers',  label: 'ספקים זוכים - דיגיטק', icon: '🏢' },
+  { href: '/suppliers',  label: 'ספקים זוכים - LIBA', icon: '🏢' },
   // { href: '/projects',   label: 'פרויקטים',   icon: '📊' },
 ]
 
@@ -50,7 +50,7 @@ export function Sidebar({ isOpen, onClose }: Props) {
       <div className={styles.brand}>
         <div className={styles.brandIcon}>🏛️</div>
         <div className={styles.brandText}>
-          <div className={styles.brandName}>Digitek</div>
+          <div className={styles.brandName}>LIBA</div>
           <div className={styles.brandSub}>מערכת ממשלתית</div>
         </div>
       </div>

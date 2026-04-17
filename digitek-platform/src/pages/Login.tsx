@@ -53,7 +53,7 @@ export function Login() {
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.logo}>🏛️</div>
-        <h1 className={styles.title}>Digitek</h1>
+        <h1 className={styles.title}>LIBA</h1>
         <p className={styles.sub}>שירותי מחשוב, דאטה ובינה מלאכותית</p>
 
         {mode !== 'forgot' && (
