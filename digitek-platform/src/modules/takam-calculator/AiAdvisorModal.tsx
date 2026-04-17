@@ -2,8 +2,7 @@ import { useState } from 'react'
 import type { CalcState, CalcAction, Level } from './types'
 import s from './TakamCalculator.module.css'
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
+const AI_ADVISOR_URL = '/api/ai-advisor'
 
 interface AiRec {
   id: string
@@ -60,7 +59,7 @@ export function AiAdvisorModal({ state, dispatch }: Props) {
     setAdded(new Set())
 
     try {
-      const res = await fetch(GEMINI_URL, {
+      const res = await fetch(AI_ADVISOR_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1005,22 +1005,10 @@ function hideRoleInfo() {
 }
 
 // ── AI ADVISOR ──────────────────────────────────────────
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const AI_ADVISOR_URL = '/api/ai-advisor';
 let aiRecs = [];
 
-function loadApiKey() {
-  return localStorage.getItem('gemini_api_key') || '';
-}
-
-function saveApiKey() {
-  const val = document.getElementById('aiKeyInput')?.value.trim() || '';
-  if (val) localStorage.setItem('gemini_api_key', val);
-}
-
 function openAiModal() {
-  const saved = loadApiKey();
-  const keyInput = document.getElementById('aiKeyInput');
-  if (keyInput && saved) keyInput.value = saved;
   updateAnalyzeBtn();
   document.getElementById('aiOverlay').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -1038,8 +1026,7 @@ function handleOverlayClick(e) {
 
 function updateAnalyzeBtn() {
   const desc = document.getElementById('aiProjectDesc').value.trim();
-  const key = document.getElementById('aiKeyInput')?.value.trim() || loadApiKey();
-  document.getElementById('aiAnalyzeBtn').disabled = !(desc && key);
+  document.getElementById('aiAnalyzeBtn').disabled = !desc;
 }
 
 function buildSystemPrompt() {
@@ -1058,12 +1045,8 @@ ${rolesList}
 }
 
 async function runAiAnalysis() {
-  saveApiKey();
-  const key = loadApiKey();
   const desc = document.getElementById('aiProjectDesc').value.trim();
   state.project.desc = desc;
-
-  if (!key) { showAiError('נדרש מפתח API — הזן מפתח מ-aistudio.google.com'); return; }
 
   const btn = document.getElementById('aiAnalyzeBtn');
   btn.disabled = true;
@@ -1072,32 +1055,22 @@ async function runAiAnalysis() {
   document.getElementById('aiResults').classList.add('hidden');
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: buildSystemPrompt() + '\n\nתאר פרויקט: ' + desc }] }]
-        })
-      }
-    );
+    const res = await fetch(AI_ADVISOR_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: buildSystemPrompt() + '\n\nתאר פרויקט: ' + desc }] }]
+      })
+    });
 
     const data = await res.json();
 
-    if (res.status === 400 || res.status === 403 || (data.error && data.error.status === 'INVALID_ARGUMENT')) {
-      localStorage.removeItem('gemini_api_key');
-      const keyInput = document.getElementById('aiKeyInput');
-      if (keyInput) { keyInput.value = ''; keyInput.focus(); }
-      showAiError('מפתח API לא תקף — הזן מפתח חדש מ-aistudio.google.com');
-      return;
-    }
     if (res.status === 429) {
-      showAiError('חרגת ממכסת השימוש החינמית — נסה שוב מאוחר יותר או שדרג את חשבון Google AI');
+      showAiError('עומס על שרת ה-AI — נסה שוב בעוד דקה');
       return;
     }
     if (!res.ok) {
-      showAiError(`שגיאת שרת (${res.status}): ${data.error?.message || 'נסה שוב'}`);
+      showAiError(data.error?.message || `שגיאת שרת (${res.status})`);
       return;
     }
     if (data.error) {
@@ -1233,24 +1206,15 @@ async function runAiCheck(cat) {
   document.body.style.overflow = 'hidden';
   body.innerHTML = '<div style="text-align:center;padding:32px"><span class="ai-spinner"></span><div style="margin-top:12px;color:var(--text2);font-size:13px">מנתח תמהיל...</div></div>';
 
-  const apiKey = loadApiKey();
-  if (!apiKey) {
-    body.innerHTML = '<div class="ai-error">נדרש מפתח API — פתח את ✨ יועץ AI והזן מפתח תחילה</div>';
-    return;
-  }
-
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          contents:[{parts:[{text: buildCheckPrompt(cat)}]}],
-          generationConfig: { temperature: 0 }
-        })
-      }
-    );
+    const res = await fetch(AI_ADVISOR_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents:[{parts:[{text: buildCheckPrompt(cat)}]}],
+        generationConfig: { temperature: 0 }
+      })
+    });
     const data = await res.json();
     if (!res.ok || data.error) {
       body.innerHTML = `<div class="ai-error">${data.error?.message || 'שגיאת שרת, נסה שוב'}</div>`;
@@ -1392,17 +1356,6 @@ loadFromURL();
     </div>
 
     <div class="ai-modal-body">
-
-      <!-- API Key -->
-      <div class="ai-field">
-        <label class="ai-label">מפתח Gemini API <span class="ai-sublabel">(נשמר בדפדפן שלך בלבד)</span></label>
-        <div class="ai-key-row">
-          <input class="ai-input" id="aiKeyInput" type="password"
-            placeholder="AIza..."
-            oninput="updateAnalyzeBtn()" autocomplete="off" />
-          <a class="ai-link" href="https://aistudio.google.com/apikey" target="_blank">קבל מפתח חינם</a>
-        </div>
-      </div>
 
       <!-- Project description -->
       <div class="ai-field">
