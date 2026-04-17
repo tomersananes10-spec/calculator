@@ -106,7 +106,7 @@ export function Step4Results({ state, dispatch }: Props) {
             </div>
             <div className={s.controlsGrid}>
               <div className={s.controlItem}>
-                <label className={s.controlLabel}>מאצ'ינג</label>
+                <label className={s.controlLabel}>מאצ'ינג מהמערך</label>
                 <div className={s.controlRow}>
                   <button
                     className={`${s.sw} ${matchingOn ? s.swOn : ''}`}
@@ -166,7 +166,7 @@ export function Step4Results({ state, dispatch }: Props) {
               </div>
               {matchingOn && (
                 <div className={s.summaryRow} style={{ color: 'rgba(255,255,255,0.65)' }}>
-                  <span>חיסכון מאצ'ינג {matchingPct}%</span>
+                  <span>חיסכון מאצ'ינג מהמערך {matchingPct}%</span>
                   <span>−{fmtCurrency(matching, true)}</span>
                 </div>
               )}
