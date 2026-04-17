@@ -1085,12 +1085,19 @@ async function runAiAnalysis() {
 
     const data = await res.json();
 
-    if (res.status === 400 || res.status === 403) {
-      showAiError('מפתח API שגוי — בדוק את המפתח ב-aistudio.google.com');
+    if (res.status === 400 || res.status === 403 || (data.error && data.error.status === 'INVALID_ARGUMENT')) {
+      localStorage.removeItem('gemini_api_key');
+      const keyInput = document.getElementById('aiKeyInput');
+      if (keyInput) { keyInput.value = ''; keyInput.focus(); }
+      showAiError('מפתח API לא תקף — הזן מפתח חדש מ-aistudio.google.com');
+      return;
+    }
+    if (res.status === 429) {
+      showAiError('חרגת ממכסת השימוש החינמית — נסה שוב מאוחר יותר או שדרג את חשבון Google AI');
       return;
     }
     if (!res.ok) {
-      showAiError(`שגיאת שרת (${res.status}): ${JSON.stringify(data)}`);
+      showAiError(`שגיאת שרת (${res.status}): ${data.error?.message || 'נסה שוב'}`);
       return;
     }
     if (data.error) {
