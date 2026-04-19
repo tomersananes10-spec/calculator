@@ -25,6 +25,8 @@
   gap: 12px;
   padding: 20px 16px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+  text-decoration: none;
+  cursor: pointer;
 }
 .brandIcon {
   font-size: 28px;

@@ -47,13 +47,13 @@ export function Sidebar({ isOpen, onClose }: Props) {
       </button>
 
       {/* Org / Brand */}
-      <div className={styles.brand}>
+      <NavLink to="/" className={styles.brand} onClick={onClose}>
         <div className={styles.brandIcon}>🏛️</div>
         <div className={styles.brandText}>
           <div className={styles.brandName}>LIBA</div>
           <div className={styles.brandSub}>מערכת ממשלתית</div>
         </div>
-      </div>
+      </NavLink>
 
       {/* Navigation */}
       <nav className={styles.nav}>
