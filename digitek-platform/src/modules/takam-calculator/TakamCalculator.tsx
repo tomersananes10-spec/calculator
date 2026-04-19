@@ -21,6 +21,8 @@ export function TakamCalculator() {
   const { user } = useAuth()
   const history = useCalculationHistory(user?.id)
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState<string | null>(null)
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Load from share token on mount
@@ -108,6 +110,21 @@ export function TakamCalculator() {
     if (!state.viewOnly && n < state.currentStep) dispatch({ type: 'GO_STEP', payload: n })
   }
 
+  async function handleSave() {
+    setSaving(true)
+    setSaveMsg(null)
+    const id = await history.saveCalculation(state)
+    if (id) {
+      dispatch({ type: 'SET_CALCULATION_ID', payload: id })
+      setSaveMsg('נשמר!')
+      setTimeout(() => setSaveMsg(null), 2500)
+    } else {
+      setSaveMsg('שגיאה בשמירה')
+      setTimeout(() => setSaveMsg(null), 3000)
+    }
+    setSaving(false)
+  }
+
   function handleLoadCalculation(calc: SavedCalculation) {
     dispatch({
       type: 'LOAD_CALCULATION',
@@ -136,12 +153,21 @@ export function TakamCalculator() {
           <p className={s.pageSub}>חישוב עלויות כוח אדם וענן לפרויקט</p>
         </div>
         {user && (
-          <button className={s.historyBtn} onClick={() => setHistoryOpen(true)}>
-            📋 החישובים שלי
-            {history.calculations.length > 0 && (
-              <span className={s.historyBadge}>{history.calculations.length}</span>
-            )}
-          </button>
+          <div className={s.headerActions}>
+            <button
+              className={s.saveHeaderBtn}
+              onClick={handleSave}
+              disabled={saving || state.viewOnly}
+            >
+              {saving ? '💾 שומר...' : saveMsg === 'נשמר!' ? '✓ נשמר!' : saveMsg === 'שגיאה בשמירה' ? '✕ שגיאה' : '💾 שמור'}
+            </button>
+            <button className={s.historyBtn} onClick={() => setHistoryOpen(true)}>
+              📋 החישובים שלי
+              {history.calculations.length > 0 && (
+                <span className={s.historyBadge}>{history.calculations.length}</span>
+              )}
+            </button>
+          </div>
         )}
       </div>
 
@@ -175,6 +201,9 @@ export function TakamCalculator() {
             state={state}
             dispatch={dispatch}
             history={history}
+            onSave={handleSave}
+            saving={saving}
+            saveMsg={saveMsg}
           />
         )}
       </div>

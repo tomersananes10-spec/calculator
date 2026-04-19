@@ -73,7 +73,7 @@ export function useCalculationHistory(userId: string | undefined) {
         .from('calculations')
         .update({ ...row, updated_at: new Date().toISOString() })
         .eq('id', state.calculationId)
-      if (error) return null
+      if (error) { console.error('Update calculation failed:', error); return null }
       await fetchCalculations()
       return state.calculationId
     } else {
@@ -82,7 +82,7 @@ export function useCalculationHistory(userId: string | undefined) {
         .insert(row)
         .select('id')
         .single()
-      if (error || !data) return null
+      if (error || !data) { console.error('Insert calculation failed:', error); return null }
       await fetchCalculations()
       return data.id
     }

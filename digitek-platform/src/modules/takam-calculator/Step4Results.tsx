@@ -10,6 +10,9 @@ interface Props {
   state: CalcState
   dispatch: React.Dispatch<CalcAction>
   history: ReturnType<typeof useCalculationHistory>
+  onSave: () => Promise<void>
+  saving: boolean
+  saveMsg: string | null
 }
 
 const PERIOD_LABELS: Record<number, string> = { 6: '6 חודשים', 12: 'שנה', 24: 'שנתיים' }
@@ -17,7 +20,7 @@ const VAT_RATE = 0.17
 const OVERHEAD_RATE = 0.10
 const CONTINGENCY_RATE = 0.05
 
-export function Step4Results({ state, dispatch, history }: Props) {
+export function Step4Results({ state, dispatch, history, onSave, saving, saveMsg }: Props) {
   const { mix, period, matchingOn, matchingPct, riskPct, rolesData, hoursMultiplier, viewOnly } = state
   const printRef = useRef<HTMLDivElement>(null)
 
@@ -30,20 +33,7 @@ export function Step4Results({ state, dispatch, history }: Props) {
   const vatAmt        = Math.round(subtotalPreVAT * VAT_RATE)
   const grandTotal    = subtotalPreVAT + vatAmt
 
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
-
-  async function handleSave() {
-    setSaving(true)
-    const id = await history.saveCalculation(state)
-    if (id) {
-      dispatch({ type: 'SET_CALCULATION_ID', payload: id })
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-    }
-    setSaving(false)
-  }
 
   async function downloadPDF() {
     if (!printRef.current) return
@@ -214,8 +204,8 @@ export function Step4Results({ state, dispatch, history }: Props) {
 
             <div className={s.summaryActions}>
               {!viewOnly && (
-                <button className={s.summaryBtn} onClick={handleSave} disabled={saving}>
-                  {saving ? '💾 שומר...' : saved ? '✓ נשמר!' : '💾 שמור חישוב'}
+                <button className={s.summaryBtn} onClick={onSave} disabled={saving}>
+                  {saving ? '💾 שומר...' : saveMsg === 'נשמר!' ? '✓ נשמר!' : saveMsg === 'שגיאה בשמירה' ? '✕ שגיאה' : '💾 שמור חישוב'}
                 </button>
               )}
               <button className={s.summaryBtn} onClick={downloadPDF}>📥 ייצוא PDF</button>
