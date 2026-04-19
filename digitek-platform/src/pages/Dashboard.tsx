@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useCalculationHistory } from '../modules/takam-calculator/useCalculationHistory'
+import { fmtCurrency } from '../modules/takam-calculator/calc'
 import styles from './Dashboard.module.css'
 
 const STATS = [
@@ -42,6 +44,7 @@ export function Dashboard() {
   const { user } = useAuth()
   const fullName  = user?.user_metadata?.full_name ?? ''
   const firstName = fullName.split(' ')[0] || 'משתמש'
+  const calcHistory = useCalculationHistory(user?.id)
 
   return (
     <div className={styles.page}>
@@ -152,6 +155,35 @@ export function Dashboard() {
             ))}
           </div>
         </div>
+        {/* Recent Calculations */}
+        {calcHistory.calculations.length > 0 && (
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>חישובי תכ"ם אחרונים</h2>
+              <Link to="/calculator" className={styles.viewAll}>הצג הכל ←</Link>
+            </div>
+            <div className={styles.calcList}>
+              {calcHistory.calculations.slice(0, 5).map(calc => (
+                <Link
+                  key={calc.id}
+                  to={`/calculator?load=${calc.id}`}
+                  className={styles.calcItem}
+                >
+                  <div className={styles.calcItemLeft}>
+                    <span className={styles.calcItemName}>{calc.name || 'ללא שם'}</span>
+                    <span className={styles.calcItemMinistry}>{calc.ministry}</span>
+                  </div>
+                  <div className={styles.calcItemRight}>
+                    <span className={styles.calcItemTotal}>{fmtCurrency(calc.grand_total, true)}</span>
+                    <span className={styles.calcItemDate}>
+                      {new Date(calc.updated_at).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' })}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

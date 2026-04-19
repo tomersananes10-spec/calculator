@@ -1,21 +1,83 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useCalculator } from './useCalculator'
+import { useAuth } from '../../hooks/useAuth'
+import { useCalculationHistory } from './useCalculationHistory'
 import { Step1Setup }       from './Step1Setup'
 import { Step2Roles }       from './Step2Roles'
 import { Step3Mix }         from './Step3Mix'
 import { Step4Results }     from './Step4Results'
 import { AiAdvisorModal }   from './AiAdvisorModal'
+import { HistoryPanel }     from './HistoryPanel'
 import { ROLES_DATA }       from './data'
 import type { MixEntry, Level } from './types'
+import type { SavedCalculation } from './useCalculationHistory'
 import s from './TakamCalculator.module.css'
 
 const STEP_NAMES = ['הגדרת פרויקט', 'בחירת תפקידים', 'רמות ומשרות', 'תוצאות']
 
 export function TakamCalculator() {
   const [state, dispatch] = useCalculator()
+  const { user } = useAuth()
+  const history = useCalculationHistory(user?.id)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  // Load from URL hash on mount (share feature)
+  // Load from share token on mount
   useEffect(() => {
+    const token = searchParams.get('share')
+    if (!token) return
+
+    history.loadByToken(token).then(result => {
+      if (!result) return
+      const { calculation: calc, permission } = result
+      dispatch({
+        type: 'LOAD_CALCULATION',
+        payload: {
+          calculationId: calc.id,
+          project: { name: calc.name, ministry: calc.ministry },
+          period: calc.period as 6 | 12 | 24,
+          matchingOn: calc.matching_on,
+          matchingPct: calc.matching_pct,
+          riskPct: calc.risk_pct,
+          hoursMultiplier: calc.hours_multiplier,
+          mix: calc.mix as MixEntry[],
+        },
+      })
+      if (permission === 'view') {
+        dispatch({ type: 'SET_VIEW_ONLY', payload: true })
+      }
+      setSearchParams({}, { replace: true })
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load own calculation by ID (from dashboard)
+  useEffect(() => {
+    const loadId = searchParams.get('load')
+    if (!loadId || !user) return
+
+    const calc = history.calculations.find(c => c.id === loadId)
+    if (calc) {
+      dispatch({
+        type: 'LOAD_CALCULATION',
+        payload: {
+          calculationId: calc.id,
+          project: { name: calc.name, ministry: calc.ministry },
+          period: calc.period as 6 | 12 | 24,
+          matchingOn: calc.matching_on,
+          matchingPct: calc.matching_pct,
+          riskPct: calc.risk_pct,
+          hoursMultiplier: calc.hours_multiplier,
+          mix: calc.mix as MixEntry[],
+        },
+      })
+      setSearchParams({}, { replace: true })
+    }
+  }, [history.calculations, searchParams, user]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Legacy URL hash loading (backwards compatibility)
+  useEffect(() => {
+    if (searchParams.get('share') || searchParams.get('load')) return
     const raw = decodeURIComponent(location.hash.slice(1))
     if (!raw.startsWith('v1|')) return
     try {
@@ -46,6 +108,23 @@ export function TakamCalculator() {
     if (!state.viewOnly && n < state.currentStep) dispatch({ type: 'GO_STEP', payload: n })
   }
 
+  function handleLoadCalculation(calc: SavedCalculation) {
+    dispatch({
+      type: 'LOAD_CALCULATION',
+      payload: {
+        calculationId: calc.id,
+        project: { name: calc.name, ministry: calc.ministry },
+        period: calc.period as 6 | 12 | 24,
+        matchingOn: calc.matching_on,
+        matchingPct: calc.matching_pct,
+        riskPct: calc.risk_pct,
+        hoursMultiplier: calc.hours_multiplier,
+        mix: calc.mix as MixEntry[],
+      },
+    })
+    setHistoryOpen(false)
+  }
+
   const isResultsStep = state.currentStep === 4
 
   return (
@@ -56,6 +135,14 @@ export function TakamCalculator() {
           <h1 className={s.pageTitle}>מחשבון תכ"ם</h1>
           <p className={s.pageSub}>חישוב עלויות כוח אדם וענן לפרויקט</p>
         </div>
+        {user && (
+          <button className={s.historyBtn} onClick={() => setHistoryOpen(true)}>
+            📋 החישובים שלי
+            {history.calculations.length > 0 && (
+              <span className={s.historyBadge}>{history.calculations.length}</span>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Step Progress */}
@@ -83,10 +170,26 @@ export function TakamCalculator() {
         {state.currentStep === 1 && <Step1Setup state={state} dispatch={dispatch} />}
         {state.currentStep === 2 && <Step2Roles state={state} dispatch={dispatch} />}
         {state.currentStep === 3 && <Step3Mix   state={state} dispatch={dispatch} />}
-        {state.currentStep === 4 && <Step4Results state={state} dispatch={dispatch} />}
+        {state.currentStep === 4 && (
+          <Step4Results
+            state={state}
+            dispatch={dispatch}
+            history={history}
+          />
+        )}
       </div>
 
       {!state.viewOnly && <AiAdvisorModal state={state} dispatch={dispatch} />}
+
+      {/* History Panel */}
+      <HistoryPanel
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        calculations={history.calculations}
+        loading={history.loading}
+        onLoad={handleLoadCalculation}
+        onDelete={history.deleteCalculation}
+      />
     </div>
   )
 }

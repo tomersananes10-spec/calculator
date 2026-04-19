@@ -34,6 +34,7 @@ export interface CalcState {
   rolesData: Role[]
   aiNeedsFill: boolean
   viewOnly: boolean
+  calculationId: string | null
 }
 
 export type CalcAction =
@@ -54,4 +55,15 @@ export type CalcAction =
   | { type: 'ADD_AI_ROLE'; payload: { id: string; level: Level; scope: number } }
   | { type: 'SET_AI_NEEDS_FILL'; payload: boolean }
   | { type: 'SET_VIEW_ONLY'; payload: boolean }
+  | { type: 'SET_CALCULATION_ID'; payload: string | null }
+  | { type: 'LOAD_CALCULATION'; payload: {
+      calculationId: string
+      project: ProjectInfo
+      period: 6 | 12 | 24
+      matchingOn: boolean
+      matchingPct: number
+      riskPct: number
+      hoursMultiplier: number
+      mix: MixEntry[]
+    }}
   | { type: 'RESET' }

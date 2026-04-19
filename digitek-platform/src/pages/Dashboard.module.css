@@ -229,6 +229,54 @@
 }
 .clusterPct { font-size: 12px; font-weight: 600; color: var(--text3); width: 32px; text-align: left; }
 
+/* Recent calculations card */
+.calcList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.calcItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.calcItem:hover {
+  background: var(--bg);
+}
+.calcItemLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.calcItemName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.calcItemMinistry {
+  font-size: 11px;
+  color: var(--text3);
+}
+.calcItemRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.calcItemTotal {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.calcItemDate {
+  font-size: 11px;
+  color: var(--text3);
+}
+
 /* ── Tablet ── */
 @media (max-width: 900px) {
   .statsGrid { grid-template-columns: repeat(2, 1fr); }

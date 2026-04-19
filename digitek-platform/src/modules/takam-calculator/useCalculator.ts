@@ -15,6 +15,7 @@ export const INITIAL_STATE: CalcState = {
   rolesData: ROLES_DATA,
   aiNeedsFill: false,
   viewOnly: false,
+  calculationId: null,
 }
 
 function reducer(state: CalcState, action: CalcAction): CalcState {
@@ -104,8 +105,28 @@ function reducer(state: CalcState, action: CalcAction): CalcState {
       return { ...state, aiNeedsFill: action.payload }
     case 'SET_VIEW_ONLY':
       return { ...state, viewOnly: action.payload }
+    case 'SET_CALCULATION_ID':
+      return { ...state, calculationId: action.payload }
+    case 'LOAD_CALCULATION': {
+      const { calculationId, project, period, matchingOn, matchingPct, riskPct, hoursMultiplier, mix } = action.payload
+      const selectedIds = new Set(mix.map(m => m.id))
+      return {
+        ...state,
+        calculationId,
+        project,
+        period,
+        matchingOn,
+        matchingPct,
+        riskPct,
+        hoursMultiplier,
+        mix,
+        selectedIds,
+        currentStep: 4 as const,
+        viewOnly: false,
+      }
+    }
     case 'RESET':
-      return { ...INITIAL_STATE, rolesData: ROLES_DATA }
+      return { ...INITIAL_STATE, rolesData: ROLES_DATA, calculationId: null }
     default:
       return state
   }

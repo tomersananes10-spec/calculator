@@ -1,12 +1,15 @@
 import { useRef, useState } from 'react'
 import type { CalcState, CalcAction } from './types'
+import type { useCalculationHistory } from './useCalculationHistory'
 import { LEVEL_LABELS, HOURS_PER_MONTH } from './data'
 import { calcTotalCost, fmtCurrency } from './calc'
+import { ShareDialog } from './ShareDialog'
 import s from './TakamCalculator.module.css'
 
 interface Props {
   state: CalcState
   dispatch: React.Dispatch<CalcAction>
+  history: ReturnType<typeof useCalculationHistory>
 }
 
 const PERIOD_LABELS: Record<number, string> = { 6: '6 חודשים', 12: 'שנה', 24: 'שנתיים' }
@@ -14,7 +17,7 @@ const VAT_RATE = 0.17
 const OVERHEAD_RATE = 0.10
 const CONTINGENCY_RATE = 0.05
 
-export function Step4Results({ state, dispatch }: Props) {
+export function Step4Results({ state, dispatch, history }: Props) {
   const { mix, period, matchingOn, matchingPct, riskPct, rolesData, hoursMultiplier, viewOnly } = state
   const printRef = useRef<HTMLDivElement>(null)
 
@@ -27,56 +30,19 @@ export function Step4Results({ state, dispatch }: Props) {
   const vatAmt        = Math.round(subtotalPreVAT * VAT_RATE)
   const grandTotal    = subtotalPreVAT + vatAmt
 
-  const [copied, setCopied] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
 
-  function getShareURL() {
-    const roles = mix.map(m => `${m.id}:${m.level}:${m.scope}`).join(',')
-    const hash = `v1|period=${period}|matching=${matchingOn ? 1 : 0}|pct=${matchingPct}|roles=${roles}`
-    const base = location.origin + location.pathname
-    return `${base}#${encodeURIComponent(hash)}`
-  }
-
-  function copyLink() {
-    const url = getShareURL()
-    location.hash = encodeURIComponent(url.split('#')[1] || '')
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(url).then(() => {
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      }).catch(() => fallbackCopy(url))
-    } else {
-      fallbackCopy(url)
+  async function handleSave() {
+    setSaving(true)
+    const id = await history.saveCalculation(state)
+    if (id) {
+      dispatch({ type: 'SET_CALCULATION_ID', payload: id })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
     }
-    setShareOpen(false)
-  }
-
-  function fallbackCopy(text: string) {
-    const ta = document.createElement('textarea')
-    ta.value = text
-    ta.style.position = 'fixed'
-    ta.style.opacity = '0'
-    document.body.appendChild(ta)
-    ta.select()
-    document.execCommand('copy')
-    document.body.removeChild(ta)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  function shareWhatsApp() {
-    const url = getShareURL()
-    const text = `הצעת מחיר תכ"ם — ${fmtCurrency(grandTotal, true)}\n${url}`
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
-    setShareOpen(false)
-  }
-
-  function shareEmail() {
-    const url = getShareURL()
-    const subject = `הצעת מחיר תכ"ם — ${fmtCurrency(grandTotal, true)}`
-    const body = `צפה בהצעת המחיר:\n${url}`
-    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
-    setShareOpen(false)
+    setSaving(false)
   }
 
   async function downloadPDF() {
@@ -247,19 +213,17 @@ export function Step4Results({ state, dispatch }: Props) {
             </div>
 
             <div className={s.summaryActions}>
-              <button className={s.summaryBtn} onClick={downloadPDF}>📥 ייצוא PDF</button>
-              <div style={{ position: 'relative' }}>
-                <button className={s.summaryBtnGhost} onClick={() => setShareOpen(!shareOpen)} style={{ width: '100%' }}>
-                  {copied ? '✓ הקישור הועתק!' : '🔗 שתף'}
+              {!viewOnly && (
+                <button className={s.summaryBtn} onClick={handleSave} disabled={saving}>
+                  {saving ? '💾 שומר...' : saved ? '✓ נשמר!' : '💾 שמור חישוב'}
                 </button>
-                {shareOpen && (
-                  <div className={s.shareMenu}>
-                    <button className={s.shareMenuItem} onClick={copyLink}>📋 העתק קישור</button>
-                    <button className={s.shareMenuItem} onClick={shareWhatsApp}>💬 שלח בוואטסאפ</button>
-                    <button className={s.shareMenuItem} onClick={shareEmail}>📧 שלח במייל</button>
-                  </div>
-                )}
-              </div>
+              )}
+              <button className={s.summaryBtn} onClick={downloadPDF}>📥 ייצוא PDF</button>
+              {!viewOnly && (
+                <button className={s.summaryBtnGhost} onClick={() => setShareOpen(true)} style={{ width: '100%' }}>
+                  🔗 שתף
+                </button>
+              )}
               {!viewOnly && (
                 <button className={s.summaryBtnGhost} onClick={() => dispatch({ type: 'RESET' })}>🔄 איפוס</button>
               )}
@@ -298,6 +262,24 @@ export function Step4Results({ state, dispatch }: Props) {
           <button className={s.btnBack} onClick={() => dispatch({ type: 'GO_STEP', payload: 3 })}>→ חזור לעריכה</button>
         </div>
       )}
+
+      {/* Share Dialog */}
+      <ShareDialog
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        calculationId={state.calculationId}
+        grandTotal={grandTotal}
+        onCreateShare={async (permission) => {
+          if (!state.calculationId) {
+            const id = await history.saveCalculation(state)
+            if (id) dispatch({ type: 'SET_CALCULATION_ID', payload: id })
+            else return null
+            return history.createShare(id, permission)
+          }
+          return history.createShare(state.calculationId, permission)
+        }}
+        formatCurrency={fmtCurrency}
+      />
     </div>
   )
 }

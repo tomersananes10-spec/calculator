@@ -668,6 +668,127 @@
 .shareMenuItem:last-child { border-bottom: none; }
 .shareMenuItem:hover { background: var(--bg); }
 
+/* ── History Panel ── */
+.historyOverlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.5);
+  z-index: 400; cursor: pointer;
+}
+.historyPanel {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: 380px; max-width: 90vw;
+  background: var(--surface); z-index: 401;
+  box-shadow: -8px 0 30px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column;
+  animation: slideInRight 0.25s ease;
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.historyHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+}
+.historyTitle { font-size: 18px; font-weight: 800; color: var(--text); margin: 0; }
+.historyClose {
+  background: none; border: none; font-size: 18px; color: var(--text3);
+  cursor: pointer; padding: 4px; line-height: 1;
+}
+.historyClose:hover { color: var(--text); }
+.historyList {
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.historyEmpty {
+  text-align: center; color: var(--text3); font-size: 14px;
+  padding: 40px 16px;
+}
+.historyCard {
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 14px; transition: border-color 0.15s;
+}
+.historyCard:hover { border-color: var(--teal); }
+.historyCardTop {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.historyCardInfo { display: flex; flex-direction: column; gap: 2px; }
+.historyCardName { font-size: 14px; font-weight: 700; color: var(--text); }
+.historyCardMinistry { font-size: 12px; color: var(--text3); }
+.historyCardTotal { font-size: 15px; font-weight: 800; color: var(--teal); }
+.historyCardMeta {
+  display: flex; gap: 12px; font-size: 11px; color: var(--text3);
+  margin-bottom: 10px;
+}
+.historyCardActions { display: flex; gap: 8px; }
+.historyLoadBtn {
+  flex: 1; padding: 7px; border-radius: 8px;
+  background: var(--teal); color: #fff; border: none;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  font-family: Heebo, sans-serif; transition: opacity 0.15s;
+}
+.historyLoadBtn:hover { opacity: 0.9; }
+.historyDeleteBtn {
+  padding: 7px 12px; border-radius: 8px;
+  background: transparent; color: var(--text3);
+  border: 1px solid var(--border2);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: Heebo, sans-serif; transition: all 0.15s;
+}
+.historyDeleteBtn:hover { border-color: var(--red); color: var(--red); }
+
+/* ── History button in header ── */
+.historyBtn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 8px 14px;
+  font-size: 13px; font-weight: 600; color: var(--text2);
+  cursor: pointer; font-family: Heebo, sans-serif;
+  transition: all 0.15s; position: relative;
+}
+.historyBtn:hover { border-color: var(--teal); color: var(--teal); }
+.historyBadge {
+  background: var(--teal); color: #fff;
+  font-size: 10px; font-weight: 700;
+  padding: 1px 6px; border-radius: 10px;
+  min-width: 18px; text-align: center;
+}
+
+/* ── Share Dialog ── */
+.shareDialog {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface); border-radius: 16px;
+  width: 420px; max-width: 90vw;
+  z-index: 401; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: fadeInScale 0.2s ease;
+}
+@keyframes fadeInScale {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.shareDialogHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+}
+.shareDialogTitle { font-size: 18px; font-weight: 800; color: var(--text); margin: 0; }
+.shareDialogBody { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.shareDialogLabel { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+.shareDialogNote { font-size: 14px; color: var(--amber); text-align: center; }
+.shareDialogHint { font-size: 11px; color: var(--text3); margin-top: 6px; }
+.sharePermPicker { display: flex; flex-direction: column; gap: 8px; }
+.shareLinkBox { display: flex; gap: 8px; }
+.shareLinkBox .input { direction: ltr; font-size: 12px; }
+.shareActions { display: flex; gap: 8px; }
+.shareActionBtn {
+  flex: 1; padding: 10px 8px; border-radius: 9px;
+  background: var(--bg); border: 1.5px solid var(--border);
+  font-size: 12px; font-weight: 600; color: var(--text2);
+  cursor: pointer; font-family: Heebo, sans-serif;
+  text-align: center; transition: all 0.15s;
+}
+.shareActionBtn:hover { border-color: var(--teal); color: var(--teal); }
+
 @media (max-width: 900px) {
   .twoCol { grid-template-columns: 1fr; }
   .rightPanel { position: static; }
@@ -682,4 +803,5 @@
   .dataTable th, .dataTable td { padding: 7px 6px; font-size: 11px; }
   .panel { padding: 14px; }
   .summaryCard { padding: 18px 14px; }
+  .historyPanel { width: 100%; max-width: 100vw; }
 }
