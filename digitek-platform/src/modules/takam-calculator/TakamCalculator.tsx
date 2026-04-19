@@ -152,42 +152,44 @@ export function TakamCalculator() {
           <h1 className={s.pageTitle}>מחשבון תכ"ם</h1>
           <p className={s.pageSub}>חישוב עלויות כוח אדם וענן לפרויקט</p>
         </div>
-        {user && (
-          <div className={s.headerActions}>
-            <button
-              className={s.saveHeaderBtn}
-              onClick={handleSave}
-              disabled={saving || state.viewOnly}
-            >
-              {saving ? '💾 שומר...' : saveMsg === 'נשמר!' ? '✓ נשמר!' : saveMsg === 'שגיאה בשמירה' ? '✕ שגיאה' : '💾 שמור'}
-            </button>
-            <button className={s.historyBtn} onClick={() => setHistoryOpen(true)}>
-              📋 החישובים שלי
-              {history.calculations.length > 0 && (
-                <span className={s.historyBadge}>{history.calculations.length}</span>
-              )}
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* Step Progress */}
+      {/* Step Progress + Actions */}
       <div className={s.wizardProgress}>
-        <div className={s.steps}>
-          {STEP_NAMES.map((name, i) => {
-            const n = (i + 1) as 1 | 2 | 3 | 4
-            const cls = n < state.currentStep ? s.stepDone : n === state.currentStep ? s.stepActive : s.stepFuture
-            return (
-              <div key={n} className={`${s.step} ${cls}`} onClick={() => tryGoStep(n)}>
-                <div className={s.stepNum}>{n < state.currentStep ? '✓' : String(n)}</div>
-                <div className={s.stepInfo}>
-                  <span className={s.stepLabel}>שלב {n}</span>
-                  <span className={s.stepName}>{name}</span>
+        <div className={s.stepsRow}>
+          <div className={s.steps}>
+            {STEP_NAMES.map((name, i) => {
+              const n = (i + 1) as 1 | 2 | 3 | 4
+              const cls = n < state.currentStep ? s.stepDone : n === state.currentStep ? s.stepActive : s.stepFuture
+              return (
+                <div key={n} className={`${s.step} ${cls}`} onClick={() => tryGoStep(n)}>
+                  <div className={s.stepNum}>{n < state.currentStep ? '✓' : String(n)}</div>
+                  <div className={s.stepInfo}>
+                    <span className={s.stepLabel}>שלב {n}</span>
+                    <span className={s.stepName}>{name}</span>
+                  </div>
+                  {i < 3 && <span className={s.stepSep}>›</span>}
                 </div>
-                {i < 3 && <span className={s.stepSep}>›</span>}
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
+          {user && !state.viewOnly && (
+            <div className={s.wizardActions}>
+              <button
+                className={s.saveHeaderBtn}
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? '💾 שומר...' : saveMsg === 'נשמר!' ? '✓ נשמר!' : saveMsg === 'שגיאה בשמירה' ? '✕ שגיאה' : '💾 שמור'}
+              </button>
+              <button className={s.historyBtn} onClick={() => setHistoryOpen(true)}>
+                📋 החישובים שלי
+                {history.calculations.length > 0 && (
+                  <span className={s.historyBadge}>{history.calculations.length}</span>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

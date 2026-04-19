@@ -31,10 +31,22 @@
   padding: 0 24px;
   overflow-x: auto;
 }
+.stepsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 .steps {
   display: flex;
   align-items: stretch;
   min-width: max-content;
+}
+.wizardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px 0;
 }
 .step {
   display: flex;
@@ -737,10 +749,6 @@
 }
 .historyDeleteBtn:hover { border-color: var(--red); color: var(--red); }
 
-/* ── Header actions ── */
-.headerActions {
-  display: flex; align-items: center; gap: 8px;
-}
 .saveHeaderBtn {
   display: flex; align-items: center; gap: 6px;
   background: var(--teal); color: #fff;
