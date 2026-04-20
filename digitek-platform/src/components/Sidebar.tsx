@@ -19,10 +19,6 @@ const NAV_ITEMS: NavItem[] = [
   // { href: '/projects',   label: 'פרויקטים',   icon: '📊' },
 ]
 
-const BOTTOM_ITEMS: NavItem[] = [
-  { href: '/admin', label: 'הגדרות', icon: '⚙️' },
-]
-
 interface Props {
   isOpen: boolean
   onClose: () => void
@@ -78,26 +74,14 @@ export function Sidebar({ isOpen, onClose }: Props) {
 
       {/* Bottom section */}
       <div className={styles.bottom}>
-        {BOTTOM_ITEMS.map(item => (
-          <NavLink
-            key={item.href}
-            to={item.href}
-            className={({ isActive }) =>
-              `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
-            }
-            onClick={onClose}
-          >
-            <span className={styles.navIcon}>{item.icon}</span>
-            <span className={styles.navLabel}>{item.label}</span>
-          </NavLink>
-        ))}
-
-        {/* User */}
         <div className={styles.userSection}>
           <div className={styles.userAvatar}>{initial}</div>
           <div className={styles.userInfo}>
             <div className={styles.userName}>{fullName}</div>
           </div>
+          <NavLink to="/admin" className={styles.settingsBtn} onClick={onClose} title="הגדרות">
+            ⚙️
+          </NavLink>
           <button className={styles.signOutBtn} onClick={handleSignOut} title="יציאה">
             ⏏
           </button>

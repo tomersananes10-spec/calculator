@@ -138,6 +138,25 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.settingsBtn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s;
+  display: flex;
+  align-items: center;
+  min-width: 32px;
+  min-height: 32px;
+  justify-content: center;
+  text-decoration: none;
+}
+.settingsBtn:hover {
+  color: rgba(255,255,255,0.8);
+}
 .signOutBtn {
   background: none;
   border: none;
