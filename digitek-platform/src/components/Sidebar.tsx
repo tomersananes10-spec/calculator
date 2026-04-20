@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import styles from './Sidebar.module.css'
 
@@ -25,15 +25,10 @@ interface Props {
 }
 
 export function Sidebar({ isOpen, onClose }: Props) {
-  const { user, signOut } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
   const fullName = user?.user_metadata?.full_name ?? user?.email ?? 'משתמש'
+  const avatarUrl = user?.user_metadata?.avatar_url
   const initial = fullName[0]?.toUpperCase() ?? '?'
-
-  async function handleSignOut() {
-    await signOut()
-    navigate('/login')
-  }
 
   return (
     <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
@@ -74,18 +69,16 @@ export function Sidebar({ isOpen, onClose }: Props) {
 
       {/* Bottom section */}
       <div className={styles.bottom}>
-        <div className={styles.userSection}>
-          <div className={styles.userAvatar}>{initial}</div>
+        <NavLink to="/profile" className={styles.userSection} onClick={onClose}>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className={styles.userAvatarImg} />
+          ) : (
+            <div className={styles.userAvatar}>{initial}</div>
+          )}
           <div className={styles.userInfo}>
             <div className={styles.userName}>{fullName}</div>
           </div>
-          <NavLink to="/admin" className={styles.settingsBtn} onClick={onClose} title="הגדרות">
-            ⚙️
-          </NavLink>
-          <button className={styles.signOutBtn} onClick={handleSignOut} title="יציאה">
-            ⏏
-          </button>
-        </div>
+        </NavLink>
       </div>
     </aside>
   )

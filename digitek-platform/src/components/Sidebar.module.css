@@ -112,6 +112,20 @@
   gap: 10px;
   padding: 10px 12px;
   margin-top: 4px;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.userSection:hover {
+  background: rgba(255,255,255,0.07);
+}
+.userAvatarImg {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 .userAvatar {
   width: 32px;
@@ -137,43 +151,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.settingsBtn {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.4);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.15s;
-  display: flex;
-  align-items: center;
-  min-width: 32px;
-  min-height: 32px;
-  justify-content: center;
-  text-decoration: none;
-}
-.settingsBtn:hover {
-  color: rgba(255,255,255,0.8);
-}
-.signOutBtn {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.4);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.15s;
-  display: flex;
-  align-items: center;
-  min-width: 32px;
-  min-height: 32px;
-  justify-content: center;
-}
-.signOutBtn:hover {
-  color: rgba(255,255,255,0.8);
 }
 
 /* ── Tablet (768px–1024px): sidebar always visible but narrower ── */

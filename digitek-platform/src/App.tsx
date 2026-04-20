@@ -4,6 +4,7 @@ import { Dashboard }       from './pages/Dashboard'
 import { Calculator }      from './pages/Calculator'
 import { BriefGenerator }  from './pages/BriefGenerator'
 import { Admin }           from './pages/Admin'
+import { Profile }         from './pages/Profile'
 import { AuthCallback }    from './pages/AuthCallback'
 import { Roved5Page }      from './pages/Roved5Page'
 import { ApprovalsPage }   from './pages/ApprovalsPage'
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/approvals"      element={<Protected><ApprovalsPage /></Protected>} />
         <Route path="/suppliers"      element={<Protected><SuppliersPage /></Protected>} />
         <Route path="/projects"       element={<Protected><ProjectsPage /></Protected>} />
+        <Route path="/profile"        element={<Protected><Profile /></Protected>} />
         <Route path="/admin"          element={<Protected><Admin /></Protected>} />
         <Route path="*"               element={<Navigate to="/" replace />} />
       </Routes>
