@@ -34,11 +34,8 @@ export function useAuth(): AuthState {
   useEffect(() => {
     if (!user) { setIsAdmin(false); return }
     supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single()
-      .then(({ data }) => setIsAdmin(data?.is_admin ?? false))
+      .rpc('check_is_admin')
+      .then(({ data }) => setIsAdmin(data === true))
   }, [user])
 
   const signIn = async (email: string, password: string) => {
