@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useCalculator } from './useCalculator'
 import { useAuth } from '../../hooks/useAuth'
@@ -106,11 +106,48 @@ export function TakamCalculator() {
     } catch { /* invalid hash */ }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Auto-save draft
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const stateRef = useRef(state)
+  stateRef.current = state
+
+  const saveDraftNow = useCallback(async () => {
+    const s = stateRef.current
+    if (!user || s.viewOnly) return
+    const hasContent = s.project.name || s.project.ministry || s.mix.length > 0
+    if (!hasContent) return
+    const id = await history.saveDraft(s)
+    if (id && !s.calculationId) {
+      dispatch({ type: 'SET_CALCULATION_ID', payload: id })
+    }
+  }, [user, history, dispatch])
+
+  useEffect(() => {
+    if (!user || state.viewOnly) return
+    clearTimeout(draftTimerRef.current)
+    draftTimerRef.current = setTimeout(saveDraftNow, 3000)
+    return () => clearTimeout(draftTimerRef.current)
+  }, [state.currentStep, state.project, state.mix, state.period, state.matchingOn, state.matchingPct, state.riskPct, state.hoursMultiplier]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const s = stateRef.current
+      if (!user || s.viewOnly) return
+      const hasContent = s.project.name || s.project.ministry || s.mix.length > 0
+      if (!hasContent) return
+      navigator.sendBeacon?.('/api/noop', '')
+      history.saveDraft(s)
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function tryGoStep(n: 1 | 2 | 3 | 4) {
     if (!state.viewOnly && n < state.currentStep) dispatch({ type: 'GO_STEP', payload: n })
   }
 
   async function handleSave() {
+    clearTimeout(draftTimerRef.current)
     setSaving(true)
     setSaveMsg(null)
     try {
@@ -143,6 +180,8 @@ export function TakamCalculator() {
         riskPct: calc.risk_pct,
         hoursMultiplier: calc.hours_multiplier,
         mix: calc.mix as MixEntry[],
+        targetStep: calc.is_draft ? (calc.current_step as 1 | 2 | 3 | 4) : 4,
+        isDraft: calc.is_draft,
       },
     })
     setHistoryOpen(false)

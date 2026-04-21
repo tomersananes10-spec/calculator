@@ -65,5 +65,7 @@ export type CalcAction =
       riskPct: number
       hoursMultiplier: number
       mix: MixEntry[]
+      targetStep?: 1 | 2 | 3 | 4
+      isDraft?: boolean
     }}
   | { type: 'RESET' }

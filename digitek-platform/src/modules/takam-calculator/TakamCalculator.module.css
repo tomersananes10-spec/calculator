@@ -749,6 +749,31 @@
 }
 .historyDeleteBtn:hover { border-color: var(--red); color: var(--red); }
 
+.historyCardDraft {
+  border-style: dashed;
+  border-color: var(--amber);
+  background: #fffbeb;
+}
+.historyCardDraft:hover { border-color: var(--amber); }
+.draftBadge {
+  display: inline-block;
+  background: var(--amber);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 8px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.historySectionTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text3);
+  padding: 4px 0 2px;
+  letter-spacing: 0.3px;
+}
+
 .saveHeaderBtn {
   display: flex; align-items: center; gap: 6px;
   background: var(--teal); color: #fff;

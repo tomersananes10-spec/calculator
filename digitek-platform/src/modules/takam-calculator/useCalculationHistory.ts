@@ -14,6 +14,8 @@ export interface SavedCalculation {
   hours_multiplier: number
   mix: MixEntry[]
   grand_total: number
+  is_draft: boolean
+  current_step: number
   created_at: string
   updated_at: string
 }
@@ -66,6 +68,8 @@ export function useCalculationHistory(userId: string | undefined) {
       hours_multiplier: state.hoursMultiplier,
       mix: state.mix.map(m => ({ id: m.id, level: m.level, scope: m.scope, customHours: m.customHours })),
       grand_total: grandTotal,
+      is_draft: false,
+      current_step: state.currentStep,
     }
 
     if (state.calculationId) {
@@ -83,6 +87,61 @@ export function useCalculationHistory(userId: string | undefined) {
         .select('id')
         .single()
       if (error || !data) { console.error('Insert calculation failed:', error); return null }
+      await fetchCalculations()
+      return data.id
+    }
+  }
+
+  async function saveDraft(state: CalcState): Promise<string | null> {
+    if (!userId) return null
+    const hasContent = state.project.name || state.project.ministry || state.mix.length > 0
+    if (!hasContent) return null
+
+    let grandTotal = 0
+    try {
+      const { net } = calcTotalCost(state.mix, state.period, state.matchingOn, state.matchingPct, state.rolesData, state.hoursMultiplier)
+      const riskAmt = Math.round(net * state.riskPct / 100)
+      const manpowerTotal = net + riskAmt
+      const overhead = Math.round(manpowerTotal * 0.10)
+      const contingency = Math.round((manpowerTotal + overhead) * 0.05)
+      const subtotal = manpowerTotal + overhead + contingency
+      const vat = Math.round(subtotal * 0.17)
+      grandTotal = subtotal + vat
+    } catch { /* partial data, keep 0 */ }
+
+    const row = {
+      owner_id: userId,
+      name: state.project.name || 'טיוטה',
+      ministry: state.project.ministry,
+      period: state.period,
+      matching_on: state.matchingOn,
+      matching_pct: state.matchingPct,
+      risk_pct: state.riskPct,
+      hours_multiplier: state.hoursMultiplier,
+      mix: state.mix.map(m => ({ id: m.id, level: m.level, scope: m.scope, customHours: m.customHours })),
+      grand_total: grandTotal,
+      is_draft: true,
+      current_step: state.currentStep,
+    }
+
+    if (state.calculationId) {
+      const existing = calculations.find(c => c.id === state.calculationId)
+      if (existing && !existing.is_draft) return state.calculationId
+
+      const { error } = await supabase
+        .from('calculations')
+        .update({ ...row, updated_at: new Date().toISOString() })
+        .eq('id', state.calculationId)
+      if (error) { console.error('Update draft failed:', error); return null }
+      await fetchCalculations()
+      return state.calculationId
+    } else {
+      const { data, error } = await supabase
+        .from('calculations')
+        .insert(row)
+        .select('id')
+        .single()
+      if (error || !data) { console.error('Insert draft failed:', error); return null }
       await fetchCalculations()
       return data.id
     }
@@ -116,6 +175,7 @@ export function useCalculationHistory(userId: string | undefined) {
     calculations,
     loading,
     saveCalculation,
+    saveDraft,
     deleteCalculation,
     createShare,
     loadByToken,

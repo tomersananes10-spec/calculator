@@ -25,8 +25,6 @@ export function Dashboard() {
   const { briefs, loading: briefsLoading } = useBriefs()
 
   const lastCalc = calcHistory.calculations[0]
-  const lastBrief = briefs[0]
-
   const draftBriefs = briefs.filter(b => b.status === 'draft').length
   const submittedBriefs = briefs.filter(b => b.status === 'submitted').length
 

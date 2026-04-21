@@ -108,7 +108,7 @@ function reducer(state: CalcState, action: CalcAction): CalcState {
     case 'SET_CALCULATION_ID':
       return { ...state, calculationId: action.payload }
     case 'LOAD_CALCULATION': {
-      const { calculationId, project, period, matchingOn, matchingPct, riskPct, hoursMultiplier, mix } = action.payload
+      const { calculationId, project, period, matchingOn, matchingPct, riskPct, hoursMultiplier, mix, targetStep } = action.payload
       const selectedIds = new Set(mix.map(m => m.id))
       return {
         ...state,
@@ -121,7 +121,7 @@ function reducer(state: CalcState, action: CalcAction): CalcState {
         hoursMultiplier,
         mix,
         selectedIds,
-        currentStep: 4 as const,
+        currentStep: (targetStep ?? 4) as 1 | 2 | 3 | 4,
         viewOnly: false,
       }
     }
