@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 const BYPASS_AUTH = import.meta.env.VITE_BYPASS_AUTH === 'true'
 
 const MOCK_USER = {
-  id: 'dev-bypass-user',
+  id: '00000000-0000-0000-0000-000000000000',
   email: 'dev@localhost',
   app_metadata: {},
   user_metadata: { full_name: 'Dev User' },
