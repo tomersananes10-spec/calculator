@@ -2,6 +2,17 @@ import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
+const BYPASS_AUTH = import.meta.env.VITE_BYPASS_AUTH === 'true'
+
+const MOCK_USER = {
+  id: 'dev-bypass-user',
+  email: 'dev@localhost',
+  app_metadata: {},
+  user_metadata: { full_name: 'Dev User' },
+  aud: 'authenticated',
+  created_at: '',
+} as unknown as User
+
 interface AuthState {
   user: User | null
   loading: boolean
@@ -14,11 +25,12 @@ interface AuthState {
 }
 
 export function useAuth(): AuthState {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [user, setUser] = useState<User | null>(BYPASS_AUTH ? MOCK_USER : null)
+  const [loading, setLoading] = useState(!BYPASS_AUTH)
+  const [isAdmin, setIsAdmin] = useState(BYPASS_AUTH)
 
   useEffect(() => {
+    if (BYPASS_AUTH) return
     // INITIAL_SESSION fires after detectSessionInUrl finishes processing OAuth tokens.
     // Only then do we resolve loading — this avoids the race condition where
     // getSession() returns null mid-exchange and ProtectedRoute bounces to /login.
@@ -32,6 +44,7 @@ export function useAuth(): AuthState {
   }, [])
 
   useEffect(() => {
+    if (BYPASS_AUTH) return
     if (!user) { setIsAdmin(false); return }
     supabase
       .rpc('check_is_admin')

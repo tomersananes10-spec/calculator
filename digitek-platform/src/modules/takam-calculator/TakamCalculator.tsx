@@ -113,12 +113,18 @@ export function TakamCalculator() {
   async function handleSave() {
     setSaving(true)
     setSaveMsg(null)
-    const id = await history.saveCalculation(state)
-    if (id) {
-      dispatch({ type: 'SET_CALCULATION_ID', payload: id })
-      setSaveMsg('נשמר!')
-      setTimeout(() => setSaveMsg(null), 2500)
-    } else {
+    try {
+      const id = await history.saveCalculation(state)
+      if (id) {
+        dispatch({ type: 'SET_CALCULATION_ID', payload: id })
+        setSaveMsg('נשמר!')
+        setTimeout(() => setSaveMsg(null), 2500)
+      } else {
+        setSaveMsg('שגיאה בשמירה')
+        setTimeout(() => setSaveMsg(null), 3000)
+      }
+    } catch (err) {
+      console.error('handleSave error:', err)
       setSaveMsg('שגיאה בשמירה')
       setTimeout(() => setSaveMsg(null), 3000)
     }
