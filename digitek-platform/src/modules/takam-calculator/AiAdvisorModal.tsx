@@ -102,29 +102,30 @@ export function AiAdvisorModal({ state, dispatch }: Props) {
     setRecs([])
     setAdded(new Set())
 
-    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY
     if (!apiKey) {
-      setError('מפתח API חסר — הגדר VITE_ANTHROPIC_API_KEY')
+      setError('מפתח API חסר — הגדר VITE_GEMINI_API_KEY')
       setLoading(false)
       return
     }
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
-          system: buildSystemPrompt(state.rolesData),
-          messages: [{ role: 'user', content: buildUserPrompt(desc.trim()) }],
-        }),
-      })
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: buildSystemPrompt(state.rolesData) }] },
+            contents: [{ parts: [{ text: buildUserPrompt(desc.trim()) }] }],
+            generationConfig: {
+              temperature: 0.3,
+              maxOutputTokens: 2000,
+              responseMimeType: 'application/json',
+            },
+          }),
+        }
+      )
       const data = await res.json()
 
       if (!res.ok || data.error) {
@@ -137,7 +138,7 @@ export function AiAdvisorModal({ state, dispatch }: Props) {
         return
       }
 
-      let raw = (data.content?.[0]?.text ?? '').trim()
+      let raw = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim()
       raw = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '')
 
       let parsed: { summary: string; roles: AiRec[] }
