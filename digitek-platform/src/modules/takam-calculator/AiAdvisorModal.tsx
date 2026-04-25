@@ -2,8 +2,6 @@ import { useState } from 'react'
 import type { CalcState, CalcAction, Level } from './types'
 import s from './TakamCalculator.module.css'
 
-const AI_ADVISOR_URL = '/api/ai-advisor'
-
 interface AiRec {
   id: string
   level: Level
@@ -16,21 +14,58 @@ interface Props {
   dispatch: React.Dispatch<CalcAction>
 }
 
-function buildPrompt(rolesData: CalcState['rolesData'], desc: string) {
+function buildSystemPrompt(rolesData: CalcState['rolesData']) {
   const list = rolesData
     .filter(r => !r.custom)
-    .map(r => `${r.id} | ${r.name} | קטגוריה: ${r.cat} | רמות: ${Object.keys(r.rates).join('/')}`)
+    .map(r => `${r.id} | ${r.name} | קטגוריה: ${r.cat} | רמות: ${Object.keys(r.rates).join('/')} | ${r.desc}`)
     .join('\n')
-  return `אתה יועץ לתמהיל משאבי IT לפרויקטים ממשלתיים ישראליים.
-הנה תפקידי תכ"ם הזמינים:
+
+  return `אתה יועץ בכיר לתמהיל משאבי IT (תכ"ם) לפרויקטים ממשלתיים ישראליים.
+יש לך ניסיון עמוק בבניית תמהילי כוח אדם למכרזי LIBA ורכש ממשלתי.
+
+## תפקידי תכ"ם הזמינים
 ${list}
 
-על בסיס תיאור הפרויקט, החזר JSON בלבד (ללא טקסט נוסף, ללא markdown, ללא קוד בלוקים) בפורמט:
-{"summary":"הסבר קצר של 2-3 משפטים","roles":[{"id":"1.1","level":"b","scope":100,"reason":"נדרש ל..."}]}
-רמות: a=בסיסי, b=מתקדם, c=מומחה, d=בכיר. scope הוא % משרה (25/50/75/100).
-החזר רק תפקידים רלוונטיים לפרויקט.
+## רמות מקצועיות
+- a = בסיסי (ג׳וניור, 0-3 שנות ניסיון)
+- b = מתקדם (מידלבל, 3-6 שנות ניסיון)
+- c = מומחה (סניור, 6-10 שנות ניסיון)
+- d = בכיר (מוביל/ראש צוות, 10+ שנות ניסיון)
 
-תאר פרויקט: ${desc}`
+## scope — אחוז משרה
+- 25% = יעוץ נקודתי / השתתפות חלקית (יום בשבוע)
+- 50% = חצי משרה
+- 75% = משרה כמעט מלאה
+- 100% = משרה מלאה
+
+## כללים לבניית תמהיל
+1. **ניהול פרויקט**: כל פרויקט צריך לפחות PMO או אחראי פרויקט. פרויקט גדול (3+ צוותים) צריך שניהם.
+2. **יחס מפתחים-בודקים**: על כל 3-4 מפתחים נדרש QA אחד לפחות.
+3. **תשתיות**: פרויקט עם ענן/תשתיות צריך DevOps. פרויקט גדול צריך גם סיסטם ותפעול ענן.
+4. **אבטחת מידע**: כל פרויקט ממשלתי צריך לפחות מיישם הגנת סייבר. פרויקט עם מידע רגיש — גם מומחה מתודולוגיות.
+5. **דאטה**: פרויקט BI/דאטה צריך הנדסת נתונים + אנליטיקה. פרויקט AI/ML צריך גם מדע הנתונים.
+6. **UX/UI**: כל פרויקט עם ממשק משתמש צריך אפיון UX/UI.
+7. **הטמעה**: פרויקט עם משתמשי קצה צריך מדריך/מטמיע, ולעיתים גם תמיכה.
+8. **ארכיטקטורה**: פרויקט מורכב (מערכות מרובות, אינטגרציות) צריך ארכיטקט פתרונות או ארכיטקט ראשי.
+9. **ERP/SAP**: רק אם הפרויקט עוסק ב-ERP/SAP במפורש.
+10. **רמה ו-scope**: התאם את הרמה למורכבות הפרויקט. פרויקט קטן — רוב התפקידים ב-50-75%. פרויקט גדול — רוב ב-100%.
+
+## גודל פרויקט
+- פרויקט קטן (עד 5 אנשי צוות): 3-5 תפקידים
+- פרויקט בינוני (5-15 אנשים): 5-10 תפקידים
+- פרויקט גדול (15+ אנשים): 8-15 תפקידים
+
+ענה תמיד בעברית.`
+}
+
+function buildUserPrompt(desc: string) {
+  return `נתח את הפרויקט הבא והמלץ על תמהיל משאבים מתאים.
+
+תיאור הפרויקט:
+${desc}
+
+החזר JSON בלבד (ללא טקסט נוסף, ללא markdown, ללא בלוקי קוד) בפורמט הבא:
+{"summary":"ניתוח של 3-4 משפטים שמסביר את הלוגיקה מאחורי בחירת התמהיל, איזה אתגרים זוהו, ומה הדגשים","roles":[{"id":"1.6","level":"c","scope":100,"reason":"הסבר ספציפי למה תפקיד זה נדרש בפרויקט הזה, בהקשר לתיאור שניתן"}]}`
 }
 
 export function AiAdvisorModal({ state, dispatch }: Props) {
@@ -67,30 +102,54 @@ export function AiAdvisorModal({ state, dispatch }: Props) {
     setRecs([])
     setAdded(new Set())
 
+    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
+    if (!apiKey) {
+      setError('מפתח API חסר — הגדר VITE_ANTHROPIC_API_KEY')
+      setLoading(false)
+      return
+    }
+
     try {
-      const res = await fetch(AI_ADVISOR_URL, {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: buildPrompt(state.rolesData, desc.trim()) }] }],
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000,
+          system: buildSystemPrompt(state.rolesData),
+          messages: [{ role: 'user', content: buildUserPrompt(desc.trim()) }],
         }),
       })
       const data = await res.json()
 
       if (!res.ok || data.error) {
-        setError(data.error?.message || `שגיאת שרת (${res.status})`)
+        const msg = data.error?.message ?? `שגיאת שרת (${res.status})`
+        if (res.status === 429) {
+          setError('חרגת ממגבלת הבקשות, נסה שוב בעוד דקה')
+        } else {
+          setError(msg)
+        }
         return
       }
 
-      let raw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
+      let raw = (data.content?.[0]?.text ?? '').trim()
       raw = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '')
 
       let parsed: { summary: string; roles: AiRec[] }
       try { parsed = JSON.parse(raw) }
       catch { setError('לא הצלחנו לנתח את התשובה, נסה שוב'); return }
 
+      const validRoles = (parsed.roles ?? []).filter(r =>
+        state.rolesData.some(rd => rd.id === r.id)
+      )
+
       setSummary(parsed.summary ?? '')
-      setRecs(parsed.roles ?? [])
+      setRecs(validRoles)
     } catch {
       setError('שגיאת חיבור, בדוק אינטרנט')
     } finally {
