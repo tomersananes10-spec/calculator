@@ -102,30 +102,15 @@ export function AiAdvisorModal({ state, dispatch }: Props) {
     setRecs([])
     setAdded(new Set())
 
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-    if (!apiKey) {
-      setError('מפתח API חסר — הגדר VITE_GEMINI_API_KEY')
-      setLoading(false)
-      return
-    }
-
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: buildSystemPrompt(state.rolesData) }] },
-            contents: [{ parts: [{ text: buildUserPrompt(desc.trim()) }] }],
-            generationConfig: {
-              temperature: 0.3,
-              maxOutputTokens: 2000,
-              responseMimeType: 'application/json',
-            },
-          }),
-        }
-      )
+      const fullPrompt = buildSystemPrompt(state.rolesData) + '\n\n' + buildUserPrompt(desc.trim())
+      const res = await fetch('/api/ai-advisor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: fullPrompt }] }],
+        }),
+      })
       const data = await res.json()
 
       if (!res.ok || data.error) {
