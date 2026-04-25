@@ -44,6 +44,7 @@ export function Dashboard() {
           <div className={styles.statValue}>{briefs.length}</div>
           <div className={styles.statLabel}>בריפים שלי</div>
           <div className={styles.statTrend}>{draftBriefs} טיוטות · {submittedBriefs} הוגשו</div>
+          <Link to="/brief-generator" className={styles.statAction}>+ הוסף בריף</Link>
         </div>
         <div className={`${styles.statCard} ${styles.stat_green}`}>
           <div className={styles.statValue}>{calcHistory.calculations.length}</div>
@@ -51,16 +52,19 @@ export function Dashboard() {
           <div className={styles.statTrend}>
             {lastCalc ? `אחרון: ${timeAgo(lastCalc.updated_at)}` : 'אין עדיין'}
           </div>
+          <Link to="/calculator" className={styles.statAction}>+ הוסף חישוב</Link>
         </div>
         <div className={`${styles.statCard} ${styles.stat_purple}`}>
           <div className={styles.statValue}>—</div>
           <div className={styles.statLabel}>רובד 5</div>
           <div className={styles.statTrend}>בקרוב</div>
+          <Link to="/layer5" className={styles.statAction}>כניסה למודול</Link>
         </div>
         <div className={`${styles.statCard} ${styles.stat_amber}`}>
           <div className={styles.statValue}>—</div>
           <div className={styles.statLabel}>מורשי חתימה</div>
           <div className={styles.statTrend}>בקרוב</div>
+          <Link to="/approvals" className={styles.statAction}>כניסה למודול</Link>
         </div>
       </div>
 

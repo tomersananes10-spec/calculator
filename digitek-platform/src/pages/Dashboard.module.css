@@ -52,6 +52,27 @@
   font-size: 12px;
   font-weight: 600;
 }
+.statAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 5px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: filter 0.15s, transform 0.1s;
+  color: #fff;
+}
+.statAction:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+.stat_blue .statAction  { background: var(--primary); }
+.stat_green .statAction  { background: var(--green); }
+.stat_purple .statAction { background: var(--secondary); }
+.stat_amber .statAction  { background: var(--amber); color: var(--text); }
 
 /* Color variants */
 .stat_blue .statValue  { color: var(--primary); }
