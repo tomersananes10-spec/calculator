@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CalcState, CalcAction } from './types'
 import type { useCalculationHistory } from './useCalculationHistory'
 import { LEVEL_LABELS, HOURS_PER_MONTH } from './data'
@@ -23,6 +23,8 @@ const CONTINGENCY_RATE = 0.05
 export function Step4Results({ state, dispatch, history, onSave, saving, saveMsg }: Props) {
   const { mix, period, matchingOn, matchingPct, riskPct, rolesData, hoursMultiplier, viewOnly } = state
   const printRef = useRef<HTMLDivElement>(null)
+  const [localMatchingPct, setLocalMatchingPct] = useState(String(matchingPct))
+  useEffect(() => { setLocalMatchingPct(String(matchingPct)) }, [matchingPct])
 
   const { net: netManpower, matching, monthlyPerRole } = calcTotalCost(mix, period, matchingOn, matchingPct, rolesData, hoursMultiplier)
   const riskAmt      = Math.round(netManpower * riskPct / 100)
@@ -119,11 +121,20 @@ export function Step4Results({ state, dispatch, history, onSave, saving, saveMsg
                   />
                   {matchingOn && (
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       className={s.numInput}
-                      min={1} max={100}
-                      value={matchingPct}
-                      onChange={e => dispatch({ type: 'SET_MATCHING_PCT', payload: Math.min(100, Math.max(1, +e.target.value || 30)) })}
+                      value={localMatchingPct}
+                      onChange={e => {
+                        const raw = e.target.value
+                        if (raw === '' || /^\d{1,3}$/.test(raw)) setLocalMatchingPct(raw)
+                      }}
+                      onBlur={() => {
+                        const v = parseInt(localMatchingPct, 10)
+                        const clamped = Math.min(100, Math.max(1, isNaN(v) ? 30 : v))
+                        dispatch({ type: 'SET_MATCHING_PCT', payload: clamped })
+                        setLocalMatchingPct(String(clamped))
+                      }}
                     />
                   )}
                   {matchingOn && <span className={s.unit}>%</span>}
