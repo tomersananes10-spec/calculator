@@ -605,24 +605,35 @@
 .controlRow { display: flex; align-items: center; gap: 10px; }
 .unit { font-size: 13px; color: var(--text3); }
 
-/* Spinner input */
-.spinnerWrap { display: flex; align-items: center; gap: 6px; }
-.spinnerBtns { display: flex; flex-direction: column; gap: 1px; }
-.spinnerBtn {
-  width: 22px; height: 14px; padding: 0; border: 1px solid var(--border2);
-  background: var(--bg); color: var(--text3); font-size: 8px; line-height: 1;
+/* Percentage stepper */
+.pctStepper { display: flex; align-items: center; gap: 8px; }
+.stepBtn {
+  width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border2);
+  background: var(--surface); color: var(--text2); font-size: 18px; line-height: 1;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-family: inherit; transition: background 0.15s;
+  font-family: inherit; transition: all 0.15s; padding: 0;
 }
-.spinnerBtn:first-child { border-radius: 4px 4px 0 0; }
-.spinnerBtn:last-child { border-radius: 0 0 4px 4px; }
-.spinnerBtn:hover { background: var(--teal-pale); color: var(--teal); }
+.stepBtn:hover { border-color: var(--teal); background: var(--teal-pale); color: var(--teal); }
+.pctInputWrap {
+  display: flex; align-items: center; gap: 2px;
+  background: var(--surface); border: 1.5px solid var(--border2); border-radius: 10px;
+  padding: 6px 10px; transition: border-color 0.15s;
+}
+.pctInputWrap:focus-within { border-color: var(--teal); }
+.pctInput {
+  width: 40px; border: none; background: transparent; font-size: 16px;
+  font-weight: 600; font-family: inherit; color: var(--text); text-align: center;
+  outline: none;
+}
+.pctSign { font-size: 13px; color: var(--text3); font-weight: 500; }
 .applyBtn {
-  padding: 6px 14px; border-radius: 8px; border: 1.5px solid var(--teal);
-  background: var(--teal-pale); color: var(--teal); font-size: 13px;
+  padding: 6px 16px; border-radius: 8px; border: none;
+  background: var(--teal); color: #fff; font-size: 13px;
   font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s;
+  animation: fadeIn 0.15s ease;
 }
-.applyBtn:hover { background: var(--teal); color: #fff; }
+.applyBtn:hover { opacity: 0.85; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
 /* Summary card */
 .summaryCard {
