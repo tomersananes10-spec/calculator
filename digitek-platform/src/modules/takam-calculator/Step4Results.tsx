@@ -120,24 +120,46 @@ export function Step4Results({ state, dispatch, history, onSave, saving, saveMsg
                     aria-label="toggle matching"
                   />
                   {matchingOn && (
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      className={s.numInput}
-                      value={localMatchingPct}
-                      onChange={e => {
-                        const raw = e.target.value
-                        if (raw === '' || /^\d{1,3}$/.test(raw)) setLocalMatchingPct(raw)
-                      }}
-                      onBlur={() => {
+                    <div className={s.spinnerWrap}>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        className={s.numInput}
+                        value={localMatchingPct}
+                        onChange={e => {
+                          const raw = e.target.value
+                          if (raw === '' || /^\d{1,3}$/.test(raw)) setLocalMatchingPct(raw)
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            const v = parseInt(localMatchingPct, 10)
+                            const clamped = Math.min(100, Math.max(1, isNaN(v) ? 30 : v))
+                            dispatch({ type: 'SET_MATCHING_PCT', payload: clamped })
+                            setLocalMatchingPct(String(clamped))
+                          }
+                        }}
+                      />
+                      <div className={s.spinnerBtns}>
+                        <button className={s.spinnerBtn} onClick={() => {
+                          const next = Math.min(100, (parseInt(localMatchingPct, 10) || 0) + 1)
+                          setLocalMatchingPct(String(next))
+                          dispatch({ type: 'SET_MATCHING_PCT', payload: next })
+                        }}>▲</button>
+                        <button className={s.spinnerBtn} onClick={() => {
+                          const next = Math.max(1, (parseInt(localMatchingPct, 10) || 0) - 1)
+                          setLocalMatchingPct(String(next))
+                          dispatch({ type: 'SET_MATCHING_PCT', payload: next })
+                        }}>▼</button>
+                      </div>
+                      <span className={s.unit}>%</span>
+                      <button className={s.applyBtn} onClick={() => {
                         const v = parseInt(localMatchingPct, 10)
                         const clamped = Math.min(100, Math.max(1, isNaN(v) ? 30 : v))
                         dispatch({ type: 'SET_MATCHING_PCT', payload: clamped })
                         setLocalMatchingPct(String(clamped))
-                      }}
-                    />
+                      }}>בחר</button>
+                    </div>
                   )}
-                  {matchingOn && <span className={s.unit}>%</span>}
                 </div>
               </div>
               <div className={s.controlItem}>
