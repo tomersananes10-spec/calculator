@@ -75,18 +75,19 @@ export function Profile() {
     setError(null)
 
     try {
-      const { error: authError } = await supabase.auth.updateUser({
-        data: { full_name: fullName, avatar_url: avatarUrl },
-      })
-      if (authError) {
-        setError(`שגיאה בעדכון פרטי משתמש: ${authError.message}`)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({ id: user.id, full_name: fullName, phone, address, logo_url: logoUrl, avatar_url: avatarUrl })
+
+      if (profileError) {
+        setError(`שגיאה בעדכון פרופיל: ${profileError.message}`)
         setSaving(false)
         return
       }
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({ id: user.id, full_name: fullName, phone, address, logo_url: logoUrl, avatar_url: avatarUrl })
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { full_name: fullName, avatar_url: avatarUrl },
+      })
 
       if (profileError) {
         setError(`שגיאה בעדכון פרופיל: ${profileError.message}`)
