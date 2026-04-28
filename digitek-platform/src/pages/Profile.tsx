@@ -18,6 +18,7 @@ export function Profile() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -40,15 +41,21 @@ export function Profile() {
   }, [user])
 
   const uploadFile = async (file: File, bucket: string, path: string) => {
-    const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true })
-    if (error) return null
-    const { data } = supabase.storage.from(bucket).getPublicUrl(path)
+    const ext = file.name.split('.').pop()
+    const fullPath = ext ? `${path}.${ext}` : path
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(fullPath, file, { upsert: true })
+    if (uploadError) {
+      setError(`שגיאה בהעלאת קובץ: ${uploadError.message}`)
+      return null
+    }
+    const { data } = supabase.storage.from(bucket).getPublicUrl(fullPath)
     return data.publicUrl
   }
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !user) return
+    setError(null)
     const url = await uploadFile(file, 'logos', `${user.id}/logo`)
     if (url) setLogoUrl(url)
   }
@@ -56,6 +63,7 @@ export function Profile() {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !user) return
+    setError(null)
     const url = await uploadFile(file, 'avatars', `${user.id}/avatar`)
     if (url) setAvatarUrl(url)
   }
@@ -105,6 +113,7 @@ export function Profile() {
       </div>
 
       {success && <div className={styles.successMsg}>הפרופיל עודכן בהצלחה</div>}
+      {error && <div className={styles.errorMsg}>{error}</div>}
 
       {/* Logo */}
       <div className={styles.card}>

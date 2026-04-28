@@ -255,6 +255,17 @@
   text-align: center;
 }
 
+.errorMsg {
+  background: #fef2f2;
+  color: var(--red);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
 @media (max-width: 600px) {
   .page {
     padding: 20px 12px 60px;
