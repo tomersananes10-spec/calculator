@@ -44,10 +44,12 @@ export function Roved5() {
     setAiLoading(false)
   }, [])
 
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => triggerAiSearch(query), 800)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  const handleAiClick = useCallback(() => {
+    if (query.trim().length >= 3) {
+      triggerAiSearch(query)
+    } else {
+      inputRef.current?.focus()
+    }
   }, [query, triggerAiSearch])
 
   // Reset page when filters change
@@ -112,8 +114,8 @@ export function Roved5() {
           {aiLoading && <span className={styles.spinner}>⟳</span>}
           {query && <button className={styles.clearBtn} onClick={reset}>✕</button>}
         </div>
-        <button className={styles.aiBtn} onClick={() => inputRef.current?.focus()}>
-          🤖 AI Recommend
+        <button className={styles.aiBtn} onClick={handleAiClick} disabled={aiLoading}>
+          {aiLoading ? '⟳ מחפש...' : '🤖 AI Recommend'}
         </button>
       </div>
 

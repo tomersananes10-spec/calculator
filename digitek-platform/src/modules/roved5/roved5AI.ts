@@ -29,9 +29,29 @@ const HEBREW_STOP_WORDS = new Set([
   'גם', 'או', 'אם', 'כי', 'אבל', 'לא', 'כן', 'רק', 'עוד', 'כבר',
   'שעוזרת', 'שעוזר', 'שיכול', 'שיכולה', 'שמאפשר', 'שמאפשרת',
   'טוב', 'טובה', 'הכי', 'ביותר', 'יותר', 'פחות',
+  'כלי', 'כלים', 'מערכת', 'מערכות', 'שירות', 'שירותים', 'פתרון', 'פתרונות', 'מוצר', 'מוצרים', 'תוכנה', 'תוכנות', 'פלטפורמה',
   'the', 'a', 'an', 'is', 'are', 'for', 'and', 'or', 'to', 'in', 'with', 'that', 'this',
-  'i', 'we', 'need', 'want', 'looking',
+  'i', 'we', 'need', 'want', 'looking', 'tool', 'tools', 'system', 'service', 'solution', 'platform',
 ])
+
+function stemHebrew(word: string): string[] {
+  const results = [word]
+  let w = word
+
+  const prefixes = /^(וב|וה|וכ|ול|ומ|וש|שב|שה|שכ|של|שמ|לב|לה|לכ|למ|ב|ה|ו|כ|ל|מ|ש)/
+  if (w.length > 3) {
+    const stripped = w.replace(prefixes, '')
+    if (stripped.length >= 2) { w = stripped; results.push(w) }
+  }
+
+  const suffixes = /(?:ים|ות|ית|ת|ה|ן|ם)$/
+  if (w.length > 3) {
+    const stripped = w.replace(suffixes, '')
+    if (stripped.length >= 2) results.push(stripped)
+  }
+
+  return [...new Set(results)]
+}
 
 export async function aiSearch(query: string, services: Roved5Service[]): Promise<AISearchResult[]> {
   const serviceList = services
@@ -76,16 +96,20 @@ ${serviceList}
 }
 
 export function keywordSearch(query: string, services: Roved5Service[]): Roved5Service[] {
-  const terms = query.toLowerCase().trim().split(/\s+/)
+  const cleanTerms = query.toLowerCase().trim().split(/\s+/)
     .filter(t => t.length >= 2 && !HEBREW_STOP_WORDS.has(t))
 
-  if (!terms.length) return services
+  if (!cleanTerms.length) return []
+
+  const termVariants = cleanTerms.map(stemHebrew)
 
   return services
     .map(s => {
       const haystack = `${s.name} ${s.description} ${s.manufacturer} ${s.provider}`.toLowerCase()
-      const matchCount = terms.filter(t => haystack.includes(t)).length
-      return { service: s, score: matchCount / terms.length }
+      const matchCount = termVariants.filter(variants =>
+        variants.some(v => haystack.includes(v))
+      ).length
+      return { service: s, score: matchCount / termVariants.length }
     })
     .filter(r => r.score >= 0.5)
     .sort((a, b) => b.score - a.score)
