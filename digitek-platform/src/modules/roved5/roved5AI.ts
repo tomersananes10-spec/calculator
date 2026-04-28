@@ -53,6 +53,19 @@ function stemHebrew(word: string): string[] {
   return [...new Set(results)]
 }
 
+function expandTerms(term: string): string[] {
+  const variants = stemHebrew(term)
+
+  if (term.length >= 6) {
+    for (let i = 3; i <= term.length - 3; i++) {
+      variants.push(...stemHebrew(term.slice(0, i)))
+      variants.push(...stemHebrew(term.slice(i)))
+    }
+  }
+
+  return [...new Set(variants)]
+}
+
 export async function aiSearch(query: string, services: Roved5Service[]): Promise<AISearchResult[]> {
   const serviceList = services
     .map(s => `[${s.id}] ${s.name} | ${s.manufacturer} | ${s.description} | ${s.cloud} | ${s.type}`)
@@ -72,6 +85,9 @@ ${serviceList}
 
 כלול רק שירותים עם score >= 6. מיין לפי score יורד. מקסימום 20 תוצאות.`
 
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 15000)
+
   try {
     const res = await fetch('/api/ai-advisor', {
       method: 'POST',
@@ -79,7 +95,10 @@ ${serviceList}
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
       }),
+      signal: controller.signal,
     })
+
+    clearTimeout(timeoutId)
 
     if (!res.ok) return []
     const data = await res.json()
@@ -91,6 +110,7 @@ ${serviceList}
     const parsed = JSON.parse(raw)
     return parsed.results || []
   } catch {
+    clearTimeout(timeoutId)
     return []
   }
 }
@@ -101,7 +121,7 @@ export function keywordSearch(query: string, services: Roved5Service[]): Roved5S
 
   if (!cleanTerms.length) return []
 
-  const termVariants = cleanTerms.map(stemHebrew)
+  const termVariants = cleanTerms.map(expandTerms)
 
   return services
     .map(s => {

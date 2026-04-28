@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import type { Roved5Service, AISearchResult } from './types'
 import { aiSearch, keywordSearch, categorizeService } from './roved5AI'
 import type { ServiceCategory } from './roved5AI'
@@ -12,35 +12,64 @@ type CloudFilter = 'all' | 'AWS' | 'GCP'
 type TypeFilter  = 'all' | 'SaaS' | 'non-SaaS'
 type CatFilter = 'all' | ServiceCategory
 
-const CAT_LABELS: Record<CatFilter, string> = {
-  all:       'הכל',
+const CAT_LABELS: Record<ServiceCategory, string> = {
   compute:   'Compute',
   storage:   'Storage',
   database:  'Database',
-  ai_ml:     'AI/ML',
+  ai_ml:     'AI / ML',
   security:  'Security',
   analytics: 'Analytics',
 }
 
-const PAGE_SIZE = 25
+const CAT_ICONS: Record<ServiceCategory, string> = {
+  compute:   '⚡',
+  storage:   '💾',
+  database:  '🗄️',
+  ai_ml:     '🧠',
+  security:  '🛡️',
+  analytics: '📊',
+}
+
+const CAT_STYLE: Record<ServiceCategory, string> = {
+  security:  'catSecurity',
+  database:  'catDatabase',
+  storage:   'catStorage',
+  compute:   'catCompute',
+  ai_ml:     'catAiMl',
+  analytics: 'catAnalytics',
+}
+
+const PAGE_SIZE = 24
 
 export function Roved5() {
-  const [query,       setQuery]       = useState('')
-  const [cloudFilter, setCloudFilter] = useState<CloudFilter>('all')
-  const [typeFilter,  setTypeFilter]  = useState<TypeFilter>('all')
-  const [catFilter,   setCatFilter]   = useState<CatFilter>('all')
-  const [aiResults,   setAiResults]   = useState<AISearchResult[] | null>(null)
-  const [aiLoading,   setAiLoading]   = useState(false)
-  const [selected,    setSelected]    = useState<Roved5Service | null>(null)
-  const [page,        setPage]        = useState(1)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const inputRef    = useRef<HTMLInputElement>(null)
+  const [query,          setQuery]          = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [cloudFilter,    setCloudFilter]    = useState<CloudFilter>('all')
+  const [typeFilter,     setTypeFilter]     = useState<TypeFilter>('all')
+  const [catFilter,      setCatFilter]      = useState<CatFilter>('all')
+  const [aiResults,      setAiResults]      = useState<AISearchResult[] | null>(null)
+  const [aiLoading,      setAiLoading]      = useState(false)
+  const [aiError,        setAiError]        = useState<string | null>(null)
+  const [selected,       setSelected]       = useState<Roved5Service | null>(null)
+  const [page,           setPage]           = useState(1)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 300)
+    return () => clearTimeout(t)
+  }, [query])
 
   const triggerAiSearch = useCallback(async (q: string) => {
     if (!q.trim() || q.trim().length < 3) { setAiResults(null); return }
     setAiLoading(true)
+    setAiError(null)
     const results = await aiSearch(q, services)
-    setAiResults(results.length > 0 ? results : null)
+    if (results.length > 0) {
+      setAiResults(results)
+    } else {
+      setAiResults(null)
+      setAiError('חיפוש AI לא זמין כרגע — נסה חיפוש טקסט רגיל')
+    }
     setAiLoading(false)
   }, [])
 
@@ -52,34 +81,44 @@ export function Roved5() {
     }
   }, [query, triggerAiSearch])
 
-  // Reset page when filters change
-  useEffect(() => { setPage(1) }, [query, cloudFilter, typeFilter, catFilter])
+  useEffect(() => { setPage(1) }, [debouncedQuery, cloudFilter, typeFilter, catFilter])
 
-  // Build displayed list
+  const serviceCategories = useMemo(() => {
+    const map = new Map<string, ServiceCategory | null>()
+    services.forEach(s => map.set(s.id, categorizeService(s)))
+    return map
+  }, [])
+
+  const catCounts = useMemo(() => {
+    const counts: Record<ServiceCategory, number> = { security: 0, database: 0, storage: 0, compute: 0, ai_ml: 0, analytics: 0 }
+    serviceCategories.forEach(cat => { if (cat) counts[cat]++ })
+    return counts
+  }, [serviceCategories])
+
+  const awsCount = useMemo(() => services.filter(s => s.cloud === 'AWS').length, [])
+  const gcpCount = useMemo(() => services.filter(s => s.cloud === 'GCP').length, [])
+
   let displayed: Roved5Service[]
   if (aiResults && query.trim().length >= 3) {
     displayed = aiResults.map(r => services.find(s => s.id === r.id)).filter((s): s is Roved5Service => !!s)
-  } else if (query.trim().length >= 2) {
-    displayed = keywordSearch(query, services)
+  } else if (debouncedQuery.trim().length >= 2) {
+    displayed = keywordSearch(debouncedQuery, services)
   } else {
     displayed = services
   }
   if (cloudFilter !== 'all') displayed = displayed.filter(s => s.cloud === cloudFilter)
   if (typeFilter  !== 'all') displayed = displayed.filter(s => s.type  === typeFilter)
-  if (catFilter   !== 'all') displayed = displayed.filter(s => categorizeService(s) === catFilter)
+  if (catFilter   !== 'all') displayed = displayed.filter(s => serviceCategories.get(s.id) === catFilter)
 
-  const awsCount = services.filter(s => s.cloud === 'AWS').length
-  const gcpCount = services.filter(s => s.cloud === 'GCP').length
-  const catCounts: Record<ServiceCategory, number> = { security: 0, database: 0, storage: 0, compute: 0, ai_ml: 0, analytics: 0 }
-  services.forEach(s => { const c = categorizeService(s); if (c) catCounts[c]++ })
   const isAIMode = !!aiResults && query.trim().length >= 3
-
   const totalPages = Math.ceil(displayed.length / PAGE_SIZE)
   const pageItems  = displayed.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   function reset() {
     setQuery('')
+    setDebouncedQuery('')
     setAiResults(null)
+    setAiError(null)
     setCloudFilter('all')
     setTypeFilter('all')
     setCatFilter('all')
@@ -89,17 +128,13 @@ export function Roved5() {
 
   return (
     <div className={styles.page}>
-      {/* Page Header */}
       <div className={styles.pageHeader}>
-        <div>
-          <h1 className={styles.pageTitle}>קטלוג רובד 5</h1>
-          <p className={styles.pageSub}>
-            {services.length.toLocaleString()} שירותים · GCP: {gcpCount} · AWS: {awsCount}
-          </p>
-        </div>
+        <h1 className={styles.pageTitle}>קטלוג רובד 5</h1>
+        <p className={styles.pageSub}>
+          {services.length.toLocaleString()} שירותים &middot; GCP: {gcpCount} &middot; AWS: {awsCount}
+        </p>
       </div>
 
-      {/* Search + Filters bar */}
       <div className={styles.searchBar}>
         <div className={styles.searchInputWrap}>
           <span className={styles.searchIcon}>🔍</span>
@@ -107,21 +142,22 @@ export function Roved5() {
             ref={inputRef}
             className={styles.searchInput}
             type="text"
-            placeholder="חיפוש שירותי ענן..."
+            placeholder='חיפוש חופשי — למשל: "גיבוי", "אבטחה", "AI"...'
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={e => { setQuery(e.target.value); setAiResults(null); setAiError(null) }}
+            onKeyDown={e => { if (e.key === 'Enter') handleAiClick() }}
           />
-          {aiLoading && <span className={styles.spinner}>⟳</span>}
-          {query && <button className={styles.clearBtn} onClick={reset}>✕</button>}
+          {aiLoading && <span className={styles.spinner} />}
+          {query && !aiLoading && <button className={styles.clearBtn} onClick={reset}>✕</button>}
         </div>
         <button className={styles.aiBtn} onClick={handleAiClick} disabled={aiLoading}>
-          {aiLoading ? '⟳ מחפש...' : '🤖 AI Recommend'}
+          {aiLoading ? '⏳ מחפש...' : '✨ חיפוש חכם'}
         </button>
       </div>
 
-      {/* Filter chips */}
+      {aiError && <div className={styles.aiErrorBar}>{aiError}</div>}
+
       <div className={styles.filterRow}>
-        {/* Cloud */}
         {(['all', 'GCP', 'AWS'] as CloudFilter[]).map(f => (
           <button
             key={f}
@@ -132,7 +168,6 @@ export function Roved5() {
           </button>
         ))}
         <span className={styles.chipDivider} />
-        {/* Type */}
         {(['SaaS', 'non-SaaS'] as TypeFilter[]).map(f => (
           <button
             key={f}
@@ -143,83 +178,85 @@ export function Roved5() {
           </button>
         ))}
         <span className={styles.chipDivider} />
-        {/* Category */}
-        {(Object.keys(CAT_LABELS) as CatFilter[]).slice(1).map(f => (
+        {(Object.keys(CAT_LABELS) as ServiceCategory[]).map(f => (
           <button
             key={f}
             className={`${styles.chip} ${catFilter === f ? styles.chipActive : ''}`}
             onClick={() => setCatFilter(prev => prev === f ? 'all' : f)}
           >
-            {CAT_LABELS[f]} ({catCounts[f as ServiceCategory]})
+            {CAT_ICONS[f]} {CAT_LABELS[f]} ({catCounts[f]})
           </button>
         ))}
       </div>
 
-      {/* Results info */}
       <div className={styles.resultsInfo}>
-        {isAIMode && <span className={styles.aiBadge}>✨ חיפוש חכם</span>}
-        <span className={styles.resultsCount}>
-          מציג {Math.min((page - 1) * PAGE_SIZE + 1, displayed.length)}–{Math.min(page * PAGE_SIZE, displayed.length)} מתוך {displayed.length.toLocaleString()}
-        </span>
+        {isAIMode && <span className={styles.aiBadge}>✨ תוצאות חיפוש חכם</span>}
+        {displayed.length > 0 && (
+          <span className={styles.resultsCount}>
+            מציג {Math.min((page - 1) * PAGE_SIZE + 1, displayed.length)}–{Math.min(page * PAGE_SIZE, displayed.length)} מתוך {displayed.length.toLocaleString()}
+          </span>
+        )}
       </div>
 
-      {/* Table */}
-      <div className={styles.tableCard}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>מק"ט</th>
-              <th>שירות</th>
-              <th>ספק</th>
-              <th>יצרן</th>
-              <th>סוג</th>
-              <th>הנחה %</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {pageItems.length === 0 ? (
-              <tr>
-                <td colSpan={7} className={styles.emptyRow}>לא נמצאו שירותים מתאימים</td>
-              </tr>
-            ) : (
-              pageItems.map(service => {
-                const aiResult = aiResults?.find(r => r.id === service.id)
-                const discount = typeof service.discount === 'number' ? `${service.discount}%` : service.discount || '—'
-                return (
-                  <tr key={service.id} onClick={() => setSelected(service)} className={styles.tableRow}>
-                    <td><code className={styles.sku}>{service.id}</code></td>
-                    <td>
-                      <div className={styles.serviceName}>{service.name}</div>
-                      <div className={styles.serviceDesc}>{service.description}</div>
-                      {aiResult && <div className={styles.aiReason}>✨ {aiResult.reason}</div>}
-                    </td>
-                    <td>{service.provider}</td>
-                    <td>
-                      <span className={`${styles.mfgBadge} ${service.cloud === 'GCP' ? styles.mfgGCP : styles.mfgAWS}`}>
-                        {service.manufacturer || service.cloud}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`${styles.typeBadge} ${service.type === 'SaaS' ? styles.typeSaaS : styles.typeNonSaaS}`}>
-                        {service.type}
-                      </span>
-                    </td>
-                    <td className={styles.discountCell}>{discount}</td>
-                    <td>
-                      <div className={styles.rowActions} onClick={e => e.stopPropagation()}>
-                        <button className={styles.actionBtn} onClick={() => setSelected(service)}>פרטים</button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+      {pageItems.length === 0 ? (
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIcon}>🔍</div>
+          <div className={styles.emptyTitle}>לא נמצאו שירותים מתאימים</div>
+          <div className={styles.emptyDesc}>נסה מילות חיפוש אחרות או לחץ על &ldquo;חיפוש חכם&rdquo;</div>
+        </div>
+      ) : (
+        <div className={styles.cardGrid}>
+          {pageItems.map(service => {
+            const aiResult = aiResults?.find(r => r.id === service.id)
+            const cat = serviceCategories.get(service.id)
+            const discount = typeof service.discount === 'number' ? `${service.discount}%` : service.discount || null
+            const cloudClass = service.cloud === 'GCP' ? styles.cardGCP : styles.cardAWS
 
-      {/* Pagination */}
+            return (
+              <div key={service.id} className={`${styles.card} ${cloudClass}`} onClick={() => setSelected(service)}>
+                <div className={styles.cardBadges}>
+                  <span className={`${styles.badge} ${service.cloud === 'GCP' ? styles.badgeGCP : styles.badgeAWS}`}>
+                    {service.cloud}
+                  </span>
+                  <span className={`${styles.badge} ${service.type === 'SaaS' ? styles.badgeSaaS : styles.badgeNonSaaS}`}>
+                    {service.type}
+                  </span>
+                  {cat && (
+                    <span className={`${styles.badge} ${styles[CAT_STYLE[cat]]}`}>
+                      {CAT_ICONS[cat]} {CAT_LABELS[cat]}
+                    </span>
+                  )}
+                  <span className={styles.cardSku}>{service.id}</span>
+                </div>
+
+                <div className={styles.cardTitle}>{service.name}</div>
+                <div className={styles.cardDesc}>{service.description}</div>
+
+                <div className={styles.cardMeta}>
+                  <span className={styles.cardMetaLabel}>יצרן: </span>{service.manufacturer || '—'}
+                  <span className={styles.cardMetaSep}> · </span>
+                  <span className={styles.cardMetaLabel}>ספק: </span>{service.provider}
+                </div>
+
+                <div className={styles.cardFooter}>
+                  {discount
+                    ? <span className={styles.cardDiscount}>💰 הנחה {discount}</span>
+                    : <span className={styles.cardNoDiscount}>—</span>
+                  }
+                  <button className={styles.cardAction} onClick={e => { e.stopPropagation(); setSelected(service) }}>
+                    פרטים ←
+                  </button>
+                </div>
+
+                {aiResult && (
+                  <div className={styles.cardAiReason}>✨ {aiResult.reason}</div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       {totalPages > 1 && (
         <div className={styles.pagination}>
           <button className={styles.pageBtn} disabled={page === 1} onClick={() => setPage(p => p - 1)}>›</button>
