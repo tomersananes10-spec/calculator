@@ -1,7 +1,37 @@
 import type { Roved5Service, AISearchResult } from './types'
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
+export type ServiceCategory = 'security' | 'database' | 'storage' | 'compute' | 'ai_ml' | 'analytics'
+
+const CATEGORY_PATTERNS: Record<ServiceCategory, RegExp> = {
+  security: /WAF|firewall|security|אבטח|הצפנה|הגנה|XDR|SIEM|vulnerability|threat|antivirus|malware|cyber|CASB|ZTNA|endpoint|DLP|SOAR|Cortex|חולשות|סריקה|הלבנה|SecuPi|Memcyco|SpecterX/i,
+  database: /database|DB|redis|mongo|couchbase|SQL|postgres|elastic|search|data.*base|נתונים|Aerospike|illumex|סמנטי/i,
+  storage: /backup|storage|גיבוי|אחסון|archive|blob|S3|file|NAS|recovery|CTERA|שחזור|סנכרון|קבצים|העברה|Flux|Commvault.*Node|Zerto|המשכיות עסקית/i,
+  compute: /compute|VM|virtual|container|kubernetes|docker|serverless|ECS|fargate|lambda|instance|DaaS|desktop|מחשב מרוחק|IoT|load.balanc|עומסים|איזון|ADC|Alteon|delivery.controller|Citrix|Spot.*NetApp|ייעול.*עלויות/i,
+  ai_ml: /\bAI\b|ML|machine.learning|deep.learning|NLP|GPT|vision|neural|בינה|למידה|Confidential.Computing|מוצפן|Modelyo/i,
+  analytics: /analytics|monitoring|observ|log|dashboard|BI|visualization|Grafana|ניתוח|מעקב|דוחות|Datadog|Coralogix|Splunk|SnapLogic|ETL|ELT|integra|data.*platform|ERP|ניהול|ניטור|תפעול|CRM|ServiceNow|LowCode|low.code|פיתוח|Pub.Sub|מסרים|Kafka|Confluent|Foundry|OpsRamp|אוטומציה|Audity|בקרה|וידאו|Pexip|תקשורת|PortX|iConduct|FADDOM|מיפוי|Toonimo|הדרכ|InterSystems|רפואי/i,
+}
+
+export function categorizeService(service: Roved5Service): ServiceCategory | null {
+  const text = `${service.name} ${service.description} ${service.manufacturer}`
+  for (const [cat, regex] of Object.entries(CATEGORY_PATTERNS)) {
+    if (regex.test(text)) return cat as ServiceCategory
+  }
+  return null
+}
+
+const HEBREW_STOP_WORDS = new Set([
+  'אני', 'אתה', 'את', 'הוא', 'היא', 'אנחנו', 'הם', 'הן',
+  'של', 'על', 'עם', 'אל', 'מן', 'בין', 'לפי', 'כמו', 'עד',
+  'רוצה', 'צריך', 'צריכה', 'רוצים', 'מחפש', 'מחפשת', 'מחפשים',
+  'לי', 'לו', 'לה', 'לנו', 'להם', 'שלי', 'שלו', 'שלה', 'שלנו',
+  'זה', 'זו', 'זאת', 'אלה', 'אלו', 'הזה', 'הזאת',
+  'יש', 'אין', 'היה', 'היתה', 'יהיה', 'כל', 'כמה', 'הרבה', 'מאוד',
+  'גם', 'או', 'אם', 'כי', 'אבל', 'לא', 'כן', 'רק', 'עוד', 'כבר',
+  'שעוזרת', 'שעוזר', 'שיכול', 'שיכולה', 'שמאפשר', 'שמאפשרת',
+  'טוב', 'טובה', 'הכי', 'ביותר', 'יותר', 'פחות',
+  'the', 'a', 'an', 'is', 'are', 'for', 'and', 'or', 'to', 'in', 'with', 'that', 'this',
+  'i', 'we', 'need', 'want', 'looking',
+])
 
 export async function aiSearch(query: string, services: Roved5Service[]): Promise<AISearchResult[]> {
   const serviceList = services
@@ -18,12 +48,12 @@ export async function aiSearch(query: string, services: Roved5Service[]): Promis
 ${serviceList}
 
 החזר JSON בלבד ללא טקסט נוסף, ללא markdown, ללא קוד בלוקים:
-{"results":[{"id":"מק\"ט","score":8,"reason":"הסבר קצר בעברית מדוע השירות מתאים"}]}
+{"results":[{"id":"מק\\"ט","score":8,"reason":"הסבר קצר בעברית מדוע השירות מתאים"}]}
 
 כלול רק שירותים עם score >= 6. מיין לפי score יורד. מקסימום 20 תוצאות.`
 
   try {
-    const res = await fetch(GEMINI_URL, {
+    const res = await fetch('/api/ai-advisor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -31,8 +61,9 @@ ${serviceList}
       }),
     })
 
+    if (!res.ok) return []
     const data = await res.json()
-    if (!res.ok || data.error) return []
+    if (data.error) return []
 
     let raw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
     raw = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '')
@@ -45,11 +76,18 @@ ${serviceList}
 }
 
 export function keywordSearch(query: string, services: Roved5Service[]): Roved5Service[] {
-  const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean)
+  const terms = query.toLowerCase().trim().split(/\s+/)
+    .filter(t => t.length >= 2 && !HEBREW_STOP_WORDS.has(t))
+
   if (!terms.length) return services
 
-  return services.filter(s => {
-    const haystack = `${s.name} ${s.description} ${s.manufacturer} ${s.provider}`.toLowerCase()
-    return terms.some(t => haystack.includes(t))
-  })
+  return services
+    .map(s => {
+      const haystack = `${s.name} ${s.description} ${s.manufacturer} ${s.provider}`.toLowerCase()
+      const matchCount = terms.filter(t => haystack.includes(t)).length
+      return { service: s, score: matchCount / terms.length }
+    })
+    .filter(r => r.score >= 0.5)
+    .sort((a, b) => b.score - a.score)
+    .map(r => r.service)
 }

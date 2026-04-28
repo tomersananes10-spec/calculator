@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { Roved5Service, AISearchResult } from './types'
-import { aiSearch, keywordSearch } from './roved5AI'
+import { aiSearch, keywordSearch, categorizeService } from './roved5AI'
+import type { ServiceCategory } from './roved5AI'
 import { ServiceModal } from './ServiceModal'
 import styles from './Roved5.module.css'
 import allServices from '../../data/roved5Services.json'
@@ -9,7 +10,7 @@ const services = allServices as Roved5Service[]
 
 type CloudFilter = 'all' | 'AWS' | 'GCP'
 type TypeFilter  = 'all' | 'SaaS' | 'non-SaaS'
-type CatFilter   = 'all' | 'compute' | 'storage' | 'database' | 'ai_ml' | 'security' | 'analytics'
+type CatFilter = 'all' | ServiceCategory
 
 const CAT_LABELS: Record<CatFilter, string> = {
   all:       'הכל',
@@ -63,9 +64,12 @@ export function Roved5() {
   }
   if (cloudFilter !== 'all') displayed = displayed.filter(s => s.cloud === cloudFilter)
   if (typeFilter  !== 'all') displayed = displayed.filter(s => s.type  === typeFilter)
+  if (catFilter   !== 'all') displayed = displayed.filter(s => categorizeService(s) === catFilter)
 
   const awsCount = services.filter(s => s.cloud === 'AWS').length
   const gcpCount = services.filter(s => s.cloud === 'GCP').length
+  const catCounts: Record<ServiceCategory, number> = { security: 0, database: 0, storage: 0, compute: 0, ai_ml: 0, analytics: 0 }
+  services.forEach(s => { const c = categorizeService(s); if (c) catCounts[c]++ })
   const isAIMode = !!aiResults && query.trim().length >= 3
 
   const totalPages = Math.ceil(displayed.length / PAGE_SIZE)
@@ -144,7 +148,7 @@ export function Roved5() {
             className={`${styles.chip} ${catFilter === f ? styles.chipActive : ''}`}
             onClick={() => setCatFilter(prev => prev === f ? 'all' : f)}
           >
-            {CAT_LABELS[f]}
+            {CAT_LABELS[f]} ({catCounts[f as ServiceCategory]})
           </button>
         ))}
       </div>
