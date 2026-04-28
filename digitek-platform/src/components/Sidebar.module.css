@@ -1,7 +1,7 @@
 .sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
-  background: var(--navy);
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -22,56 +22,94 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  gap: 14px;
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   text-decoration: none;
   cursor: pointer;
+  transition: opacity 0.15s;
 }
+
+.brand:hover {
+  opacity: 0.85;
+}
+
 .brandIcon {
-  font-size: 28px;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
   line-height: 1;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+}
+
 .brandName {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 800;
   color: #fff;
+  letter-spacing: 1px;
 }
+
 .brandSub {
   font-size: 11px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 400;
 }
 
 /* Nav */
 .nav {
   flex: 1;
-  padding: 12px 8px;
+  padding: 16px 10px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .navItem {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  color: rgba(255,255,255,0.65);
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.55);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.15s, color 0.15s;
+  transition: all 0.2s;
   min-height: 44px;
+  position: relative;
 }
+
 .navItem:hover {
-  background: rgba(255,255,255,0.07);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
 }
+
 .navItemActive {
-  background: var(--primary-bg) !important;
-  color: var(--primary) !important;
+  background: rgba(59, 130, 246, 0.12) !important;
+  color: #60a5fa !important;
+}
+
+.navItemActive::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: var(--primary-light);
+  border-radius: 3px 0 0 3px;
 }
 
 .navIcon {
@@ -80,27 +118,31 @@
   text-align: center;
   flex-shrink: 0;
 }
+
 .navLabel {
   flex: 1;
 }
+
 .navBadge {
-  background: var(--primary);
-  color: #fff;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
   font-size: 11px;
-  font-weight: 600;
-  padding: 1px 7px;
-  border-radius: 10px;
-  min-width: 20px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  min-width: 22px;
   text-align: center;
 }
+
 .navItemActive .navBadge {
-  background: var(--primary);
+  background: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
 }
 
 /* Bottom */
 .bottom {
-  padding: 8px 8px 16px;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 12px 10px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -109,51 +151,57 @@
 .userSection {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 12px;
+  padding: 10px 14px;
   margin-top: 4px;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 10px;
   transition: background 0.15s;
   cursor: pointer;
 }
+
 .userSection:hover {
-  background: rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.06);
 }
+
 .userAvatarImg {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
+
 .userAvatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--primary);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: #fff;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
+
 .userInfo {
   flex: 1;
   min-width: 0;
 }
+
 .userName {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255, 255, 255, 0.75);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ── Tablet (768px–1024px): sidebar always visible but narrower ── */
+/* ── Tablet (768px–1024px) ── */
 @media (max-width: 1024px) and (min-width: 769px) {
   .sidebar {
     width: 200px;
@@ -167,7 +215,7 @@
   }
 }
 
-/* ── Mobile (≤768px): sidebar as full-screen drawer ── */
+/* ── Mobile (≤768px) ── */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
@@ -195,13 +243,14 @@
     left: 16px;
     width: 44px;
     height: 44px;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
     color: #fff;
     font-size: 20px;
     cursor: pointer;
     z-index: 1;
+    backdrop-filter: blur(8px);
   }
 
   .brand {
