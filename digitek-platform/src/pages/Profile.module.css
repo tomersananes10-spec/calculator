@@ -10,7 +10,7 @@
   height: 140px;
   background: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%);
   border-radius: 0 0 20px 20px;
-  margin: 0 -24px 100px;
+  margin: 0 -24px 120px;
   overflow: visible;
 }
 
@@ -84,7 +84,8 @@
 
 .heroInfo {
   position: absolute;
-  bottom: -38px;
+  top: 100%;
+  margin-top: 8px;
   right: 156px;
   display: flex;
   flex-direction: column;
@@ -431,7 +432,8 @@
   .heroInfo {
     right: 50%;
     transform: translateX(50%);
-    bottom: -72px;
+    top: 100%;
+    margin-top: 48px;
     text-align: center;
     align-items: center;
     white-space: nowrap;
