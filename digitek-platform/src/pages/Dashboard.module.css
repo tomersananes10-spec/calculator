@@ -1,5 +1,5 @@
 .page {
-  padding: 32px 28px 60px;
+  padding: 20px 28px 20px;
   max-width: 1100px;
   margin: 0 auto;
 }
@@ -9,17 +9,17 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
 }
 .greeting {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 800;
   color: var(--text);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   letter-spacing: -0.5px;
 }
 .headerSub {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text3);
 }
 
@@ -27,39 +27,39 @@
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 .statCard {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 20px 20px 16px;
+  padding: 14px 16px 12px;
   box-shadow: var(--shadow);
   border: 1.5px solid var(--border);
 }
 .statValue {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .statLabel {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text2);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 .statTrend {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 .statAction {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 10px;
-  padding: 5px 14px;
+  margin-top: 6px;
+  padding: 4px 12px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   text-decoration: none;
   transition: filter 0.15s, transform 0.1s;
@@ -88,7 +88,13 @@
 .modulesGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 12px;
+}
+.secondaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 12px;
 }
 
 /* Cards */
@@ -97,21 +103,21 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   border: 1.5px solid var(--border);
-  padding: 24px;
+  padding: 16px 18px;
 }
 .cardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 .cardTitle {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text);
 }
 .viewAll {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--primary-light);
   text-decoration: none;
 }
@@ -123,12 +129,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 12px;
+  padding: 12px 12px;
   text-align: center;
   color: var(--text3);
-  font-size: 13px;
-  gap: 10px;
-  min-height: 100px;
+  font-size: 12px;
+  gap: 6px;
+  min-height: 60px;
 }
 .actionLink {
   color: var(--primary);
@@ -157,7 +163,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
+  padding: 7px 10px;
   border-radius: 8px;
   text-decoration: none;
   transition: background 0.15s;
@@ -205,7 +211,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
+  padding: 7px 10px;
   border-radius: 8px;
   text-decoration: none;
   transition: background 0.15s;
@@ -258,6 +264,7 @@
 @media (max-width: 900px) {
   .statsGrid { grid-template-columns: repeat(2, 1fr); }
   .modulesGrid { grid-template-columns: 1fr; }
+  .secondaryGrid { grid-template-columns: 1fr 1fr; }
 }
 
 /* ── Mobile ── */
@@ -269,7 +276,7 @@
   .header {
     flex-direction: column;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
   .greeting { font-size: 20px; }
@@ -277,13 +284,14 @@
   .statsGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
-  .statCard { padding: 14px 14px 12px; }
-  .statValue { font-size: 22px; }
+  .statCard { padding: 12px 12px 10px; }
+  .statValue { font-size: 20px; }
 
-  .modulesGrid { grid-template-columns: 1fr; gap: 12px; }
+  .modulesGrid { grid-template-columns: 1fr; gap: 10px; }
+  .secondaryGrid { grid-template-columns: 1fr; gap: 10px; }
 
-  .card { padding: 16px; }
+  .card { padding: 14px; }
 }

@@ -68,7 +68,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Module activity cards */}
+      {/* Main module cards — 2 columns */}
       <div className={styles.modulesGrid}>
         {/* TAKAM Calculator */}
         <div className={styles.card}>
@@ -143,7 +143,10 @@ export function Dashboard() {
             </div>
           )}
         </div>
+      </div>
 
+      {/* Secondary modules — 3 columns */}
+      <div className={styles.secondaryGrid}>
         {/* Layer 5 */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
@@ -151,7 +154,7 @@ export function Dashboard() {
             <Link to="/layer5" className={styles.viewAll}>פתח ←</Link>
           </div>
           <div className={styles.emptyState}>
-            <p>מודול רובד 5 — חישוב עלויות שכבה 5</p>
+            <p>חישוב עלויות שכבה 5</p>
             <Link to="/layer5" className={styles.actionLink}>כניסה למודול</Link>
           </div>
         </div>
@@ -163,7 +166,7 @@ export function Dashboard() {
             <Link to="/approvals" className={styles.viewAll}>פתח ←</Link>
           </div>
           <div className={styles.emptyState}>
-            <p>מסלולי אישור וועדות — בפיתוח</p>
+            <p>מסלולי אישור וועדות</p>
             <span className={styles.comingSoon}>בקרוב</span>
           </div>
         </div>
