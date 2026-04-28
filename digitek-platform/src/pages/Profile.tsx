@@ -38,7 +38,7 @@ export function Profile() {
           setLogoUrl(data.logo_url ?? null)
         }
       })
-  }, [user])
+  }, [user?.id])
 
   const uploadFile = async (file: File, bucket: string, path: string) => {
     const ext = file.name.split('.').pop()
