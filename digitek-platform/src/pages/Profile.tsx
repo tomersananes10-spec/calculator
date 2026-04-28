@@ -49,7 +49,7 @@ export function Profile() {
       return null
     }
     const { data } = supabase.storage.from(bucket).getPublicUrl(fullPath)
-    return data.publicUrl
+    return `${data.publicUrl}?t=${Date.now()}`
   }
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
