@@ -72,19 +72,35 @@ export function Profile() {
     if (!user) return
     setSaving(true)
     setSuccess(false)
+    setError(null)
 
-    await supabase.auth.updateUser({
-      data: { full_name: fullName, avatar_url: avatarUrl },
-    })
+    try {
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { full_name: fullName, avatar_url: avatarUrl },
+      })
+      if (authError) {
+        setError(`שגיאה בעדכון פרטי משתמש: ${authError.message}`)
+        setSaving(false)
+        return
+      }
 
-    await supabase
-      .from('profiles')
-      .update({ full_name: fullName, phone, address, logo_url: logoUrl, avatar_url: avatarUrl })
-      .eq('id', user.id)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({ id: user.id, full_name: fullName, phone, address, logo_url: logoUrl, avatar_url: avatarUrl })
 
-    setSaving(false)
-    setSuccess(true)
-    setTimeout(() => setSuccess(false), 3000)
+      if (profileError) {
+        setError(`שגיאה בעדכון פרופיל: ${profileError.message}`)
+        setSaving(false)
+        return
+      }
+
+      setSaving(false)
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 3000)
+    } catch (e: unknown) {
+      setError(`שגיאה לא צפויה: ${e instanceof Error ? e.message : String(e)}`)
+      setSaving(false)
+    }
   }
 
   const handleSignOut = async () => {
