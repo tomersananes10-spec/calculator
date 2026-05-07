@@ -1,101 +1,254 @@
-# CLAUDE.md — הוראות עבודה לפרויקט
+# CLAUDE.md — הוראות עבודה לפרויקט LIBA
 
 > קרא קובץ זה לפני כל פעולה. אל תשנה רכיבים ללא אישור מפורש.
+> **כל תשובה חייבת להיות בעברית.**
 
 ---
 
-## מהי המערכת
+## 1. מהי המערכת
 
-כלי פנים-ארגוני המשלב:
-- מחשבונים וחישובים מקצועיים
-- דשבורד ניהולי מרכזי
-- ממשק ללקוח / CRM קל
-
----
-
-## מבנה הדפים הקיימים
-
-| קובץ | תפקיד |
-|------|--------|
-| `dashboard.html` | דף הבית — מרכז ניווט לכל המודולים |
-| `takam-calculator.html` | מחשבון התכ"ם — הכלי הראשי |
-| `calculator.html` | מחשבון בסיסי |
-| `spec.html` | מפרט המערכת |
-| `takam-brainstorm.html` | סקיצות ורעיונות |
-
-### תיקיות:
-- `specs/` — מפרטים מפורטים לכל מודול
-- `plans/` — תכנון פיצ'רים עתידיים
-- `docs/superpowers/` — חומרי רקע
+**LIBA** — כלי פנים-ארגוני לניהול רכש ממשלתי, כולל:
+- מחשבון תכ"ם (תקן כוח מקצועי) — הכלי המרכזי
+- מחולל בריפים (Brief Generator) — wizard של 10 שלבים ליצירת מסמכי דרישה
+- רובד 5 — ניהול שירותים מאושרים לרכישה
+- דשבורד ניהולי מרכזי עם סטטיסטיקות אמיתיות
+- ניהול ספקים, פרויקטים, אישורים (stubs — בפיתוח)
 
 ---
 
-## כללי עיצוב — לא לשנות ללא אישור
+## 2. Stack טכנולוגי
 
-### משתני CSS (מוגדרים ב-:root)
+| שכבה | טכנולוגיה |
+|------|-----------|
+| Frontend | React 19 + TypeScript + Vite 8 |
+| Routing | react-router-dom v7 (SPA) |
+| Styling | CSS Modules + theme.css (משתני CSS גלובליים) |
+| Auth | Supabase Auth (Google OAuth + Email/Password) |
+| Database | Supabase PostgreSQL + RLS |
+| Storage | Supabase Storage (avatars, logos buckets) |
+| API Proxy | Vercel Serverless Functions (`/api/`) |
+| AI | Gemini 2.5 Flash (דרך `/api/ai-advisor`) |
+| Deploy | Vercel — branch `develop` → preview, `main` → production |
+| Export | docx (Word), html2pdf, xlsx |
+
+### Environment Variables
+```
+VITE_SUPABASE_URL          # Supabase project URL
+VITE_SUPABASE_ANON_KEY     # Supabase anon key
+VITE_BYPASS_AUTH=true       # (dev only) עוקף auth עם mock user
+GEMINI_API_KEY              # (server-side) עבור AI advisor
+```
+
+---
+
+## 3. מבנה הפרויקט
+
+```
+CLAUDE_CODE_TOMER/
+├── digitek-platform/              ← הפרויקט הראשי (React)
+│   ├── src/
+│   │   ├── App.tsx                ← Router — כל ה-routes
+│   │   ├── components/
+│   │   │   ├── AppLayout.tsx      ← Layout עם Sidebar + Topbar
+│   │   │   ├── Sidebar.tsx        ← תפריט צד
+│   │   │   ├── Topbar.tsx         ← בר עליון
+│   │   │   └── ProtectedRoute.tsx ← Auth guard
+│   │   ├── pages/
+│   │   │   ├── Dashboard.tsx      ← דף הבית — כרטיסי מודולים + סטטיסטיקות
+│   │   │   ├── Calculator.tsx     ← wrapper למחשבון תכ"ם
+│   │   │   ├── BriefGenerator.tsx ← wrapper לויזרד בריפים
+│   │   │   ├── Login.tsx          ← דף כניסה
+│   │   │   ├── Profile.tsx        ← פרופיל + העלאת תמונה
+│   │   │   ├── Admin.tsx          ← פאנל ניהול
+│   │   │   ├── Roved5Page.tsx     ← רובד 5
+│   │   │   ├── ApprovalsPage.tsx  ← אישורים (stub)
+│   │   │   ├── SuppliersPage.tsx  ← ספקים (stub)
+│   │   │   └── ProjectsPage.tsx   ← פרויקטים (stub)
+│   │   ├── modules/
+│   │   │   ├── takam-calculator/  ← מחשבון תכ"ם (4 שלבים)
+│   │   │   │   ├── TakamCalculator.tsx  ← Wizard ראשי
+│   │   │   │   ├── Step1Setup.tsx       ← הגדרות (לקוח, פרויקט, גודל)
+│   │   │   │   ├── Step2Roles.tsx       ← בחירת תפקידים
+│   │   │   │   ├── Step3Mix.tsx         ← תמהיל ו-matching
+│   │   │   │   ├── Step4Results.tsx     ← תוצאות + ייצוא
+│   │   │   │   ├── AiAdvisorModal.tsx   ← יועץ AI
+│   │   │   │   ├── HistoryPanel.tsx     ← פאנל היסטוריית חישובים
+│   │   │   │   ├── ShareDialog.tsx      ← דיאלוג שיתוף
+│   │   │   │   ├── calc.ts             ← לוגיקת חישוב (אסור לשנות ללא אישור)
+│   │   │   │   ├── data.ts             ← טבלאות תעריפים
+│   │   │   │   ├── types.ts            ← טיפוסים
+│   │   │   │   ├── useCalculator.ts    ← hook ראשי
+│   │   │   │   └── useCalculationHistory.ts ← שמירה/טעינה מ-Supabase
+│   │   │   ├── brief-generator/   ← מחולל בריפים (10 שלבים)
+│   │   │   │   ├── BriefWizard.tsx      ← Wizard ראשי
+│   │   │   │   ├── Step1-Step10*.tsx    ← שלבי הויזרד
+│   │   │   │   ├── briefAIHelper.ts     ← עזר AI למילוי שדות
+│   │   │   │   ├── briefData.ts         ← נתוני ברירת מחדל
+│   │   │   │   ├── types.ts             ← טיפוסים
+│   │   │   │   └── wordExport.ts        ← ייצוא ל-Word
+│   │   │   └── roved5/             ← רובד 5 — שירותים מאושרים
+│   │   │       ├── Roved5.tsx           ← רשימה + חיפוש
+│   │   │       ├── ServiceCard.tsx      ← כרטיס שירות
+│   │   │       ├── ServiceModal.tsx     ← מודל פרטים
+│   │   │       └── roved5AI.ts          ← חיפוש AI
+│   │   ├── lib/
+│   │   │   └── supabase.ts        ← Supabase client init
+│   │   ├── hooks/
+│   │   │   ├── useAuth.ts         ← auth + BYPASS_AUTH + admin check
+│   │   │   └── useBriefs.ts       ← CRUD בריפים
+│   │   ├── data/
+│   │   │   ├── briefTemplates.ts  ← תבניות בריפים
+│   │   │   ├── clusters.ts        ← אשכולות שירותים
+│   │   │   └── roved5Services.json ← נתוני רובד 5
+│   │   └── styles/
+│   │       └── theme.css          ← משתני CSS גלובליים
+│   ├── supabase/migrations/       ← מיגרציות DB
+│   └── vite.config.ts
+├── api/
+│   └── ai-advisor.ts              ← Vercel serverless — proxy ל-Gemini
+├── vercel.json                     ← Vercel config (build, rewrites)
+├── dashboard.html                  ← (legacy) דף HTML ישן
+├── takam-calculator.html           ← (legacy) מחשבון HTML ישן
+├── calculator.html                 ← (legacy) מחשבון בסיסי ישן
+└── CLAUDE.md                       ← הקובץ הזה
+```
+
+---
+
+## 4. Routes (App.tsx)
+
+| Route | דף | סטטוס |
+|-------|----|-------|
+| `/` | Dashboard | עובד |
+| `/calculator` | מחשבון תכ"ם | עובד |
+| `/briefs` | מחולל בריפים | עובד |
+| `/brief-generator` | מחולל בריפים (alias) | עובד |
+| `/layer5` | רובד 5 | עובד |
+| `/approvals` | אישורים | stub |
+| `/suppliers` | ספקים | stub |
+| `/projects` | פרויקטים | stub |
+| `/profile` | פרופיל משתמש | עובד |
+| `/admin` | פאנל ניהול | עובד |
+| `/login` | כניסה | עובד |
+
+---
+
+## 5. Supabase — טבלאות ו-RLS
+
+### טבלאות עיקריות:
+- `profiles` — פרטי משתמש (full_name, company, phone, address, logo_url)
+- `calculations` — חישובי תכ"ם (is_draft, current_step, data JSON)
+- `calculation_shares` — הרשאות שיתוף (view/edit)
+- `briefs` — בריפים שמורים
+- `admins` — טבלת admin
+
+### RPC Functions:
+- `check_is_admin()` — בדיקת admin (SECURITY DEFINER)
+- `admin_get_all_profiles()` — שליפת כל הפרופילים לפאנל admin
+
+### Storage Buckets:
+- `avatars` — תמונות פרופיל
+- `logos` — לוגואים של חברות
+
+---
+
+## 6. כללי עיצוב — לא לשנות ללא אישור
+
+### משתני CSS (מוגדרים ב-theme.css :root)
 ```css
---teal / --teal2 / --teal3     /* צבעי ראשי */
---teal-pale / --teal-mid       /* רקעים בהירים */
---navy / --slate               /* כהה */
---text / --text2 / --text3     /* טקסט */
---bg / --surface               /* רקע */
---border / --border2           /* מסגרות */
---green / --red / --amber      /* סטטוסים */
---radius: 12px
+/* Primary - Blue */
+--primary / --primary-light / --primary-bg / --primary-dark
+/* Legacy aliases */
+--teal / --teal2 / --teal3 / --teal-pale / --teal-mid
+/* Neutrals */
+--navy / --slate / --text / --text2 / --text3 / --bg / --surface / --border / --border2
+/* Status */
+--green / --red / --amber  (+  --green-bg / --red-bg / --amber-bg)
+/* Layout */
+--radius: 12px / --sidebar-w: 260px
 ```
 
 ### כללים מחייבים:
 - תמיד להשתמש במשתני CSS — אין קידוד צבעים ישיר
-- פונט: Heebo בלבד
-- כיוון: RTL, עברית
-- הטופבר אחיד בכל הדפים — לא לשנות ללא אישור מפורש
+- פונט: **Heebo** בלבד
+- כיוון: **RTL**, עברית
+- Styling: **CSS Modules** (קובץ `.module.css` ליד כל component)
+- הטופבר והסיידבר אחידים בכל הדפים — לא לשנות ללא אישור מפורש
 
 ---
 
-## רכיבים שאסור לשנות ללא אישור
+## 7. רכיבים שאסור לשנות ללא אישור
 
-- [ ] מבנה הטופבר
-- [ ] משתני CSS ב-`:root`
-- [ ] לוגיקת חישוב ב-`takam-calculator.html`
-- [ ] קישורים בין דפים ב-`dashboard.html`
+- מבנה Sidebar + Topbar
+- משתני CSS ב-`:root` (theme.css)
+- לוגיקת חישוב ב-`calc.ts`
+- טבלאות תעריפים ב-`data.ts`
+- Routes ב-`App.tsx`
 
 ---
 
-## היסטוריית פיתוח
+## 8. איך לעבוד נכון בכל שיחה
+
+1. קרא קובץ זה תחילה — זה נותן לך את כל ההקשר
+2. **אל תסרוק את כל הקוד בתחילת שיחה** — סמוך על מה שכתוב כאן
+3. לפני שינוי קובץ — הודע מה בדיוק אתה משנה
+4. לאחר שינוי — עדכן את סקשן "שיחה אחרונה" למטה
+5. **כל תשובה בעברית**
+6. **בדיקת באגים**: אבחן והצג — חכה לאישור לפני שינוי קוד
+7. **אל תחליף תשתיות** (API, מודלים, שירותים) ללא אישור מפורש
+
+---
+
+## 9. היסטוריית פיתוח
 
 | תאריך | מה נבנה |
 |--------|----------|
-| 29.03.2026 | מחשבון התכ"ם — בנייה ראשונית |
-| 30.03.2026 | דשבורד ראשי — 6 כרטיסיות, ניווט |
-| 31.03.2026 | כפתור חזרה לדשבורד, wizard progress |
-| 16.04.2026 | הוספת `.vercel` ל-gitignore של digitek-platform |
-| 17.04.2026 | תיקון טיפול בשגיאות מפתח API ביועץ AI — ניקוי מפתח פגום, הודעות בעברית, טיפול ב-rate-limit |
-| 17.04.2026 | קיצור תהליך ויזרד עם AI — כוכביות אדומות, דילוג אוטומטי לשלב 3, באנר חיווי כשחסרים שדות |
-| 17.04.2026 | שיתוף מתקדם — תצוגת צפייה בלבד בקישור משותף, תפריט שיתוף (וואטסאפ/מייל/העתק), תיקוני רספונסיביות |
-| 17.04.2026 | שינוי שם המערכת מ-Digitek ל-LIBA בכל קבצי UI ו-HTML |
-| 19.04.2026 | היסטוריית חישובים ושיתוף עם הרשאות — שמירה/טעינה/מחיקה, פאנל היסטוריה, דיאלוג שיתוף עם view/edit, כרטיסייה בדשבורד |
-| 20.04.2026 | הפעלת אימות — BYPASS_AUTH דרך env var, כפתור כניסה עם Google בדף הלוגין |
-| 21.04.2026 | דשבורד חדש — החלפת נתונים מזויפים בכרטיסי מודולים עם נתונים אמיתיים (בריפים, תכ"ם) ו-empty states למודולים בפיתוח |
-| 21.04.2026 | תיקון שמירת חישובים — תיקון RLS recursion ב-profiles (SECURITY DEFINER), הוספת mock user ב-BYPASS_AUTH, try-catch ב-handleSave, הוספת admin_get_all_profiles RPC |
-| 21.04.2026 | שמירת טיוטה אוטומטית במחשבון — auto-save כל 3 שניות, תג טיוטה בפאנל היסטוריה, כפתור "המשך" שחוזר לשלב הנכון, מיגרציה is_draft + current_step |
-| 25.04.2026 | כפתורי פעולה באריחי סטטיסטיקה בדשבורד — "הוסף בריף", "הוסף חישוב", "כניסה למודול" |
-| 25.04.2026 | שדרוג יועץ AI — מעבר מ-Gemini ל-Claude API, פרומפט מקצועי עם כללי תמהיל תכ"ם, גודל פרויקט, יחסי צוות |
-| 25.04.2026 | תיקון שדה מאצ'ינג — שינוי ל-text input עם local state כדי לאפשר מחיקה והקלדה חופשית |
-| 28.04.2026 | תיקון העלאת תמונות בפרופיל — מיגרציה לעמודות חסרות (phone, address, logo_url), יצירת storage buckets עם RLS, הודעות שגיאה |
+| 29.03 | מחשבון התכ"ם — בנייה ראשונית |
+| 30.03 | דשבורד ראשי — 6 כרטיסיות, ניווט |
+| 31.03 | כפתור חזרה לדשבורד, wizard progress |
+| 16.04 | הוספת `.vercel` ל-gitignore |
+| 17.04 | תיקון API errors ביועץ AI, קיצור wizard עם AI, שיתוף מתקדם, Rename → LIBA |
+| 19.04 | היסטוריית חישובים + שיתוף עם הרשאות |
+| 20.04 | הפעלת Auth — Google + Email login |
+| 21.04 | דשבורד עם נתונים אמיתיים, תיקון RLS recursion, auto-save טיוטות |
+| 25.04 | כפתורי פעולה בדשבורד, שדרוג AI Advisor, תיקון matching input |
+| 28.04 | תיקון העלאת תמונות בפרופיל — מיגרציה, storage buckets, RLS |
+| 28.04 | שדרוג עיצוב דף פרופיל — באנר גרדיאנט, אווטאר חופף, כרטיסים עם אייקונים צבעוניים, אנימציות |
+| 28.04 | רובד 5 — תיקון חיפוש, AI timeout, שדרוג UI לכרטיסים מודרניים |
 
 ---
 
-## איך לעבוד נכון בכל שיחה
+## 10. שיחה אחרונה
 
-1. קרא קובץ זה תחילה
-2. שאל אם לא ברור מה הסטטוס הנוכחי
-3. לפני שינוי קובץ — הודע מה בדיוק אתה משנה
-4. לאחר שינוי — עדכן את טבלת ההיסטוריה למעלה
+> **תאריך**: 28.04.2026
+> **נושא**: שדרוג מלא של רובד 5 — UI, חיפוש, AI
+
+### מה בוצע:
+- שדרוג תצוגת שירותים מטבלה לגריד כרטיסים מודרני (card grid)
+- גרדיאנט צבעוני בראש כל כרטיס לפי ספק ענן (GCP כתום, AWS אדום)
+- בדג'ים צבעוניים לקטגוריה, סוג שירות וספק ענן
+- תיקון ספינינג נצחי של AI — הוספת AbortController עם timeout של 15 שניות
+- הודעת שגיאה ברורה כש-AI לא זמין
+- חיפוש טקסט חכם — פיצול מילים מחוברות בעברית (expandTerms), stemming משופר
+- Debounce של 300ms על חיפוש טקסט
+- מקש Enter מפעיל חיפוש AI
+- Memoization של קטגוריות שירותים לביצועים
+
+### commits:
+```
+b4c2659 fix(roved5): AI search via server proxy, smarter keyword search, working category filters
+eebe6e9 fix(roved5): Hebrew stemming for search, working AI button, better stop words
+a741fdf feat(roved5): premium card UI, AI timeout fix, smarter Hebrew search
+```
+
+### מצב נוכחי:
+- רובד 5 עובד — כרטיסים מודרניים, חיפוש טקסט עם stemming, פילטרים לפי קטגוריה/ענן/סוג
+- AI search חסום עקב Gemini billing (Free Tier quota=0) — מציג הודעת שגיאה מסודרת
+- הכל ב-branch `develop`
 
 ---
 
-## עדיפויות פיתוח (לעדכן בהתאם)
+## 11. עדיפויות פיתוח
 
 1. [ ] _הכנס כאן את הפיצ'ר הבא_
 2. [ ] ...
-

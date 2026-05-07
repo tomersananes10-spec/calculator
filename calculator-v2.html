@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחשבון עלויות גיוס</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#0D9488;--primary-light:#14B8A6;--primary-pale:#F0FDFA;--primary-mid:#CCFBF1;--primary-dark:#0F766E;
+  --bg:#F8FAFC;--surface:#FFFFFF;--text:#0F172A;--text2:#475569;--text3:#94A3B8;
+  --border:#E2E8F0;--border2:#CBD5E1;
+  --green:#10B981;--green-bg:#D1FAE5;--amber:#F59E0B;--amber-bg:#FEF3C7;--red:#EF4444;
+  --purple:#8B5CF6;--pink:#EC4899;
+  --r:14px;--r-sm:10px;
+  --shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.03);
+  --shadow-hover:0 8px 24px rgba(0,0,0,0.08);
+  --ease:cubic-bezier(.34,1.56,.64,1);--ease2:cubic-bezier(.25,.46,.45,.94);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ═══ WRAPPER ═══ */
+.wrapper{max-width:800px;margin:0 auto;padding:28px 20px 40px}
+
+/* ═══ HEADER ═══ */
+.page-header{text-align:center;margin-bottom:28px}
+.page-title{font-size:28px;font-weight:900;color:var(--text);letter-spacing:-.5px}
+.page-sub{font-size:13px;color:var(--text3);margin-top:4px}
+
+/* ═══ PROGRESS ═══ */
+.progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:32px}
+.step{display:flex;align-items:center;gap:0;position:relative}
+.step-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:2.5px solid var(--border);color:var(--text3);background:var(--surface);transition:all .3s var(--ease);position:relative;z-index:2;cursor:pointer}
+.step-dot:hover{border-color:var(--border2);color:var(--text2)}
+.step.active .step-dot{border-color:var(--primary);background:var(--primary);color:#fff;box-shadow:0 0 0 5px rgba(13,148,136,.12)}
+.step.done .step-dot{border-color:var(--green);background:var(--green);color:#fff}
+.step-label{position:absolute;top:44px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:600;color:var(--text3);transition:color .2s}
+.step.active .step-label{color:var(--primary)}
+.step.done .step-label{color:var(--green)}
+.step-line{width:80px;height:2.5px;background:var(--border);margin:0 -1px;position:relative;z-index:1;transition:background .3s}
+.step-line.done{background:var(--green)}
+
+/* ═══ ACCORDION ═══ */
+.accordion{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;border:2px solid transparent;transition:all .3s}
+.accordion.active{border-color:var(--primary-mid)}
+.acc-head{padding:18px 24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:.15s;user-select:none}
+.acc-head:hover{background:#FAFBFC}
+.acc-head-right{display:flex;align-items:center;gap:12px}
+.acc-num{width:34px;height:34px;border-radius:50%;background:var(--primary-pale);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;transition:all .2s}
+.accordion.done .acc-num{background:var(--green-bg);color:var(--green)}
+.acc-title{font-size:15px;font-weight:700;color:var(--text)}
+.acc-summary{font-size:12px;color:var(--text3);margin-top:2px;transition:opacity .2s}
+.acc-arrow{font-size:12px;color:var(--text3);transition:transform .3s var(--ease)}
+.accordion.open .acc-arrow{transform:rotate(180deg)}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .4s var(--ease2),padding .3s}
+.accordion.open .acc-body{max-height:800px;padding:0 24px 24px}
+.acc-body-inner{display:flex;flex-direction:column;gap:18px}
+
+/* ═══ FIELDS ═══ */
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.field-grid{grid-template-columns:1fr}}
+
+.field-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.field-label .icon{font-size:14px}
+.field-input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Heebo',sans-serif;font-size:16px;font-weight:600;color:var(--text);background:var(--surface);transition:all .2s;text-align:center}
+.field-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(13,148,136,.1)}
+.field-hint{font-size:11px;color:var(--text3);margin-top:4px}
+
+.stepper{display:flex;align-items:center;background:#F1F5F9;border-radius:var(--r-sm);overflow:hidden;border:1.5px solid var(--border);transition:border-color .2s}
+.stepper:focus-within{border-color:var(--primary)}
+.step-btn{width:44px;height:48px;border:none;background:transparent;font-size:22px;font-weight:700;color:var(--primary);cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center}
+.step-btn:hover{background:var(--primary-pale)}
+.step-btn:active{background:var(--primary-mid)}
+.step-val{flex:1;text-align:center;font-size:24px;font-weight:800;color:var(--text);background:var(--surface);padding:6px 0;border-right:1px solid var(--border);border-left:1px solid var(--border)}
+.step-sub{font-size:11px;color:var(--text3);text-align:center;margin-top:3px;font-weight:500}
+
+.seg-ctrl{display:flex;background:#F1F5F9;border-radius:var(--r-sm);padding:3px;gap:2px}
+.seg-btn{flex:1;padding:9px 12px;border:none;border-radius:8px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--text3)}
+.seg-btn.active{background:var(--surface);color:var(--primary);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.seg-btn:hover:not(.active){color:var(--text2)}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.toggle-label{font-size:13px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px}
+.toggle-switch{position:relative;width:46px;height:26px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:#CBD5E1;border-radius:13px;transition:.25s;cursor:pointer}
+.toggle-track::after{content:'';position:absolute;top:3px;right:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle-switch input:checked+.toggle-track{background:var(--primary)}
+.toggle-switch input:checked+.toggle-track::after{right:calc(100% - 23px)}
+
+.scope-slider{width:100%;-webkit-appearance:none;appearance:none;height:8px;border-radius:4px;background:linear-gradient(to left,var(--primary-mid),var(--primary));outline:none;direction:ltr;cursor:pointer}
+.scope-slider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--surface);border:3px solid var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.12);cursor:pointer;transition:.15s}
+.scope-slider::-webkit-slider-thumb:hover{transform:scale(1.15);box-shadow:0 3px 10px rgba(13,148,136,.3)}
+
+.salary-guide{background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:8px 12px;font-size:11px;color:#92400E;display:flex;align-items:center;gap:6px;cursor:pointer;transition:all .2s;margin-top:6px}
+.salary-guide:hover{background:#FDE68A}
+
+.employer-box{background:var(--primary-pale);border:1px solid var(--primary-mid);border-radius:var(--r-sm);padding:12px 14px;margin-top:8px;transition:all .3s;overflow:hidden}
+.employer-box.hidden{max-height:0;padding:0 14px;margin:0;border-color:transparent;opacity:0}
+.employer-computed{font-size:14px;font-weight:700;color:var(--primary)}
+.employer-mult{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);margin-top:4px}
+.employer-mult input{width:56px;padding:4px 8px;border:1px solid var(--primary-mid);border-radius:6px;font-size:13px;font-weight:600;text-align:center;font-family:'Heebo',sans-serif;color:var(--primary);background:var(--surface)}
+.employer-mult input:focus{outline:none;border-color:var(--primary)}
+
+.hours-box{background:#F1F5F9;border-radius:var(--r-sm);padding:14px;transition:all .3s;overflow:hidden}
+.hours-box.hidden{max-height:0;padding:0;margin:0;opacity:0;overflow:hidden}
+
+.matching-sub{transition:all .3s;overflow:hidden}
+.matching-sub.hidden{max-height:0;opacity:0;margin:0}
+
+.separator{border-top:1px solid var(--border);padding-top:16px}
+
+/* ═══ RESULTS ═══ */
+.results-section{margin-top:28px;display:flex;flex-direction:column;gap:16px}
+
+.bottomline{background:linear-gradient(135deg,#0F766E 0%,#0D9488 50%,#14B8A6 100%);border-radius:var(--r);padding:24px 28px;color:#fff;position:relative;overflow:hidden}
+.bottomline::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.04) 1px,transparent 0);background-size:16px 16px}
+.bottomline-inner{position:relative;z-index:1}
+.bottomline-tag{font-size:11px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.3px;margin-bottom:6px}
+.bottomline-title{font-size:22px;font-weight:800;display:flex;align-items:center;gap:8px}
+.bottomline-desc{font-size:13px;color:rgba(255,255,255,.7);margin-top:8px;line-height:1.6}
+.bottomline-note{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 14px;margin-top:12px;font-size:12px;color:rgba(255,255,255,.75);display:flex;align-items:flex-start;gap:8px}
+
+.result-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:24px;transition:box-shadow .25s}
+.result-card:hover{box-shadow:var(--shadow-hover)}
+.result-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+.period-table{width:100%;border-collapse:separate;border-spacing:0}
+.period-table th{font-size:11px;font-weight:600;color:var(--text3);padding:8px 10px;text-align:center;border-bottom:2px solid var(--border)}
+.period-table td{font-size:14px;font-weight:700;color:var(--text);padding:10px;text-align:center;border-bottom:1px solid #F1F5F9;transition:background .2s}
+.period-table .hl{background:var(--primary-pale)}
+.period-table th.hl{color:var(--primary);border-bottom-color:var(--primary)}
+.period-table .rl{text-align:right;font-size:12px;font-weight:600;color:var(--text2)}
+
+.bar-row{display:flex;align-items:center;gap:12px;padding:8px 0}
+.bar-label{width:100px;font-size:12px;font-weight:600;color:var(--text2);flex-shrink:0;text-align:right}
+.bar-track{flex:1;height:10px;background:#F1F5F9;border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width .6s var(--ease)}
+.bar-val{width:90px;font-size:13px;font-weight:700;color:var(--text);text-align:left;flex-shrink:0}
+
+.split-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.split-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;position:relative;overflow:hidden}
+.split-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.split-card.ministry::before{background:var(--primary)}
+.split-card.digital::before{background:var(--green)}
+.split-label{font-size:12px;font-weight:600;color:var(--text3);margin-bottom:4px}
+.split-amount{font-size:24px;font-weight:900;color:var(--text);transition:all .3s}
+.split-pct{font-size:12px;color:var(--text3);margin-top:4px}
+.split-bar{height:6px;background:#F1F5F9;border-radius:3px;margin-top:10px;overflow:hidden}
+.split-fill{height:100%;border-radius:3px;transition:width .6s var(--ease)}
+.split-card.ministry .split-fill{background:var(--primary)}
+.split-card.digital .split-fill{background:var(--green)}
+
+.total-row{border-top:2px solid var(--border);margin-top:8px;padding-top:10px;display:flex;justify-content:space-between;font-size:14px;font-weight:800;color:var(--text)}
+
+.actions-row{display:flex;gap:10px;justify-content:center;margin-top:8px}
+.action-btn{padding:11px 24px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;color:var(--text2);background:var(--surface);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s}
+.action-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-pale)}
+.action-btn.copied{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+
+/* ═══ FLOATING BAR ═══ */
+.float-bar{position:fixed;bottom:0;left:0;right:0;z-index:3000;background:var(--surface);border-top:1px solid var(--border);box-shadow:0 -4px 20px rgba(0,0,0,.08);transform:translateY(100%);transition:transform .4s var(--ease2)}
+.float-bar.visible{transform:translateY(0)}
+.float-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;max-width:800px;margin:0 auto}
+.float-right{display:flex;align-items:center;gap:16px}
+.float-main{font-size:20px;font-weight:900;color:var(--text)}
+.float-label{font-size:11px;color:var(--text3);font-weight:500}
+.float-sep{width:1px;height:28px;background:var(--border)}
+.float-sec{font-size:14px;font-weight:700;color:var(--text2)}
+.float-sec-label{font-size:10px;color:var(--text3)}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:600px){
+  .wrapper{padding:20px 14px 100px}
+  .page-title{font-size:22px}
+  .acc-head{padding:14px 16px}
+  .accordion.open .acc-body{padding:0 16px 16px}
+  .bottomline{padding:20px}
+  .bottomline-title{font-size:18px}
+  .split-row{grid-template-columns:1fr}
+  .float-inner{padding:10px 16px}
+  .float-main{font-size:17px}
+  .step-line{width:50px}
+  .result-card{padding:18px}
+}
+
+/* ═══ PRINT ═══ */
+@media print{
+  .float-bar{display:none!important}
+  .actions-row{display:none}
+  body{background:#fff}
+  .accordion{break-inside:avoid}
+  .wrapper{max-width:100%;padding:10px}
+}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.results-section>*{animation:fadeIn .4s var(--ease2) both}
+.results-section>*:nth-child(2){animation-delay:.05s}
+.results-section>*:nth-child(3){animation-delay:.1s}
+.results-section>*:nth-child(4){animation-delay:.15s}
+.results-section>*:nth-child(5){animation-delay:.2s}
+.results-section>*:nth-child(6){animation-delay:.25s}
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-title">מחשבון עלויות גיוס</div>
+    <div class="page-sub">חישוב עלות העסקה כוללת עבור גיוס כוח אדם בגופים ממשלתיים</div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress">
+    <div class="step active" onclick="toggleAcc(0)">
+      <div class="step-dot">1</div>
+      <span class="step-label">הגדרות בסיס</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" onclick="toggleAcc(1)">
+      <div class="step-dot">2</div>
+      <span class="step-label">פרטי העסקה</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" onclick="toggleAcc(2)">
+      <div class="step-dot">3</div>
+      <span class="step-label">עלויות נוספות</span>
+    </div>
+  </div>
+
+  <!-- ═══ ACCORDION 1: BASE ═══ -->
+  <div class="accordion open active" data-acc="0">
+    <div class="acc-head" onclick="toggleAcc(0)">
+      <div class="acc-head-right">
+        <div class="acc-num">1</div>
+        <div>
+          <div class="acc-title">הגדרות בסיס</div>
+          <div class="acc-summary">כמות משרות, שכר ועלות מעביד</div>
+        </div>
+      </div>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+      <div class="acc-body-inner">
+        <div class="field-grid">
+          <div>
+            <div class="field-label"><span class="icon">👥</span> כמות משרות לגיוס</div>
+            <div class="stepper">
+              <button class="step-btn" onclick="changeCount(-1)">−</button>
+              <div class="step-val" id="countVal">1</div>
+              <button class="step-btn" onclick="changeCount(1)">+</button>
+            </div>
+            <div class="step-sub">משרות</div>
+          </div>
+          <div>
+            <div class="field-label"><span class="icon">🎯</span> רמת מומחיות</div>
+            <div class="seg-ctrl" id="expertiseSeg">
+              <button class="seg-btn active" data-val="junior" onclick="setExpertise('junior')">ג'וניור</button>
+              <button class="seg-btn" data-val="senior" onclick="setExpertise('senior')">בכיר</button>
+              <button class="seg-btn" data-val="expert" onclick="setExpertise('expert')">מומחה</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="field-label"><span class="icon">💰</span> <span id="salaryLabel">שכר ברוטו (₪ / חודש)</span></div>
+          <input class="field-input" id="salaryInput" type="text" inputmode="numeric" oninput="onSalaryInput()" onfocus="this.select()">
+          <div class="salary-guide" id="salaryGuide" onclick="applySalaryGuide()">
+            💡 <span id="salaryGuideText">טווח מומלץ לג'וניור: ₪18,000 – ₪26,000</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="toggle-row">
+            <span class="toggle-label">🏢 עלות מעביד</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="employerToggle" onchange="toggleEmployer()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="employer-box hidden" id="employerBox">
+            <div class="employer-computed" id="employerComputed">עלות מעביד: ₪29,700 / חודש</div>
+            <div class="employer-mult">
+              מקדם: <input type="text" id="employerMult" value="1.35" oninput="onMultInput()" onfocus="this.select()">
+              <span>כולל סוציאליות, פנסיה, ביטוח</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ACCORDION 2: EMPLOYMENT ═══ -->
+  <div class="accordion open" data-acc="1">
+    <div class="acc-head" onclick="toggleAcc(1)">
+      <div class="acc-head-right">
+        <div class="acc-num">2</div>
+        <div>
+          <div class="acc-title">פרטי העסקה</div>
+          <div class="acc-summary">מודל תגמול, היקף משרה ומאצ'ינג</div>
+        </div>
+      </div>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+      <div class="acc-body-inner">
+        <div class="field-grid">
+          <div>
+            <div class="field-label"><span class="icon">💼</span> מודל תגמול</div>
+            <div class="seg-ctrl" id="compSeg">
+              <button class="seg-btn active" data-val="global" onclick="setComp('global')">שכר גלובלי</button>
+              <button class="seg-btn" data-val="hourly" onclick="setComp('hourly')">שכר שעתי</button>
+            </div>
+          </div>
+          <div id="scopeWrap">
+            <div class="field-label"><span class="icon">📐</span> היקף משרה</div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <input class="scope-slider" id="scopeSlider" type="range" min="25" max="100" step="25" value="100" oninput="onScopeChange()" style="flex:1">
+              <span id="scopeVal" style="font-size:20px;font-weight:800;color:var(--primary);min-width:50px;text-align:center">100%</span>
+            </div>
+          </div>
+          <div id="hoursWrap" class="hours-box hidden">
+            <div class="field-label"><span class="icon">🕐</span> שעות עבודה בחודש</div>
+            <input class="field-input" id="hoursInput" type="text" inputmode="numeric" value="176" oninput="onHoursInput()" onfocus="this.select()" style="max-width:140px">
+            <div class="field-hint">ברירת מחדל: 176 (22 ימים × 8 שעות)</div>
+          </div>
+        </div>
+
+        <div class="separator">
+          <div class="toggle-row" style="margin-bottom:10px">
+            <span class="toggle-label">⚡ מאצ'ינג דיגיטל לאומי</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="matchToggle" checked onchange="toggleMatching()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="field-hint" style="margin-bottom:10px">הפחתה מעלות המשרד — מימון מערך הדיגיטל הלאומי</div>
+          <div class="matching-sub" id="matchingSub">
+            <div class="seg-ctrl" id="matchModeSeg" style="max-width:280px;margin-bottom:10px">
+              <button class="seg-btn active" data-val="pct" onclick="setMatchMode('pct')">⚡ % מימון</button>
+              <button class="seg-btn" data-val="abs" onclick="setMatchMode('abs')">₪ סכום</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input class="field-input" id="matchValInput" type="text" inputmode="numeric" style="max-width:120px" oninput="onMatchValInput()" onfocus="this.select()">
+              <span id="matchValSuffix" style="font-size:13px;font-weight:600;color:var(--text3)">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ACCORDION 3: ONE-TIME COSTS ═══ -->
+  <div class="accordion open" data-acc="2">
+    <div class="acc-head" onclick="toggleAcc(2)">
+      <div class="acc-head-right">
+        <div class="acc-num">3</div>
+        <div>
+          <div class="acc-title">עלויות חד-פעמיות</div>
+          <div class="acc-summary">הכשרה, ציוד ורישיונות</div>
+        </div>
+      </div>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+      <div class="acc-body-inner">
+        <div class="field-grid">
+          <div>
+            <div class="field-label"><span class="icon">🎓</span> הכשרה (₪ למשרה)</div>
+            <input class="field-input" id="trainingInput" type="text" inputmode="numeric" oninput="onTrainingInput()" onfocus="this.select()">
+            <div class="field-hint" id="trainingHint">ברירת מחדל לג'וניור: ₪15,000</div>
+          </div>
+          <div>
+            <div class="field-label"><span class="icon">🖥️</span> ציוד ורישיונות (₪ למשרה)</div>
+            <input class="field-input" id="equipInput" type="text" inputmode="numeric" oninput="onEquipInput()" onfocus="this.select()">
+            <div class="field-hint">ציוד, רישיונות תוכנה ותשתית עבודה</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RESULTS ═══ -->
+  <div class="results-section" id="results">
+
+    <!-- Bottom Line -->
+    <div class="bottomline">
+      <div class="bottomline-inner">
+        <div class="bottomline-tag">השורה התחתונה</div>
+        <div class="bottomline-title">🏷️ <span id="blAmount">₪18,150</span> לחודש למשרה</div>
+        <div class="bottomline-desc" id="blDesc"></div>
+        <div class="bottomline-note">
+          <span>💡</span>
+          <span id="blNote"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Period Comparison -->
+    <div class="result-card">
+      <div class="result-title">📅 השוואת תקופות</div>
+      <table class="period-table">
+        <thead>
+          <tr>
+            <th class="rl"></th>
+            <th>3 חודשים</th>
+            <th>6 חודשים</th>
+            <th class="hl">12 חודשים ⭐</th>
+            <th>24 חודשים</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="rl">עלות כוללת</td>
+            <td id="p3total"></td>
+            <td id="p6total"></td>
+            <td class="hl" id="p12total"></td>
+            <td id="p24total"></td>
+          </tr>
+          <tr>
+            <td class="rl">עלות המשרד</td>
+            <td id="p3min"></td>
+            <td id="p6min"></td>
+            <td class="hl" id="p12min" style="font-weight:900"></td>
+            <td id="p24min"></td>
+          </tr>
+          <tr>
+            <td class="rl">מאצ'ינג דיגיטל</td>
+            <td id="p3match"></td>
+            <td id="p6match"></td>
+            <td class="hl" id="p12match"></td>
+            <td id="p24match"></td>
+          </tr>
+          <tr>
+            <td class="rl">ממוצע חודשי</td>
+            <td id="p3avg"></td>
+            <td id="p6avg"></td>
+            <td class="hl" id="p12avg"></td>
+            <td id="p24avg"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Breakdown + Split -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="result-card">
+        <div class="result-title">📊 פירוט עלויות (שנתי)</div>
+        <div class="bar-row">
+          <span class="bar-label">שכר ברוטו</span>
+          <div class="bar-track"><div class="bar-fill" id="barSalary" style="background:var(--primary)"></div></div>
+          <span class="bar-val" id="valSalary"></span>
+        </div>
+        <div class="bar-row" id="rowEmployer" style="display:none">
+          <span class="bar-label">עלות מעביד</span>
+          <div class="bar-track"><div class="bar-fill" id="barEmployer" style="background:#06B6D4"></div></div>
+          <span class="bar-val" id="valEmployer"></span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">מע"מ (18%)</span>
+          <div class="bar-track"><div class="bar-fill" id="barVat" style="background:var(--amber)"></div></div>
+          <span class="bar-val" id="valVat"></span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">הכשרה</span>
+          <div class="bar-track"><div class="bar-fill" id="barTraining" style="background:var(--purple)"></div></div>
+          <span class="bar-val" id="valTraining"></span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">ציוד ורישיונות</span>
+          <div class="bar-track"><div class="bar-fill" id="barEquip" style="background:var(--pink)"></div></div>
+          <span class="bar-val" id="valEquip"></span>
+        </div>
+        <div class="total-row">
+          <span>סה"כ</span>
+          <span id="valTotal"></span>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="split-card ministry">
+          <div class="split-label">עלות המשרד (שנתי)</div>
+          <div class="split-amount" id="splitMinistry"></div>
+          <div class="split-pct" id="splitMinPct"></div>
+          <div class="split-bar"><div class="split-fill" id="splitMinBar"></div></div>
+        </div>
+        <div class="split-card digital">
+          <div class="split-label">מאצ'ינג מערך הדיגיטל</div>
+          <div class="split-amount" id="splitDigital"></div>
+          <div class="split-pct" id="splitDigPct"></div>
+          <div class="split-bar"><div class="split-fill" id="splitDigBar"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-row">
+      <button class="action-btn" id="shareBtn" onclick="shareLink()">📎 שתף קישור</button>
+      <button class="action-btn" onclick="exportPDF()">📄 הורד PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- FLOATING BAR -->
+<div class="float-bar" id="floatBar">
+  <div class="float-inner">
+    <div class="float-right">
+      <div>
+        <div class="float-main" id="floatMain">₪217,812</div>
+        <div class="float-label">עלות המשרד — שנתי</div>
+      </div>
+      <div class="float-sep"></div>
+      <div>
+        <div class="float-sec" id="floatSec">₪18,151 / חודש</div>
+        <div class="float-sec-label">ממוצע חודשי</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULTS = {
+  junior:  { global: 22000, hourly: 180, training: 15000, equipment: 12000, mult: 1.35, guideMin: 18000, guideMax: 26000 },
+  senior:  { global: 32000, hourly: 280, training: 8000,  equipment: 12000, mult: 1.35, guideMin: 26000, guideMax: 38000 },
+  expert:  { global: 42000, hourly: 380, training: 3000,  equipment: 15000, mult: 1.38, guideMin: 38000, guideMax: 55000 },
+};
+const EXPERTISE_NAMES = { junior: "ג'וניור", senior: 'בכיר', expert: 'מומחה' };
+const VAT_RATE = 0.18;
+
+const state = {
+  count: 1,
+  salary: 22000,
+  showEmployer: false,
+  employerMult: 1.35,
+  scope: 100,
+  monthlyHours: 176,
+  matching: true,
+  matchMode: 'pct',
+  matchVal: 30,
+  expertise: 'junior',
+  comp: 'global',
+  training: 15000,
+  equipment: 12000,
+  userEditedSalary: false,
+  userEditedTraining: false,
+  userEditedEquip: false,
+};
+
+const $ = id => document.getElementById(id);
+
+function fmt(n) {
+  return '₪' + Math.round(n).toLocaleString('he-IL');
+}
+
+function calcCost(months) {
+  const s = state;
+  const scope = s.scope / 100;
+  const n = s.count;
+  let monthlyGross;
+  if (s.comp === 'hourly') {
+    monthlyGross = s.salary * s.monthlyHours;
+  } else {
+    monthlyGross = s.salary * scope;
+  }
+  const employerAdder = s.showEmployer ? monthlyGross * (s.employerMult - 1) : 0;
+  const monthlyPerPos = monthlyGross + employerAdder;
+  const salaryTotal = monthlyPerPos * months * n;
+  const vatAmount = salaryTotal * VAT_RATE;
+  const trainingTotal = s.training * n;
+  const equipTotal = s.equipment * n;
+  const oneTime = trainingTotal + equipTotal;
+  const grandTotal = salaryTotal + vatAmount + oneTime;
+  let matchAmount = 0;
+  if (s.matching) {
+    if (s.matchMode === 'pct') {
+      matchAmount = grandTotal * (s.matchVal / 100);
+    } else {
+      matchAmount = Math.min(s.matchVal, grandTotal);
+    }
+  }
+  const ministry = grandTotal - matchAmount;
+  return {
+    grossAnnual: monthlyGross * 12 * n,
+    employerAnnual: employerAdder * 12 * n,
+    salaryTotal: Math.round(salaryTotal),
+    vat: Math.round(vatAmount),
+    training: Math.round(trainingTotal),
+    equipment: Math.round(equipTotal),
+    oneTime: Math.round(oneTime),
+    grandTotal: Math.round(grandTotal),
+    matching: Math.round(matchAmount),
+    ministry: Math.round(ministry),
+    monthlyAvg: Math.round(ministry / months),
+    perPosPerMonth: Math.round(ministry / months / n),
+    monthlyGross,
+    employerAdder,
+  };
+}
+
+function updateUI() {
+  const r12 = calcCost(12);
+  const r3 = calcCost(3);
+  const r6 = calcCost(6);
+  const r24 = calcCost(24);
+
+  // Bottom line
+  $('blAmount').textContent = fmt(r12.perPosPerMonth);
+  const expName = EXPERTISE_NAMES[state.expertise];
+  const compName = state.comp === 'global' ? 'שכר גלובלי' : 'שכר שעתי';
+  const scopeText = state.comp === 'hourly' ? state.monthlyHours + ' שעות/חודש' : state.scope + '% משרה';
+  $('blDesc').textContent = `עבור ${state.count} משרת ${expName} (${compName}, ${scopeText}), המשרד ישלם ${fmt(r12.perPosPerMonth)} בחודש בממוצע` +
+    (state.matching ? ` (אחרי מאצ'ינג ${state.matchMode === 'pct' ? state.matchVal + '%' : fmt(state.matchVal)}).` : '.') +
+    ` סה"כ שנתי: ${fmt(r12.ministry)}.`;
+  const noteItems = [];
+  if (state.training > 0 || state.equipment > 0) noteItems.push(`עלויות חד-פעמיות כלולות: הכשרה ${fmt(state.training)} + ציוד ${fmt(state.equipment)}`);
+  if (state.showEmployer) noteItems.push(`עלות מעביד (×${state.employerMult}) כלולה בחישוב`);
+  $('blNote').textContent = noteItems.length ? noteItems.join(' · ') : 'כל העלויות כוללות מע"מ 18%.';
+
+  // Period table
+  [['3', r3], ['6', r6], ['12', r12], ['24', r24]].forEach(([p, r]) => {
+    $('p' + p + 'total').textContent = fmt(r.grandTotal);
+    $('p' + p + 'min').textContent = fmt(r.ministry);
+    $('p' + p + 'match').textContent = fmt(r.matching);
+    $('p' + p + 'avg').textContent = fmt(r.monthlyAvg);
+  });
+
+  // Breakdown bars
+  const maxVal = r12.grandTotal || 1;
+  const grossAnn = Math.round(r12.monthlyGross * 12 * state.count);
+  const empAnn = Math.round(r12.employerAdder * 12 * state.count);
+  $('barSalary').style.width = (grossAnn / maxVal * 100) + '%';
+  $('valSalary').textContent = fmt(grossAnn);
+  $('rowEmployer').style.display = state.showEmployer ? 'flex' : 'none';
+  $('barEmployer').style.width = (empAnn / maxVal * 100) + '%';
+  $('valEmployer').textContent = fmt(empAnn);
+  $('barVat').style.width = (r12.vat / maxVal * 100) + '%';
+  $('valVat').textContent = fmt(r12.vat);
+  $('barTraining').style.width = (r12.training / maxVal * 100) + '%';
+  $('valTraining').textContent = fmt(r12.training);
+  $('barEquip').style.width = (r12.equipment / maxVal * 100) + '%';
+  $('valEquip').textContent = fmt(r12.equipment);
+  $('valTotal').textContent = fmt(r12.grandTotal);
+
+  // Split
+  const minPct = r12.grandTotal > 0 ? Math.round(r12.ministry / r12.grandTotal * 100) : 100;
+  const digPct = 100 - minPct;
+  $('splitMinistry').textContent = fmt(r12.ministry);
+  $('splitMinPct').textContent = minPct + '% מסה"כ העלות';
+  $('splitMinBar').style.width = minPct + '%';
+  $('splitDigital').textContent = fmt(r12.matching);
+  $('splitDigPct').textContent = digPct + '% מסה"כ העלות';
+  $('splitDigBar').style.width = digPct + '%';
+
+  // Float bar
+  $('floatMain').textContent = fmt(r12.ministry);
+  $('floatSec').textContent = fmt(r12.monthlyAvg) + ' / חודש';
+
+  // Employer box
+  if (state.showEmployer) {
+    const empMonth = Math.round(state.salary * (state.comp === 'hourly' ? state.monthlyHours : state.scope / 100) * state.employerMult);
+    $('employerComputed').textContent = 'עלות מעביד: ' + fmt(empMonth) + ' / חודש';
+  }
+
+  updateURL();
+}
+
+// ═══ INTERACTIONS ═══
+
+function changeCount(d) {
+  state.count = Math.max(1, Math.min(10, state.count + d));
+  $('countVal').textContent = state.count;
+  updateUI();
+}
+
+function setExpertise(val) {
+  state.expertise = val;
+  const def = DEFAULTS[val];
+  activateSeg('expertiseSeg', val);
+  // Salary guide
+  const name = EXPERTISE_NAMES[val];
+  $('salaryGuideText').textContent = `טווח מומלץ ל${name}: ${fmt(def.guideMin)} – ${fmt(def.guideMax)}`;
+  // Auto-fill salary if not manually edited
+  if (!state.userEditedSalary) {
+    state.salary = state.comp === 'global' ? def.global : def.hourly;
+    $('salaryInput').value = state.salary.toLocaleString('he-IL');
+  }
+  // Always update training/equipment defaults (unless manually edited)
+  if (!state.userEditedTraining) {
+    state.training = def.training;
+    $('trainingInput').value = def.training.toLocaleString('he-IL');
+    $('trainingHint').textContent = `ברירת מחדל ל${name}: ${fmt(def.training)}`;
+  }
+  if (!state.userEditedEquip) {
+    state.equipment = def.equipment;
+    $('equipInput').value = def.equipment.toLocaleString('he-IL');
+  }
+  // Employer multiplier
+  state.employerMult = def.mult;
+  $('employerMult').value = def.mult;
+  updateUI();
+}
+
+function setComp(val) {
+  state.comp = val;
+  activateSeg('compSeg', val);
+  const def = DEFAULTS[state.expertise];
+  if (val === 'hourly') {
+    $('salaryLabel').textContent = 'תעריף שעתי (₪ / שעה)';
+    $('scopeWrap').style.display = 'none';
+    $('hoursWrap').classList.remove('hidden');
+    if (!state.userEditedSalary) {
+      state.salary = def.hourly;
+      $('salaryInput').value = state.salary.toLocaleString('he-IL');
+    }
+  } else {
+    $('salaryLabel').textContent = 'שכר ברוטו (₪ / חודש)';
+    $('scopeWrap').style.display = '';
+    $('hoursWrap').classList.add('hidden');
+    if (!state.userEditedSalary) {
+      state.salary = def.global;
+      $('salaryInput').value = state.salary.toLocaleString('he-IL');
+    }
+  }
+  updateUI();
+}
+
+function onSalaryInput() {
+  state.userEditedSalary = true;
+  state.salary = parseNum($('salaryInput').value);
+  updateUI();
+}
+
+function applySalaryGuide() {
+  const def = DEFAULTS[state.expertise];
+  state.salary = state.comp === 'global' ? def.global : def.hourly;
+  state.userEditedSalary = false;
+  $('salaryInput').value = state.salary.toLocaleString('he-IL');
+  updateUI();
+}
+
+function toggleEmployer() {
+  state.showEmployer = $('employerToggle').checked;
+  $('employerBox').classList.toggle('hidden', !state.showEmployer);
+  updateUI();
+}
+
+function onMultInput() {
+  state.employerMult = parseFloat($('employerMult').value) || 1.35;
+  updateUI();
+}
+
+function onScopeChange() {
+  state.scope = parseInt($('scopeSlider').value);
+  $('scopeVal').textContent = state.scope + '%';
+  updateUI();
+}
+
+function onHoursInput() {
+  state.monthlyHours = parseNum($('hoursInput').value) || 176;
+  updateUI();
+}
+
+function toggleMatching() {
+  state.matching = $('matchToggle').checked;
+  $('matchingSub').classList.toggle('hidden', !state.matching);
+  updateUI();
+}
+
+function setMatchMode(mode) {
+  state.matchMode = mode;
+  activateSeg('matchModeSeg', mode);
+  if (mode === 'pct') {
+    $('matchValSuffix').textContent = '%';
+    if (state.matchVal > 100) state.matchVal = 30;
+  } else {
+    $('matchValSuffix').textContent = '₪';
+  }
+  $('matchValInput').value = state.matchVal.toLocaleString('he-IL');
+  updateUI();
+}
+
+function onMatchValInput() {
+  state.matchVal = parseNum($('matchValInput').value);
+  if (state.matchMode === 'pct') state.matchVal = Math.min(100, Math.max(0, state.matchVal));
+  updateUI();
+}
+
+function onTrainingInput() {
+  state.userEditedTraining = true;
+  state.training = parseNum($('trainingInput').value);
+  updateUI();
+}
+
+function onEquipInput() {
+  state.userEditedEquip = true;
+  state.equipment = parseNum($('equipInput').value);
+  updateUI();
+}
+
+// ═══ ACCORDION TOGGLE ═══
+
+function toggleAcc(i) {
+  const el = document.querySelector(`[data-acc="${i}"]`);
+  el.classList.toggle('open');
+}
+
+// ═══ SEGMENT CONTROL HELPER ═══
+
+function activateSeg(id, val) {
+  const seg = $(id);
+  seg.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.val === val));
+}
+
+// ═══ FLOAT BAR VISIBILITY ═══
+
+function checkFloat() {
+  const results = $('results');
+  if (!results) return;
+  const rect = results.getBoundingClientRect();
+  $('floatBar').classList.toggle('visible', rect.top < -50);
+}
+window.addEventListener('scroll', checkFloat, { passive: true });
+
+// ═══ URL SHARING ═══
+
+function updateURL() {
+  const s = state;
+  const params = new URLSearchParams();
+  params.set('c', s.count);
+  params.set('s', s.salary);
+  params.set('e', s.expertise);
+  params.set('m', s.comp);
+  params.set('sc', s.scope);
+  params.set('h', s.monthlyHours);
+  params.set('mt', s.matching ? 1 : 0);
+  params.set('mm', s.matchMode);
+  params.set('mv', s.matchVal);
+  params.set('em', s.showEmployer ? 1 : 0);
+  params.set('emv', s.employerMult);
+  params.set('tr', s.training);
+  params.set('eq', s.equipment);
+  history.replaceState(null, '', '#' + params.toString());
+}
+
+function loadFromURL() {
+  const hash = location.hash.slice(1);
+  if (!hash) return;
+  const p = new URLSearchParams(hash);
+  if (p.has('c')) state.count = Math.max(1, Math.min(10, parseInt(p.get('c')) || 1));
+  if (p.has('s')) { state.salary = parseFloat(p.get('s')) || 22000; state.userEditedSalary = true; }
+  if (p.has('e')) state.expertise = p.get('e');
+  if (p.has('m')) state.comp = p.get('m');
+  if (p.has('sc')) state.scope = parseInt(p.get('sc')) || 100;
+  if (p.has('h')) state.monthlyHours = parseInt(p.get('h')) || 176;
+  if (p.has('mt')) state.matching = p.get('mt') === '1';
+  if (p.has('mm')) state.matchMode = p.get('mm');
+  if (p.has('mv')) state.matchVal = parseFloat(p.get('mv')) || 30;
+  if (p.has('em')) state.showEmployer = p.get('em') === '1';
+  if (p.has('emv')) state.employerMult = parseFloat(p.get('emv')) || 1.35;
+  if (p.has('tr')) { state.training = parseFloat(p.get('tr')) || 0; state.userEditedTraining = true; }
+  if (p.has('eq')) { state.equipment = parseFloat(p.get('eq')) || 0; state.userEditedEquip = true; }
+}
+
+function shareLink() {
+  const url = location.href;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = $('shareBtn');
+    btn.classList.add('copied');
+    btn.innerHTML = '✓ הקישור הועתק!';
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '📎 שתף קישור'; }, 2500);
+  });
+}
+
+function exportPDF() {
+  window.print();
+}
+
+// ═══ HELPERS ═══
+
+function parseNum(str) {
+  return parseFloat(String(str).replace(/[^\d.]/g, '')) || 0;
+}
+
+// ═══ INIT ═══
+
+function init() {
+  loadFromURL();
+  // Set initial UI from state
+  $('countVal').textContent = state.count;
+  $('salaryInput').value = state.salary.toLocaleString('he-IL');
+  $('scopeSlider').value = state.scope;
+  $('scopeVal').textContent = state.scope + '%';
+  $('hoursInput').value = state.monthlyHours;
+  $('matchValInput').value = state.matchVal.toLocaleString('he-IL');
+  $('trainingInput').value = state.training.toLocaleString('he-IL');
+  $('equipInput').value = state.equipment.toLocaleString('he-IL');
+  $('employerMult').value = state.employerMult;
+  $('employerToggle').checked = state.showEmployer;
+  $('matchToggle').checked = state.matching;
+  $('employerBox').classList.toggle('hidden', !state.showEmployer);
+  $('matchingSub').classList.toggle('hidden', !state.matching);
+  activateSeg('expertiseSeg', state.expertise);
+  activateSeg('compSeg', state.comp);
+  activateSeg('matchModeSeg', state.matchMode);
+  if (state.comp === 'hourly') {
+    $('salaryLabel').textContent = 'תעריף שעתי (₪ / שעה)';
+    $('scopeWrap').style.display = 'none';
+    $('hoursWrap').classList.remove('hidden');
+  }
+  if (state.matchMode === 'abs') $('matchValSuffix').textContent = '₪';
+  // Set salary guide text
+  const def = DEFAULTS[state.expertise];
+  const name = EXPERTISE_NAMES[state.expertise];
+  $('salaryGuideText').textContent = `טווח מומלץ ל${name}: ${fmt(def.guideMin)} – ${fmt(def.guideMax)}`;
+  $('trainingHint').textContent = `ברירת מחדל ל${name}: ${fmt(def.training)}`;
+  updateUI();
+}
+
+init();
+</script>
+</body>
+</html>

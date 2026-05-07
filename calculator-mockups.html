@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחשבון עלויות גיוס — 3 מוקאפים</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#0D9488;--primary-light:#14B8A6;--primary-pale:#F0FDFA;--primary-mid:#CCFBF1;--primary-dark:#0F766E;
+  --bg:#F8FAFC;--surface:#FFFFFF;--text:#0F172A;--text2:#475569;--text3:#94A3B8;
+  --border:#E2E8F0;--border2:#CBD5E1;
+  --green:#10B981;--green-bg:#D1FAE5;--amber:#F59E0B;--amber-bg:#FEF3C7;--red:#EF4444;
+  --navy:#0F172A;
+  --r:14px;--r-sm:10px;
+  --shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.03);
+  --shadow-hover:0 8px 24px rgba(0,0,0,0.08);
+  --ease:cubic-bezier(.34,1.56,.64,1);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ═══ TAB SWITCHER ═══ */
+.switcher{position:fixed;top:0;left:0;right:0;z-index:9000;background:#0F172A;display:flex;align-items:center;gap:8px;padding:10px 20px;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.switcher-title{color:#94A3B8;font-size:13px;font-weight:600;margin-left:16px;white-space:nowrap}
+.tab-btn{padding:7px 18px;border:none;border-radius:8px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;background:#334155;color:#94A3B8}
+.tab-btn:hover{background:#475569;color:#E2E8F0}
+.tab-btn.active{background:var(--primary);color:#fff}
+.option{display:none;margin-top:52px}
+.option.active{display:block}
+
+/* ═══ SHARED COMPONENTS ═══ */
+.seg-ctrl{display:flex;background:#F1F5F9;border-radius:var(--r-sm);padding:3px;gap:2px}
+.seg-btn{flex:1;padding:8px 12px;border:none;border-radius:8px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--text3)}
+.seg-btn.active{background:var(--surface);color:var(--primary);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.seg-btn:hover:not(.active){color:var(--text2)}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:#CBD5E1;border-radius:12px;transition:.25s;cursor:pointer}
+.toggle-track::after{content:'';position:absolute;top:3px;right:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle-switch input:checked+.toggle-track{background:var(--primary)}
+.toggle-switch input:checked+.toggle-track::after{right:calc(100% - 21px)}
+
+.field-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.field-label .icon{font-size:14px}
+.field-input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Heebo',sans-serif;font-size:15px;font-weight:600;color:var(--text);background:var(--surface);transition:border-color .2s;text-align:center}
+.field-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(13,148,136,.1)}
+.field-hint{font-size:11px;color:var(--text3);margin-top:4px}
+
+.stepper{display:flex;align-items:center;gap:0;background:#F1F5F9;border-radius:var(--r-sm);overflow:hidden;border:1.5px solid var(--border)}
+.stepper-btn{width:40px;height:44px;border:none;background:transparent;font-size:20px;font-weight:700;color:var(--primary);cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center}
+.stepper-btn:hover{background:var(--primary-pale)}
+.stepper-val{flex:1;text-align:center;font-size:22px;font-weight:800;color:var(--text);background:var(--surface);padding:6px 0;border-right:1px solid var(--border);border-left:1px solid var(--border)}
+.stepper-sub{font-size:11px;color:var(--text3);text-align:center;margin-top:3px;font-weight:500}
+
+.scope-slider{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:linear-gradient(to left,var(--primary-mid),var(--primary));outline:none;direction:ltr}
+.scope-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--surface);border:3px solid var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.12);cursor:pointer;transition:.15s}
+.scope-slider::-webkit-slider-thumb:hover{transform:scale(1.15);box-shadow:0 3px 10px rgba(13,148,136,.3)}
+
+.kpi-card{background:var(--surface);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:box-shadow .25s}
+.kpi-card:hover{box-shadow:var(--shadow-hover)}
+.kpi-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px}
+.kpi-amount{font-size:28px;font-weight:900;color:var(--text);letter-spacing:-.5px}
+.kpi-label{font-size:12px;color:var(--text3);font-weight:500;margin-top:2px}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:6px}
+
+.bottomline{background:linear-gradient(135deg,#0F766E 0%,#0D9488 50%,#14B8A6 100%);border-radius:var(--r);padding:24px 28px;color:#fff;position:relative;overflow:hidden}
+.bottomline::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.04) 1px,transparent 0);background-size:16px 16px}
+.bottomline-tag{font-size:11px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.3px;margin-bottom:6px}
+.bottomline-title{font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px}
+.bottomline-desc{font-size:13px;color:rgba(255,255,255,.7);margin-top:8px;line-height:1.6}
+.bottomline-note{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 14px;margin-top:12px;font-size:12px;color:rgba(255,255,255,.75);display:flex;align-items:flex-start;gap:8px}
+.bottomline-note .icon{font-size:14px;flex-shrink:0;margin-top:1px}
+
+.bar-row{display:flex;align-items:center;gap:12px;padding:10px 0}
+.bar-label{width:100px;font-size:12px;font-weight:600;color:var(--text2);flex-shrink:0;text-align:right}
+.bar-track{flex:1;height:10px;background:#F1F5F9;border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width .6s var(--ease)}
+.bar-val{width:90px;font-size:13px;font-weight:700;color:var(--text);text-align:left;flex-shrink:0}
+
+.period-table{width:100%;border-collapse:separate;border-spacing:0}
+.period-table th{font-size:11px;font-weight:600;color:var(--text3);padding:8px 12px;text-align:center;border-bottom:2px solid var(--border)}
+.period-table td{font-size:14px;font-weight:700;color:var(--text);padding:10px 12px;text-align:center;border-bottom:1px solid #F1F5F9}
+.period-table .highlight{background:var(--primary-pale)}
+.period-table th.highlight{color:var(--primary);border-bottom-color:var(--primary)}
+.period-table .row-label{text-align:right;font-size:12px;font-weight:600;color:var(--text2)}
+
+.section-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.section-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:background .15s}
+.section-header:hover{background:#FAFBFC}
+.section-header-right{display:flex;align-items:center;gap:10px}
+.section-header-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.section-header-title{font-size:14px;font-weight:700;color:var(--text)}
+.section-arrow{font-size:12px;color:var(--text3);transition:transform .25s}
+.section-body{padding:0 20px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* ═══════════════════════════════════════ */
+/* ═══ MOCKUP A — SIDEBAR + CARDS     ═══ */
+/* ═══════════════════════════════════════ */
+
+.ma-layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 52px);gap:0}
+.ma-sidebar{background:var(--surface);border-left:1px solid var(--border);padding:20px 16px;overflow-y:auto;height:calc(100vh - 52px);position:sticky;top:52px;display:flex;flex-direction:column;gap:12px}
+.ma-sidebar-title{font-size:15px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.ma-sidebar-title .icon{font-size:18px}
+.ma-main{padding:28px 32px;overflow-y:auto}
+.ma-page-title{font-size:24px;font-weight:900;color:var(--text);margin-bottom:4px}
+.ma-page-sub{font-size:13px;color:var(--text3);margin-bottom:24px}
+.ma-config-tag{display:inline-flex;align-items:center;gap:6px;background:var(--primary-pale);border:1px solid var(--primary-mid);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--primary);margin-bottom:20px}
+.ma-config-tag .dot{width:6px;height:6px;background:var(--primary-light);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.ma-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.ma-kpi-hero .kpi-icon{background:var(--primary-pale);color:var(--primary)}
+.ma-kpi-total .kpi-icon{background:var(--amber-bg);color:var(--amber)}
+.ma-kpi-monthly .kpi-icon{background:var(--green-bg);color:var(--green)}
+
+.ma-section-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.ma-full-row{margin-top:20px}
+
+.ma-breakdown-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:24px}
+.ma-breakdown-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+.ma-split-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.ma-split-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;position:relative;overflow:hidden}
+.ma-split-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.ma-split-card.ministry::before{background:var(--primary)}
+.ma-split-card.digital::before{background:var(--green)}
+.ma-split-label{font-size:12px;font-weight:600;color:var(--text3);margin-bottom:4px}
+.ma-split-amount{font-size:22px;font-weight:900;color:var(--text)}
+.ma-split-pct{font-size:12px;color:var(--text3);margin-top:4px}
+.ma-split-bar{height:6px;background:#F1F5F9;border-radius:3px;margin-top:10px;overflow:hidden}
+.ma-split-fill{height:100%;border-radius:3px}
+.ma-split-card.ministry .ma-split-fill{background:var(--primary)}
+.ma-split-card.digital .ma-split-fill{background:var(--green)}
+
+.ma-actions{display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.ma-action-btn{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Heebo',sans-serif;font-size:12px;font-weight:600;color:var(--text2);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
+.ma-action-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-pale)}
+
+/* ═══ MOCKUP A — SIDEBAR SECTIONS ═══ */
+.ma-sec{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .2s}
+.ma-sec:hover{border-color:var(--border2)}
+.ma-sec-head{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--surface);transition:.15s}
+.ma-sec-head:hover{background:#FAFBFC}
+.ma-sec-head-right{display:flex;align-items:center;gap:8px}
+.ma-sec-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.ma-sec-title{font-size:13px;font-weight:700;color:var(--text)}
+.ma-sec-arrow{font-size:11px;color:var(--text3);transition:transform .25s}
+.ma-sec.open .ma-sec-arrow{transform:rotate(180deg)}
+.ma-sec-body{padding:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:14px}
+.ma-sec:not(.open) .ma-sec-body{display:none}
+
+.ma-employer-row{background:var(--primary-pale);border:1px solid var(--primary-mid);border-radius:var(--r-sm);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.ma-employer-computed{font-size:13px;font-weight:700;color:var(--primary)}
+.ma-employer-mult{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3)}
+.ma-employer-mult input{width:60px;padding:4px 8px;border:1px solid var(--primary-mid);border-radius:6px;font-size:12px;font-weight:600;text-align:center;font-family:'Heebo',sans-serif;color:var(--primary)}
+
+.ma-salary-guide{background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:8px 10px;font-size:11px;color:#92400E;display:flex;align-items:center;gap:6px;cursor:pointer;transition:.15s}
+.ma-salary-guide:hover{background:#FDE68A}
+
+/* ═══ MOCKUP A — MOBILE ═══ */
+@media(max-width:900px){
+  .ma-layout{grid-template-columns:1fr}
+  .ma-sidebar{position:fixed;top:52px;right:-340px;width:320px;height:calc(100vh - 52px);z-index:5000;transition:right .3s;box-shadow:-4px 0 20px rgba(0,0,0,.15)}
+  .ma-sidebar.open{right:0}
+  .ma-overlay{display:none;position:fixed;inset:0;top:52px;background:rgba(0,0,0,.4);z-index:4999}
+  .ma-sidebar.open~.ma-overlay{display:block}
+  .ma-kpi-row{grid-template-columns:1fr}
+  .ma-section-row,.ma-split-row{grid-template-columns:1fr}
+  .ma-mobile-toggle{display:flex!important}
+}
+.ma-mobile-toggle{display:none;position:fixed;bottom:20px;left:20px;z-index:4998;width:52px;height:52px;border-radius:50%;background:var(--primary);color:#fff;border:none;font-size:22px;box-shadow:0 4px 16px rgba(13,148,136,.4);cursor:pointer;align-items:center;justify-content:center}
+
+/* ═══════════════════════════════════════ */
+/* ═══ MOCKUP B — LINEAR WIZARD       ═══ */
+/* ═══════════════════════════════════════ */
+
+.mb-wrapper{max-width:780px;margin:0 auto;padding:28px 20px 120px}
+.mb-page-header{text-align:center;margin-bottom:28px}
+.mb-page-title{font-size:26px;font-weight:900;color:var(--text)}
+.mb-page-sub{font-size:13px;color:var(--text3);margin-top:4px}
+
+.mb-progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:32px}
+.mb-step{display:flex;align-items:center;gap:0}
+.mb-step-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:2px solid var(--border);color:var(--text3);background:var(--surface);transition:all .25s;position:relative;z-index:2}
+.mb-step.active .mb-step-dot{border-color:var(--primary);background:var(--primary);color:#fff;box-shadow:0 0 0 4px rgba(13,148,136,.15)}
+.mb-step.done .mb-step-dot{border-color:var(--green);background:var(--green);color:#fff}
+.mb-step-label{position:absolute;top:42px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:600;color:var(--text3)}
+.mb-step.active .mb-step-label{color:var(--primary)}
+.mb-step.done .mb-step-label{color:var(--green)}
+.mb-step-line{width:80px;height:2px;background:var(--border);margin:0 -1px;position:relative;z-index:1}
+.mb-step.done+.mb-step .mb-step-line,
+.mb-step.done .mb-step-line{background:var(--green)}
+
+.mb-accordion{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;border:2px solid transparent;transition:border-color .25s}
+.mb-accordion.active{border-color:var(--primary-mid)}
+.mb-acc-head{padding:18px 24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:.15s}
+.mb-acc-head:hover{background:#FAFBFC}
+.mb-acc-head-right{display:flex;align-items:center;gap:12px}
+.mb-acc-num{width:32px;height:32px;border-radius:50%;background:var(--primary-pale);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.mb-accordion.done .mb-acc-num{background:var(--green-bg);color:var(--green)}
+.mb-acc-title{font-size:15px;font-weight:700;color:var(--text)}
+.mb-acc-summary{font-size:12px;color:var(--text3);margin-top:2px}
+.mb-acc-arrow{font-size:12px;color:var(--text3);transition:transform .25s}
+.mb-accordion.open .mb-acc-arrow{transform:rotate(180deg)}
+.mb-acc-body{padding:0 24px 24px;display:flex;flex-direction:column;gap:18px}
+.mb-accordion:not(.open) .mb-acc-body{display:none}
+
+.mb-field-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.mb-field-grid{grid-template-columns:1fr}}
+
+.mb-results-float{position:fixed;bottom:0;left:0;right:0;z-index:3000;background:var(--surface);border-top:1px solid var(--border);box-shadow:0 -4px 20px rgba(0,0,0,.08);transition:transform .3s}
+.mb-results-compact{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;max-width:780px;margin:0 auto}
+.mb-results-compact-right{display:flex;align-items:center;gap:16px}
+.mb-results-main-num{font-size:22px;font-weight:900;color:var(--text)}
+.mb-results-main-label{font-size:11px;color:var(--text3);font-weight:500}
+.mb-results-sec-num{font-size:14px;font-weight:700;color:var(--text2)}
+.mb-results-sec-label{font-size:10px;color:var(--text3)}
+.mb-expand-btn{padding:8px 16px;border:1.5px solid var(--primary);border-radius:var(--r-sm);background:var(--surface);color:var(--primary);font-family:'Heebo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
+.mb-expand-btn:hover{background:var(--primary);color:#fff}
+
+.mb-results-expanded{display:none;max-width:780px;margin:0 auto;padding:0 24px 24px}
+.mb-results-float.expanded .mb-results-expanded{display:block}
+.mb-results-float.expanded{max-height:70vh;overflow-y:auto}
+
+/* ═══════════════════════════════════════ */
+/* ═══ MOCKUP C — SPLIT DASHBOARD     ═══ */
+/* ═══════════════════════════════════════ */
+
+.mc-layout{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 52px);gap:0}
+.mc-inputs{padding:28px 24px;overflow-y:auto;height:calc(100vh - 52px);position:sticky;top:52px;border-left:1px solid var(--border);background:linear-gradient(180deg,#FAFBFC 0%,var(--bg) 100%);order:1}
+.mc-results{order:2}
+.mc-results{padding:28px 24px;overflow-y:auto}
+.mc-col-title{font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.mc-col-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.mc-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.mc-card-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.mc-card-title .icon{font-size:16px}
+.mc-card-fields{display:flex;flex-direction:column;gap:14px}
+
+.mc-hero-kpi{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:28px 24px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
+.mc-hero-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--primary-light))}
+.mc-hero-amount{font-size:36px;font-weight:900;color:var(--text);letter-spacing:-1px}
+.mc-hero-label{font-size:13px;color:var(--text3);margin-top:2px}
+.mc-hero-sub{display:flex;justify-content:center;gap:24px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.mc-hero-sub-item{text-align:center}
+.mc-hero-sub-val{font-size:16px;font-weight:800;color:var(--text)}
+.mc-hero-sub-label{font-size:10px;color:var(--text3)}
+
+.mc-period-chart{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.mc-period-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+.mc-donut-wrap{display:flex;align-items:center;justify-content:center;gap:24px;margin-top:16px}
+.mc-donut{width:120px;height:120px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center}
+.mc-donut-center{position:absolute;width:72px;height:72px;border-radius:50%;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mc-donut-pct{font-size:18px;font-weight:900;color:var(--text)}
+.mc-donut-label{font-size:9px;color:var(--text3)}
+.mc-donut-legend{display:flex;flex-direction:column;gap:10px}
+.mc-legend-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--text2)}
+.mc-legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+@media(max-width:900px){
+  .mc-layout{grid-template-columns:1fr}
+  .mc-inputs{position:static;height:auto;border-left:none;border-bottom:1px solid var(--border)}
+}
+
+/* ═══ PRINT ═══ */
+@media print{
+  .switcher,.ma-mobile-toggle,.mb-results-float{display:none!important}
+  .ma-sidebar{position:static;height:auto}
+  .ma-layout{grid-template-columns:280px 1fr}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ TAB SWITCHER ═══ -->
+<div class="switcher">
+  <span class="switcher-title">מחשבון עלויות גיוס — מוקאפים:</span>
+  <button class="tab-btn active" onclick="show(1)">A — סרגל צד + כרטיסים</button>
+  <button class="tab-btn" onclick="show(2)">B — ויזארד ליניארי</button>
+  <button class="tab-btn" onclick="show(3)">C — דשבורד מפוצל</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ═══ MOCKUP A — SIDEBAR + CARDS                 ═══ -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="option active" id="opt1">
+<div class="ma-layout">
+
+  <!-- SIDEBAR -->
+  <div class="ma-sidebar" id="maSidebar">
+    <div class="ma-sidebar-title"><span class="icon">⚙️</span> הגדרות</div>
+
+    <!-- Section 1: Base -->
+    <div class="ma-sec open">
+      <div class="ma-sec-head" onclick="this.parentElement.classList.toggle('open')">
+        <div class="ma-sec-head-right">
+          <div class="ma-sec-icon" style="background:#EFF6FF;color:#3B82F6">👥</div>
+          <span class="ma-sec-title">הגדרות בסיס</span>
+        </div>
+        <span class="ma-sec-arrow">▼</span>
+      </div>
+      <div class="ma-sec-body">
+        <div>
+          <div class="field-label"><span class="icon">👥</span> כמות משרות לגיוס</div>
+          <div class="stepper">
+            <button class="stepper-btn">−</button>
+            <div class="stepper-val">1</div>
+            <button class="stepper-btn">+</button>
+          </div>
+          <div class="stepper-sub">משרות</div>
+        </div>
+        <div>
+          <div class="field-label"><span class="icon">💰</span> שכר ברוטו (₪ / חודש)</div>
+          <input class="field-input" type="text" value="22,000">
+          <div class="ma-salary-guide" title="לחץ להשלמה אוטומטית">
+            💡 טווח מומלץ לג'וניור: ₪18,000 – ₪26,000
+          </div>
+        </div>
+        <div>
+          <div class="toggle-row">
+            <span style="font-size:13px;font-weight:600;color:var(--text2)">🏢 עלות מעביד</span>
+            <label class="toggle-switch">
+              <input type="checkbox">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="ma-employer-row" style="margin-top:8px">
+            <div class="ma-employer-computed">עלות מעביד: ₪29,700 / חודש</div>
+            <div class="ma-employer-mult">
+              מקדם: <input type="text" value="1.35">
+              <span style="color:var(--text3)">כולל סוציאליות, פנסיה, ביטוח</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Employment Model -->
+    <div class="ma-sec open">
+      <div class="ma-sec-head" onclick="this.parentElement.classList.toggle('open')">
+        <div class="ma-sec-head-right">
+          <div class="ma-sec-icon" style="background:#FEF3C7;color:#D97706">💼</div>
+          <span class="ma-sec-title">מודל העסקה</span>
+        </div>
+        <span class="ma-sec-arrow">▼</span>
+      </div>
+      <div class="ma-sec-body">
+        <div>
+          <div class="field-label"><span class="icon">🎯</span> רמת מומחיות</div>
+          <div class="seg-ctrl">
+            <button class="seg-btn active">ג'וניור</button>
+            <button class="seg-btn">בכיר</button>
+            <button class="seg-btn">מומחה</button>
+          </div>
+        </div>
+        <div>
+          <div class="field-label"><span class="icon">💼</span> מודל תגמול</div>
+          <div class="seg-ctrl">
+            <button class="seg-btn active">שכר גלובלי</button>
+            <button class="seg-btn">שכר שעתי</button>
+          </div>
+        </div>
+        <div>
+          <div class="field-label"><span class="icon">📐</span> היקף משרה</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:20px;font-weight:800;color:var(--primary)">100%</span>
+            <div style="display:flex;gap:4px">
+              <span style="font-size:10px;color:var(--text3);padding:2px 8px;background:#F1F5F9;border-radius:4px">25%</span>
+              <span style="font-size:10px;color:var(--text3);padding:2px 8px;background:#F1F5F9;border-radius:4px">50%</span>
+              <span style="font-size:10px;color:var(--text3);padding:2px 8px;background:#F1F5F9;border-radius:4px">75%</span>
+              <span style="font-size:10px;color:var(--primary);padding:2px 8px;background:var(--primary-pale);border-radius:4px;font-weight:600">100%</span>
+            </div>
+          </div>
+          <input class="scope-slider" type="range" min="25" max="100" step="25" value="100">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Matching -->
+    <div class="ma-sec open">
+      <div class="ma-sec-head" onclick="this.parentElement.classList.toggle('open')">
+        <div class="ma-sec-head-right">
+          <div class="ma-sec-icon" style="background:#D1FAE5;color:#059669">⚡</div>
+          <span class="ma-sec-title">מאצ'ינג דיגיטל</span>
+        </div>
+        <span class="ma-sec-arrow">▼</span>
+      </div>
+      <div class="ma-sec-body">
+        <div>
+          <div class="toggle-row">
+            <span style="font-size:13px;font-weight:600;color:var(--text2)">מימון מערך הדיגיטל הלאומי</span>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="field-hint">הפחתה מעלות המשרד</div>
+        </div>
+        <div>
+          <div class="seg-ctrl" style="margin-bottom:10px">
+            <button class="seg-btn active">⚡ 30 % מימון</button>
+            <button class="seg-btn">₪ סכום</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: One-time costs -->
+    <div class="ma-sec open">
+      <div class="ma-sec-head" onclick="this.parentElement.classList.toggle('open')">
+        <div class="ma-sec-head-right">
+          <div class="ma-sec-icon" style="background:#FEE2E2;color:#EF4444">🎓</div>
+          <span class="ma-sec-title">עלויות חד-פעמיות</span>
+        </div>
+        <span class="ma-sec-arrow">▼</span>
+      </div>
+      <div class="ma-sec-body">
+        <div>
+          <div class="field-label"><span class="icon">🎓</span> הכשרה (₪ למשרה)</div>
+          <input class="field-input" type="text" value="15,000">
+          <div class="field-hint">ברירת מחדל לג'וניור: ₪15,000</div>
+        </div>
+        <div>
+          <div class="field-label"><span class="icon">🖥️</span> ציוד ורישיונות (₪ למשרה)</div>
+          <input class="field-input" type="text" value="12,000">
+          <div class="field-hint">ציוד, רישיונות תוכנה ותשתית עבודה</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="ma-actions">
+      <button class="ma-action-btn">📎 שתף קישור</button>
+      <button class="ma-action-btn">📄 הורד PDF</button>
+    </div>
+  </div>
+
+  <!-- MAIN RESULTS -->
+  <div class="ma-main">
+    <div class="ma-page-title">מחשבון עלויות גיוס</div>
+    <div class="ma-page-sub">חישוב עלות העסקה כוללת עבור גיוס כוח אדם בגופים ממשלתיים</div>
+    <div class="ma-config-tag"><span class="dot"></span> ג'וניור · שכר גלובלי · 100% משרה · 1 משרה</div>
+
+    <!-- KPI Row -->
+    <div class="ma-kpi-row">
+      <div class="kpi-card ma-kpi-hero">
+        <div class="kpi-icon" style="background:var(--primary-pale);color:var(--primary)">🏛️</div>
+        <div class="kpi-amount">₪217,800</div>
+        <div class="kpi-label">עלות המשרד — שנתי</div>
+        <div class="kpi-sub">אחרי הפחתת מאצ'ינג 30%</div>
+      </div>
+      <div class="kpi-card ma-kpi-total">
+        <div class="kpi-icon" style="background:var(--amber-bg);color:var(--amber)">💰</div>
+        <div class="kpi-amount">₪311,160</div>
+        <div class="kpi-label">עלות כוללת — שנתי</div>
+        <div class="kpi-sub">לפני מאצ'ינג</div>
+      </div>
+      <div class="kpi-card ma-kpi-monthly">
+        <div class="kpi-icon" style="background:var(--green-bg);color:var(--green)">📅</div>
+        <div class="kpi-amount">₪18,150</div>
+        <div class="kpi-label">ממוצע חודשי למשרד</div>
+        <div class="kpi-sub">עלות המשרד ÷ 12</div>
+      </div>
+    </div>
+
+    <!-- Bottom Line -->
+    <div class="bottomline">
+      <div class="bottomline-tag">השורה התחתונה</div>
+      <div class="bottomline-title">🏷️ העלות למשרה לחודש: ₪18,150</div>
+      <div class="bottomline-desc">
+        עבור 1 משרת ג'וניור בהיקף 100%, המשרד ישלם ₪18,150 בחודש בממוצע (אחרי מאצ'ינג של 30%).
+        סה"כ שנתי: ₪217,800.
+      </div>
+      <div class="bottomline-note">
+        <span class="icon">💡</span>
+        <span>דברים שכדאי לקחת בחשבון: עלויות חד-פעמיות כבר כלולות בחישוב (הכשרה ₪15K + ציוד ₪12K).</span>
+      </div>
+    </div>
+
+    <!-- Period Comparison -->
+    <div class="ma-full-row">
+      <div class="ma-breakdown-card">
+        <div class="ma-breakdown-title">📅 השוואת תקופות</div>
+        <table class="period-table">
+          <thead>
+            <tr>
+              <th class="row-label"></th>
+              <th>3 חודשים</th>
+              <th>6 חודשים</th>
+              <th class="highlight">12 חודשים ⭐</th>
+              <th>24 חודשים</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-label">עלות כוללת</td>
+              <td>₪105,160</td>
+              <td>₪183,160</td>
+              <td class="highlight" style="font-weight:900">₪311,160</td>
+              <td>₪595,160</td>
+            </tr>
+            <tr>
+              <td class="row-label">עלות המשרד</td>
+              <td>₪73,612</td>
+              <td>₪128,212</td>
+              <td class="highlight" style="font-weight:900">₪217,812</td>
+              <td>₪416,612</td>
+            </tr>
+            <tr>
+              <td class="row-label">מאצ'ינג דיגיטל</td>
+              <td>₪31,548</td>
+              <td>₪54,948</td>
+              <td class="highlight">₪93,348</td>
+              <td>₪178,548</td>
+            </tr>
+            <tr>
+              <td class="row-label">ממוצע חודשי</td>
+              <td>₪24,537</td>
+              <td>₪21,369</td>
+              <td class="highlight">₪18,151</td>
+              <td>₪17,359</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Cost Breakdown -->
+    <div class="ma-section-row">
+      <div class="ma-breakdown-card">
+        <div class="ma-breakdown-title">📊 פירוט עלויות (שנתי)</div>
+        <div class="bar-row">
+          <span class="bar-label">שכר ברוטו</span>
+          <div class="bar-track"><div class="bar-fill" style="width:85%;background:var(--primary)"></div></div>
+          <span class="bar-val">₪264,000</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">מע"מ (18%)</span>
+          <div class="bar-track"><div class="bar-fill" style="width:15%;background:var(--amber)"></div></div>
+          <span class="bar-val">₪47,520</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">הכשרה</span>
+          <div class="bar-track"><div class="bar-fill" style="width:5%;background:#8B5CF6"></div></div>
+          <span class="bar-val">₪15,000</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">ציוד ורישיונות</span>
+          <div class="bar-track"><div class="bar-fill" style="width:4%;background:#EC4899"></div></div>
+          <span class="bar-val">₪12,000</span>
+        </div>
+        <div style="border-top:2px solid var(--border);margin-top:8px;padding-top:10px;display:flex;justify-content:space-between">
+          <span style="font-size:14px;font-weight:800;color:var(--text)">סה"כ</span>
+          <span style="font-size:14px;font-weight:900;color:var(--text)">₪311,160</span>
+        </div>
+      </div>
+
+      <!-- Ministry vs Digital -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="ma-split-card ministry">
+          <div class="ma-split-label">עלות המשרד (שנתי)</div>
+          <div class="ma-split-amount">₪217,812</div>
+          <div class="ma-split-pct">70% מסה"כ העלות</div>
+          <div class="ma-split-bar"><div class="ma-split-fill" style="width:70%"></div></div>
+        </div>
+        <div class="ma-split-card digital">
+          <div class="ma-split-label">מאצ'ינג מערך הדיגיטל</div>
+          <div class="ma-split-amount">₪93,348</div>
+          <div class="ma-split-pct">30% מסה"כ העלות</div>
+          <div class="ma-split-bar"><div class="ma-split-fill" style="width:30%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<button class="ma-mobile-toggle" onclick="document.getElementById('maSidebar').classList.toggle('open')">⚙️</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ═══ MOCKUP B — LINEAR WIZARD                   ═══ -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="option" id="opt2">
+<div class="mb-wrapper">
+
+  <div class="mb-page-header">
+    <div class="mb-page-title">מחשבון עלויות גיוס</div>
+    <div class="mb-page-sub">חישוב עלות העסקה כוללת עבור גיוס כוח אדם בגופים ממשלתיים</div>
+  </div>
+
+  <!-- Progress -->
+  <div class="mb-progress">
+    <div class="mb-step active" style="position:relative">
+      <div class="mb-step-dot">1</div>
+      <span class="mb-step-label">הגדרות בסיס</span>
+    </div>
+    <div class="mb-step-line"></div>
+    <div class="mb-step" style="position:relative">
+      <div class="mb-step-dot">2</div>
+      <span class="mb-step-label">פרטי העסקה</span>
+    </div>
+    <div class="mb-step-line"></div>
+    <div class="mb-step" style="position:relative">
+      <div class="mb-step-dot">3</div>
+      <span class="mb-step-label">עלויות נוספות</span>
+    </div>
+  </div>
+
+  <!-- Accordion 1: Base Settings -->
+  <div class="mb-accordion open active">
+    <div class="mb-acc-head" onclick="this.parentElement.classList.toggle('open')">
+      <div class="mb-acc-head-right">
+        <div class="mb-acc-num">1</div>
+        <div>
+          <div class="mb-acc-title">הגדרות בסיס</div>
+          <div class="mb-acc-summary">כמות משרות, שכר ועלות מעביד</div>
+        </div>
+      </div>
+      <span class="mb-acc-arrow">▼</span>
+    </div>
+    <div class="mb-acc-body">
+      <div class="mb-field-grid">
+        <div>
+          <div class="field-label"><span class="icon">👥</span> כמות משרות לגיוס</div>
+          <div class="stepper">
+            <button class="stepper-btn">−</button>
+            <div class="stepper-val">1</div>
+            <button class="stepper-btn">+</button>
+          </div>
+        </div>
+        <div>
+          <div class="field-label"><span class="icon">🎯</span> רמת מומחיות</div>
+          <div class="seg-ctrl">
+            <button class="seg-btn active">ג'וניור</button>
+            <button class="seg-btn">בכיר</button>
+            <button class="seg-btn">מומחה</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="field-label"><span class="icon">💰</span> שכר ברוטו (₪ / חודש)</div>
+        <input class="field-input" type="text" value="22,000">
+        <div class="ma-salary-guide" style="margin-top:8px">
+          💡 טווח מומלץ לג'וניור: ₪18,000 – ₪26,000
+        </div>
+      </div>
+      <div>
+        <div class="toggle-row">
+          <span style="font-size:13px;font-weight:600;color:var(--text2)">🏢 הצג עלות מעביד</span>
+          <label class="toggle-switch">
+            <input type="checkbox">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="ma-employer-row" style="margin-top:8px">
+          <div class="ma-employer-computed">עלות מעביד: ₪29,700 / חודש</div>
+          <div class="ma-employer-mult">
+            מקדם: <input type="text" value="1.35">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accordion 2: Employment Details -->
+  <div class="mb-accordion open">
+    <div class="mb-acc-head" onclick="this.parentElement.classList.toggle('open')">
+      <div class="mb-acc-head-right">
+        <div class="mb-acc-num">2</div>
+        <div>
+          <div class="mb-acc-title">פרטי העסקה</div>
+          <div class="mb-acc-summary">מודל תגמול, היקף משרה ומאצ'ינג</div>
+        </div>
+      </div>
+      <span class="mb-acc-arrow">▼</span>
+    </div>
+    <div class="mb-acc-body">
+      <div class="mb-field-grid">
+        <div>
+          <div class="field-label"><span class="icon">💼</span> מודל תגמול</div>
+          <div class="seg-ctrl">
+            <button class="seg-btn active">שכר גלובלי</button>
+            <button class="seg-btn">שכר שעתי</button>
+          </div>
+        </div>
+        <div>
+          <div class="field-label"><span class="icon">📐</span> היקף משרה</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input class="scope-slider" type="range" min="25" max="100" step="25" value="100" style="flex:1">
+            <span style="font-size:18px;font-weight:800;color:var(--primary);min-width:50px;text-align:center">100%</span>
+          </div>
+        </div>
+      </div>
+      <div style="background:#F1F5F9;border-radius:var(--r-sm);padding:14px;display:none">
+        <div class="field-label"><span class="icon">🕐</span> שעות עבודה בחודש</div>
+        <input class="field-input" type="text" value="176" style="max-width:120px">
+        <div class="field-hint">ברירת מחדל: 176 (22 ימים × 8 שעות)</div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:16px">
+        <div class="toggle-row" style="margin-bottom:10px">
+          <span style="font-size:13px;font-weight:600;color:var(--text2)">⚡ מאצ'ינג דיגיטל לאומי</span>
+          <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="seg-ctrl" style="max-width:250px">
+          <button class="seg-btn active">⚡ 30 % מימון</button>
+          <button class="seg-btn">₪ סכום</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accordion 3: One-time Costs -->
+  <div class="mb-accordion open">
+    <div class="mb-acc-head" onclick="this.parentElement.classList.toggle('open')">
+      <div class="mb-acc-head-right">
+        <div class="mb-acc-num">3</div>
+        <div>
+          <div class="mb-acc-title">עלויות חד-פעמיות</div>
+          <div class="mb-acc-summary">הכשרה, ציוד ורישיונות</div>
+        </div>
+      </div>
+      <span class="mb-acc-arrow">▼</span>
+    </div>
+    <div class="mb-acc-body">
+      <div class="mb-field-grid">
+        <div>
+          <div class="field-label"><span class="icon">🎓</span> הכשרה (₪ למשרה)</div>
+          <input class="field-input" type="text" value="15,000">
+          <div class="field-hint">ברירת מחדל לג'וניור: ₪15,000</div>
+        </div>
+        <div>
+          <div class="field-label"><span class="icon">🖥️</span> ציוד ורישיונות (₪ למשרה)</div>
+          <input class="field-input" type="text" value="12,000">
+          <div class="field-hint">ציוד, רישיונות תוכנה ותשתית עבודה</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inline Results (below accordions) -->
+  <div style="margin-top:24px">
+    <div class="bottomline">
+      <div class="bottomline-tag">השורה התחתונה</div>
+      <div class="bottomline-title">🏷️ העלות למשרה לחודש: ₪18,150</div>
+      <div class="bottomline-desc">
+        עבור 1 משרת ג'וניור בהיקף 100%, המשרד ישלם ₪18,150 בחודש בממוצע (אחרי מאצ'ינג של 30%).
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px">
+    <div class="ma-breakdown-card">
+      <div class="ma-breakdown-title">📅 השוואת תקופות</div>
+      <table class="period-table">
+        <thead>
+          <tr>
+            <th class="row-label"></th>
+            <th>3 חודשים</th>
+            <th>6 חודשים</th>
+            <th class="highlight">12 חודשים ⭐</th>
+            <th>24 חודשים</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">עלות המשרד</td>
+            <td>₪73,612</td>
+            <td>₪128,212</td>
+            <td class="highlight" style="font-weight:900">₪217,812</td>
+            <td>₪416,612</td>
+          </tr>
+          <tr>
+            <td class="row-label">ממוצע חודשי</td>
+            <td>₪24,537</td>
+            <td>₪21,369</td>
+            <td class="highlight">₪18,151</td>
+            <td>₪17,359</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="ma-breakdown-card">
+      <div class="ma-breakdown-title">📊 פירוט עלויות (שנתי)</div>
+      <div class="bar-row">
+        <span class="bar-label">שכר ברוטו</span>
+        <div class="bar-track"><div class="bar-fill" style="width:85%;background:var(--primary)"></div></div>
+        <span class="bar-val">₪264,000</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">מע"מ (18%)</span>
+        <div class="bar-track"><div class="bar-fill" style="width:15%;background:var(--amber)"></div></div>
+        <span class="bar-val">₪47,520</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">הכשרה</span>
+        <div class="bar-track"><div class="bar-fill" style="width:5%;background:#8B5CF6"></div></div>
+        <span class="bar-val">₪15,000</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">ציוד</span>
+        <div class="bar-track"><div class="bar-fill" style="width:4%;background:#EC4899"></div></div>
+        <span class="bar-val">₪12,000</span>
+      </div>
+      <div style="border-top:2px solid var(--border);margin-top:8px;padding-top:10px;display:flex;justify-content:space-between">
+        <span style="font-size:14px;font-weight:800">סה"כ</span>
+        <span style="font-size:14px;font-weight:900">₪311,160</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="ma-split-card ministry">
+        <div class="ma-split-label">עלות המשרד (שנתי)</div>
+        <div class="ma-split-amount">₪217,812</div>
+        <div class="ma-split-pct">70% מסה"כ העלות</div>
+        <div class="ma-split-bar"><div class="ma-split-fill" style="width:70%"></div></div>
+      </div>
+      <div class="ma-split-card digital">
+        <div class="ma-split-label">מאצ'ינג מערך הדיגיטל</div>
+        <div class="ma-split-amount">₪93,348</div>
+        <div class="ma-split-pct">30% מסה"כ העלות</div>
+        <div class="ma-split-bar"><div class="ma-split-fill" style="width:30%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-top:20px;justify-content:center">
+    <button class="ma-action-btn" style="max-width:180px">📎 שתף קישור</button>
+    <button class="ma-action-btn" style="max-width:180px">📄 הורד PDF</button>
+  </div>
+
+</div>
+
+<!-- Floating Results Bar -->
+<div class="mb-results-float">
+  <div class="mb-results-compact">
+    <div class="mb-results-compact-right">
+      <div>
+        <div class="mb-results-main-num">₪217,812</div>
+        <div class="mb-results-main-label">עלות המשרד — שנתי</div>
+      </div>
+      <div style="width:1px;height:30px;background:var(--border)"></div>
+      <div>
+        <div class="mb-results-sec-num">₪18,151 / חודש</div>
+        <div class="mb-results-sec-label">ממוצע חודשי</div>
+      </div>
+    </div>
+    <button class="mb-expand-btn" onclick="this.closest('.mb-results-float').classList.toggle('expanded')">📊 פירוט מלא</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ═══ MOCKUP C — SPLIT DASHBOARD                 ═══ -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="option" id="opt3">
+<div class="mc-layout">
+
+  <!-- RIGHT — INPUTS -->
+  <div class="mc-inputs">
+    <div class="mc-col-title">⚙️ פרמטרים</div>
+
+    <!-- Card 1: Position & Salary -->
+    <div class="mc-card">
+      <div class="mc-card-title"><span class="icon">👥</span> משרה ושכר</div>
+      <div class="mc-card-fields">
+        <div>
+          <div class="field-label">כמות משרות לגיוס</div>
+          <div class="stepper">
+            <button class="stepper-btn">−</button>
+            <div class="stepper-val">1</div>
+            <button class="stepper-btn">+</button>
+          </div>
+        </div>
+        <div>
+          <div class="field-label">רמת מומחיות</div>
+          <div class="seg-ctrl">
+            <button class="seg-btn active">ג'וניור</button>
+            <button class="seg-btn">בכיר</button>
+            <button class="seg-btn">מומחה</button>
+          </div>
+        </div>
+        <div>
+          <div class="field-label">שכר ברוטו (₪ / חודש)</div>
+          <input class="field-input" type="text" value="22,000">
+          <div class="ma-salary-guide" style="margin-top:8px">💡 טווח מומלץ: ₪18,000 – ₪26,000</div>
+        </div>
+        <div>
+          <div class="toggle-row">
+            <span style="font-size:13px;font-weight:600;color:var(--text2)">🏢 עלות מעביד</span>
+            <label class="toggle-switch">
+              <input type="checkbox">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="ma-employer-row" style="margin-top:8px">
+            <div class="ma-employer-computed">₪29,700 / חודש</div>
+            <div class="ma-employer-mult">מקדם: <input type="text" value="1.35"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Employment Model -->
+    <div class="mc-card">
+      <div class="mc-card-title"><span class="icon">💼</span> מודל העסקה</div>
+      <div class="mc-card-fields">
+        <div>
+          <div class="field-label">מודל תגמול</div>
+          <div class="seg-ctrl">
+            <button class="seg-btn active">שכר גלובלי</button>
+            <button class="seg-btn">שכר שעתי</button>
+          </div>
+        </div>
+        <div>
+          <div class="field-label">היקף משרה</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <input class="scope-slider" type="range" min="25" max="100" step="25" value="100" style="flex:1">
+            <span style="font-size:20px;font-weight:800;color:var(--primary)">100%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Funding & Costs -->
+    <div class="mc-card">
+      <div class="mc-card-title"><span class="icon">⚡</span> מימון והוצאות</div>
+      <div class="mc-card-fields">
+        <div>
+          <div class="toggle-row" style="margin-bottom:8px">
+            <span style="font-size:13px;font-weight:600;color:var(--text2)">מאצ'ינג דיגיטל לאומי</span>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="seg-ctrl" style="max-width:220px">
+            <button class="seg-btn active">⚡ 30%</button>
+            <button class="seg-btn">₪ סכום</button>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:14px">
+          <div class="field-label">🎓 הכשרה (₪ למשרה)</div>
+          <input class="field-input" type="text" value="15,000">
+        </div>
+        <div>
+          <div class="field-label">🖥️ ציוד ורישיונות (₪ למשרה)</div>
+          <input class="field-input" type="text" value="12,000">
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="ma-action-btn" style="flex:1">📎 שתף קישור</button>
+      <button class="ma-action-btn" style="flex:1">📄 הורד PDF</button>
+    </div>
+  </div>
+
+  <!-- LEFT — RESULTS -->
+  <div class="mc-results">
+    <div class="mc-col-title">📊 תוצאות בזמן אמת</div>
+
+    <!-- Hero KPI -->
+    <div class="mc-hero-kpi">
+      <div class="mc-hero-amount">₪217,812</div>
+      <div class="mc-hero-label">עלות המשרד — שנתי (אחרי מאצ'ינג)</div>
+      <div class="mc-hero-sub">
+        <div class="mc-hero-sub-item">
+          <div class="mc-hero-sub-val">₪18,151</div>
+          <div class="mc-hero-sub-label">ממוצע חודשי</div>
+        </div>
+        <div class="mc-hero-sub-item">
+          <div class="mc-hero-sub-val">₪311,160</div>
+          <div class="mc-hero-sub-label">סה"כ לפני מאצ'ינג</div>
+        </div>
+        <div class="mc-hero-sub-item">
+          <div class="mc-hero-sub-val">₪93,348</div>
+          <div class="mc-hero-sub-label">חיסכון מאצ'ינג</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Line -->
+    <div class="bottomline" style="margin-bottom:16px">
+      <div class="bottomline-tag">השורה התחתונה</div>
+      <div class="bottomline-title">🏷️ ₪18,150 לחודש למשרה</div>
+      <div class="bottomline-desc">1 משרת ג'וניור · 100% · מאצ'ינג 30%</div>
+    </div>
+
+    <!-- Period Chart -->
+    <div class="mc-period-chart">
+      <div class="mc-period-title">📅 השוואת תקופות — עלות המשרד</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="bar-row">
+          <span class="bar-label">3 חודשים</span>
+          <div class="bar-track" style="height:24px;border-radius:8px"><div class="bar-fill" style="width:18%;background:linear-gradient(90deg,var(--primary-light),var(--primary));border-radius:8px;display:flex;align-items:center;padding-right:8px"></div></div>
+          <span class="bar-val">₪73,612</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">6 חודשים</span>
+          <div class="bar-track" style="height:24px;border-radius:8px"><div class="bar-fill" style="width:31%;background:linear-gradient(90deg,var(--primary-light),var(--primary));border-radius:8px"></div></div>
+          <span class="bar-val">₪128,212</span>
+        </div>
+        <div class="bar-row" style="background:var(--primary-pale);margin:0 -12px;padding:10px 12px;border-radius:8px">
+          <span class="bar-label" style="color:var(--primary);font-weight:700">12 חודשים ⭐</span>
+          <div class="bar-track" style="height:24px;border-radius:8px"><div class="bar-fill" style="width:52%;background:linear-gradient(90deg,var(--primary),var(--primary-dark));border-radius:8px"></div></div>
+          <span class="bar-val" style="color:var(--primary);font-weight:900">₪217,812</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">24 חודשים</span>
+          <div class="bar-track" style="height:24px;border-radius:8px"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,var(--primary-light),var(--primary));border-radius:8px"></div></div>
+          <span class="bar-val">₪416,612</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Breakdown + Donut -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="ma-breakdown-card">
+        <div class="ma-breakdown-title">📊 פירוט שנתי</div>
+        <div class="bar-row">
+          <span class="bar-label">שכר</span>
+          <div class="bar-track"><div class="bar-fill" style="width:85%;background:var(--primary)"></div></div>
+          <span class="bar-val">₪264K</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">מע"מ</span>
+          <div class="bar-track"><div class="bar-fill" style="width:15%;background:var(--amber)"></div></div>
+          <span class="bar-val">₪47.5K</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">הכשרה</span>
+          <div class="bar-track"><div class="bar-fill" style="width:5%;background:#8B5CF6"></div></div>
+          <span class="bar-val">₪15K</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">ציוד</span>
+          <div class="bar-track"><div class="bar-fill" style="width:4%;background:#EC4899"></div></div>
+          <span class="bar-val">₪12K</span>
+        </div>
+      </div>
+
+      <!-- Donut -->
+      <div class="ma-breakdown-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div class="mc-donut" style="background:conic-gradient(var(--primary) 0deg 252deg, var(--green) 252deg 360deg)">
+          <div class="mc-donut-center">
+            <div class="mc-donut-pct">70%</div>
+            <div class="mc-donut-label">המשרד</div>
+          </div>
+        </div>
+        <div class="mc-donut-legend" style="margin-top:16px">
+          <div class="mc-legend-item"><div class="mc-legend-dot" style="background:var(--primary)"></div> המשרד — ₪217,812</div>
+          <div class="mc-legend-item"><div class="mc-legend-dot" style="background:var(--green)"></div> מאצ'ינג — ₪93,348</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ═══ SCRIPT ═══ -->
+<script>
+function show(n) {
+  document.querySelectorAll('.option').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('opt' + n).classList.add('active');
+  document.querySelectorAll('.tab-btn')[n - 1].classList.add('active');
+}
+
+document.querySelectorAll('.seg-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const parent = btn.closest('.seg-ctrl');
+    parent.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>
