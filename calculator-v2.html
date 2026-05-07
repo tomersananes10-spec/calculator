@@ -65,6 +65,10 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
 .step-btn:active{background:var(--primary-mid)}
 .step-val{flex:1;text-align:center;font-size:24px;font-weight:800;color:var(--text);background:var(--surface);padding:6px 0;border-right:1px solid var(--border);border-left:1px solid var(--border)}
 .step-sub{font-size:11px;color:var(--text3);text-align:center;margin-top:3px;font-weight:500}
+.step-val-input{flex:1;text-align:center;font-size:20px;font-weight:800;color:var(--text);background:var(--surface);padding:6px 0;border:none;border-right:1px solid var(--border);border-left:1px solid var(--border);font-family:'Heebo',sans-serif;outline:none;min-width:0}
+.label-edit{border:none;background:transparent;font-family:'Heebo',sans-serif;font-size:inherit;font-weight:inherit;color:inherit;padding:0 2px;border-bottom:1.5px dashed var(--border);border-radius:0;outline:none;transition:border-color .2s;max-width:120px;text-align:right}
+.label-edit:focus{border-bottom-color:var(--primary)}
+.vat-hint{font-size:12px;color:var(--green);margin-top:4px;font-weight:500}
 
 .seg-ctrl{display:flex;background:#F1F5F9;border-radius:var(--r-sm);padding:3px;gap:2px}
 .seg-btn{flex:1;padding:9px 12px;border:none;border-radius:8px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--text3)}
@@ -248,6 +252,17 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
 
         <div>
           <div class="toggle-row">
+            <span class="toggle-label">📋 מע"מ (18%)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="vatToggle" onchange="toggleVat()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="vat-hint hidden" id="vatHint">מע"מ יתווסף לסה"כ העלויות</div>
+        </div>
+
+        <div>
+          <div class="toggle-row">
             <span class="toggle-label">🏢 עלות מעביד</span>
             <label class="toggle-switch">
               <input type="checkbox" id="employerToggle" onchange="toggleEmployer()">
@@ -342,13 +357,21 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
       <div class="acc-body-inner">
         <div class="field-grid">
           <div>
-            <div class="field-label"><span class="icon">🎓</span> הכשרה (₪ למשרה)</div>
-            <input class="field-input" id="trainingInput" type="text" inputmode="numeric" oninput="onTrainingInput()" onfocus="this.select()">
+            <div class="field-label"><span class="icon">🎓</span> <input class="label-edit" id="trainingLabel" value="הכשרה" type="text"> (₪ למשרה)</div>
+            <div class="stepper cost-stepper">
+              <button class="step-btn" onclick="changeTraining(1000)">+</button>
+              <input class="step-val-input" id="trainingInput" type="text" inputmode="numeric" oninput="onTrainingInput()" onfocus="this.select()">
+              <button class="step-btn" onclick="changeTraining(-1000)">−</button>
+            </div>
             <div class="field-hint" id="trainingHint">ברירת מחדל לג'וניור: ₪15,000</div>
           </div>
           <div>
-            <div class="field-label"><span class="icon">🖥️</span> ציוד ורישיונות (₪ למשרה)</div>
-            <input class="field-input" id="equipInput" type="text" inputmode="numeric" oninput="onEquipInput()" onfocus="this.select()">
+            <div class="field-label"><span class="icon">🖥️</span> <input class="label-edit" id="equipLabel" value="ציוד ורישיונות" type="text"> (₪ למשרה)</div>
+            <div class="stepper cost-stepper">
+              <button class="step-btn" onclick="changeEquip(1000)">+</button>
+              <input class="step-val-input" id="equipInput" type="text" inputmode="numeric" oninput="onEquipInput()" onfocus="this.select()">
+              <button class="step-btn" onclick="changeEquip(-1000)">−</button>
+            </div>
             <div class="field-hint">ציוד, רישיונות תוכנה ותשתית עבודה</div>
           </div>
         </div>
@@ -432,18 +455,18 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
           <div class="bar-track"><div class="bar-fill" id="barEmployer" style="background:#06B6D4"></div></div>
           <span class="bar-val" id="valEmployer"></span>
         </div>
-        <div class="bar-row">
+        <div class="bar-row" id="rowVat">
           <span class="bar-label">מע"מ (18%)</span>
           <div class="bar-track"><div class="bar-fill" id="barVat" style="background:var(--amber)"></div></div>
           <span class="bar-val" id="valVat"></span>
         </div>
         <div class="bar-row">
-          <span class="bar-label">הכשרה</span>
+          <span class="bar-label" id="barTrainingLabel">הכשרה</span>
           <div class="bar-track"><div class="bar-fill" id="barTraining" style="background:var(--purple)"></div></div>
           <span class="bar-val" id="valTraining"></span>
         </div>
         <div class="bar-row">
-          <span class="bar-label">ציוד ורישיונות</span>
+          <span class="bar-label" id="barEquipLabel">ציוד ורישיונות</span>
           <div class="bar-track"><div class="bar-fill" id="barEquip" style="background:var(--pink)"></div></div>
           <span class="bar-val" id="valEquip"></span>
         </div>
@@ -508,6 +531,7 @@ const state = {
   salary: 22000,
   showEmployer: false,
   employerMult: 1.35,
+  showVat: false,
   scope: 100,
   monthlyHours: 176,
   matching: true,
@@ -517,6 +541,8 @@ const state = {
   comp: 'global',
   training: 15000,
   equipment: 12000,
+  trainingName: 'הכשרה',
+  equipName: 'ציוד ורישיונות',
   userEditedSalary: false,
   userEditedTraining: false,
   userEditedEquip: false,
@@ -541,7 +567,7 @@ function calcCost(months) {
   const employerAdder = s.showEmployer ? monthlyGross * (s.employerMult - 1) : 0;
   const monthlyPerPos = monthlyGross + employerAdder;
   const salaryTotal = monthlyPerPos * months * n;
-  const vatAmount = salaryTotal * VAT_RATE;
+  const vatAmount = s.showVat ? salaryTotal * VAT_RATE : 0;
   const trainingTotal = s.training * n;
   const equipTotal = s.equipment * n;
   const oneTime = trainingTotal + equipTotal;
@@ -588,9 +614,11 @@ function updateUI() {
     (state.matching ? ` (אחרי מאצ'ינג ${state.matchMode === 'pct' ? state.matchVal + '%' : fmt(state.matchVal)}).` : '.') +
     ` סה"כ שנתי: ${fmt(r12.ministry)}.`;
   const noteItems = [];
-  if (state.training > 0 || state.equipment > 0) noteItems.push(`עלויות חד-פעמיות כלולות: הכשרה ${fmt(state.training)} + ציוד ${fmt(state.equipment)}`);
+  if (state.training > 0 || state.equipment > 0) noteItems.push(`עלויות חד-פעמיות כלולות: ${state.trainingName} ${fmt(state.training)} + ${state.equipName} ${fmt(state.equipment)}`);
   if (state.showEmployer) noteItems.push(`עלות מעביד (×${state.employerMult}) כלולה בחישוב`);
-  $('blNote').textContent = noteItems.length ? noteItems.join(' · ') : 'כל העלויות כוללות מע"מ 18%.';
+  if (state.showVat) noteItems.push('כולל מע"מ 18%');
+  else noteItems.push('ללא מע"מ');
+  $('blNote').textContent = noteItems.join(' · ');
 
   // Period table
   [['3', r3], ['6', r6], ['12', r12], ['24', r24]].forEach(([p, r]) => {
@@ -609,8 +637,13 @@ function updateUI() {
   $('rowEmployer').style.display = state.showEmployer ? 'flex' : 'none';
   $('barEmployer').style.width = (empAnn / maxVal * 100) + '%';
   $('valEmployer').textContent = fmt(empAnn);
+  $('rowVat').style.display = state.showVat ? 'flex' : 'none';
   $('barVat').style.width = (r12.vat / maxVal * 100) + '%';
   $('valVat').textContent = fmt(r12.vat);
+  state.trainingName = $('trainingLabel').value || 'הכשרה';
+  state.equipName = $('equipLabel').value || 'ציוד ורישיונות';
+  $('barTrainingLabel').textContent = state.trainingName;
+  $('barEquipLabel').textContent = state.equipName;
   $('barTraining').style.width = (r12.training / maxVal * 100) + '%';
   $('valTraining').textContent = fmt(r12.training);
   $('barEquip').style.width = (r12.equipment / maxVal * 100) + '%';
@@ -688,6 +721,9 @@ function setComp(val) {
       state.salary = def.hourly;
       $('salaryInput').value = state.salary.toLocaleString('he-IL');
     }
+    state.showVat = true;
+    $('vatToggle').checked = true;
+    $('vatHint').classList.remove('hidden');
   } else {
     $('salaryLabel').textContent = 'שכר ברוטו (₪ / חודש)';
     $('scopeWrap').style.display = '';
@@ -696,6 +732,9 @@ function setComp(val) {
       state.salary = def.global;
       $('salaryInput').value = state.salary.toLocaleString('he-IL');
     }
+    state.showVat = false;
+    $('vatToggle').checked = false;
+    $('vatHint').classList.add('hidden');
   }
   updateUI();
 }
@@ -761,15 +800,35 @@ function onMatchValInput() {
   updateUI();
 }
 
+function toggleVat() {
+  state.showVat = $('vatToggle').checked;
+  $('vatHint').classList.toggle('hidden', !state.showVat);
+  updateUI();
+}
+
 function onTrainingInput() {
   state.userEditedTraining = true;
   state.training = parseNum($('trainingInput').value);
   updateUI();
 }
 
+function changeTraining(delta) {
+  state.userEditedTraining = true;
+  state.training = Math.max(0, state.training + delta);
+  $('trainingInput').value = state.training.toLocaleString('he-IL');
+  updateUI();
+}
+
 function onEquipInput() {
   state.userEditedEquip = true;
   state.equipment = parseNum($('equipInput').value);
+  updateUI();
+}
+
+function changeEquip(delta) {
+  state.userEditedEquip = true;
+  state.equipment = Math.max(0, state.equipment + delta);
+  $('equipInput').value = state.equipment.toLocaleString('he-IL');
   updateUI();
 }
 
@@ -813,8 +872,11 @@ function updateURL() {
   params.set('mv', s.matchVal);
   params.set('em', s.showEmployer ? 1 : 0);
   params.set('emv', s.employerMult);
+  params.set('vt', s.showVat ? 1 : 0);
   params.set('tr', s.training);
   params.set('eq', s.equipment);
+  if (s.trainingName !== 'הכשרה') params.set('trn', s.trainingName);
+  if (s.equipName !== 'ציוד ורישיונות') params.set('eqn', s.equipName);
   history.replaceState(null, '', '#' + params.toString());
 }
 
@@ -833,8 +895,11 @@ function loadFromURL() {
   if (p.has('mv')) state.matchVal = parseFloat(p.get('mv')) || 30;
   if (p.has('em')) state.showEmployer = p.get('em') === '1';
   if (p.has('emv')) state.employerMult = parseFloat(p.get('emv')) || 1.35;
+  if (p.has('vt')) state.showVat = p.get('vt') === '1';
   if (p.has('tr')) { state.training = parseFloat(p.get('tr')) || 0; state.userEditedTraining = true; }
   if (p.has('eq')) { state.equipment = parseFloat(p.get('eq')) || 0; state.userEditedEquip = true; }
+  if (p.has('trn')) state.trainingName = decodeURIComponent(p.get('trn'));
+  if (p.has('eqn')) state.equipName = decodeURIComponent(p.get('eqn'));
 }
 
 function shareLink() {
@@ -872,9 +937,13 @@ function init() {
   $('equipInput').value = state.equipment.toLocaleString('he-IL');
   $('employerMult').value = state.employerMult;
   $('employerToggle').checked = state.showEmployer;
+  $('vatToggle').checked = state.showVat;
   $('matchToggle').checked = state.matching;
   $('employerBox').classList.toggle('hidden', !state.showEmployer);
+  $('vatHint').classList.toggle('hidden', !state.showVat);
   $('matchingSub').classList.toggle('hidden', !state.matching);
+  $('trainingLabel').value = state.trainingName;
+  $('equipLabel').value = state.equipName;
   activateSeg('expertiseSeg', state.expertise);
   activateSeg('compSeg', state.comp);
   activateSeg('matchModeSeg', state.matchMode);
