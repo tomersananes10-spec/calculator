@@ -215,7 +215,7 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
         <div class="acc-num">1</div>
         <div>
           <div class="acc-title">הגדרות בסיס</div>
-          <div class="acc-summary">כמות משרות, שכר ועלות מעביד</div>
+          <div class="acc-summary">כמות משרות, מומחיות ומודל תגמול</div>
         </div>
       </div>
       <span class="acc-arrow">▼</span>
@@ -242,59 +242,6 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
           </div>
         </div>
 
-        <div>
-          <div class="field-label"><span class="icon">💰</span> <span id="salaryLabel">שכר ברוטו (₪ / חודש)</span></div>
-          <input class="field-input" id="salaryInput" type="text" inputmode="numeric" oninput="onSalaryInput()" onfocus="this.select()">
-          <div class="salary-guide" id="salaryGuide" onclick="applySalaryGuide()">
-            💡 <span id="salaryGuideText">טווח מומלץ לג'וניור: ₪18,000 – ₪26,000</span>
-          </div>
-        </div>
-
-        <div>
-          <div class="toggle-row">
-            <span class="toggle-label">📋 מע"מ (18%)</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="vatToggle" onchange="toggleVat()">
-              <span class="toggle-track"></span>
-            </label>
-          </div>
-          <div class="vat-hint hidden" id="vatHint">מע"מ יתווסף לסה"כ העלויות</div>
-        </div>
-
-        <div>
-          <div class="toggle-row">
-            <span class="toggle-label">🏢 עלות מעביד</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="employerToggle" onchange="toggleEmployer()">
-              <span class="toggle-track"></span>
-            </label>
-          </div>
-          <div class="employer-box hidden" id="employerBox">
-            <div class="employer-computed" id="employerComputed">עלות מעביד: ₪29,700 / חודש</div>
-            <div class="employer-mult">
-              מקדם: <input type="text" id="employerMult" value="1.35" oninput="onMultInput()" onfocus="this.select()">
-              <span>כולל סוציאליות, פנסיה, ביטוח</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ ACCORDION 2: EMPLOYMENT ═══ -->
-  <div class="accordion open" data-acc="1">
-    <div class="acc-head" onclick="toggleAcc(1)">
-      <div class="acc-head-right">
-        <div class="acc-num">2</div>
-        <div>
-          <div class="acc-title">פרטי העסקה</div>
-          <div class="acc-summary">מודל תגמול, היקף משרה ומאצ'ינג</div>
-        </div>
-      </div>
-      <span class="acc-arrow">▼</span>
-    </div>
-    <div class="acc-body">
-      <div class="acc-body-inner">
         <div class="field-grid">
           <div>
             <div class="field-label"><span class="icon">💼</span> מודל תגמול</div>
@@ -315,6 +262,59 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
             <input class="field-input" id="hoursInput" type="text" inputmode="numeric" value="176" oninput="onHoursInput()" onfocus="this.select()" style="max-width:140px">
             <div class="field-hint">ברירת מחדל: 176 (22 ימים × 8 שעות)</div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ACCORDION 2: DEAL DETAILS ═══ -->
+  <div class="accordion open" data-acc="1">
+    <div class="acc-head" onclick="toggleAcc(1)">
+      <div class="acc-head-right">
+        <div class="acc-num">2</div>
+        <div>
+          <div class="acc-title">פרטי העסקה</div>
+          <div class="acc-summary">שכר, עלות מעביד, מע"מ ומאצ'ינג</div>
+        </div>
+      </div>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+      <div class="acc-body-inner">
+        <div>
+          <div class="field-label"><span class="icon">💰</span> <span id="salaryLabel">שכר ברוטו (₪ / חודש)</span></div>
+          <input class="field-input" id="salaryInput" type="text" inputmode="numeric" oninput="onSalaryInput()" onfocus="this.select()">
+          <div class="salary-guide" id="salaryGuide" onclick="applySalaryGuide()">
+            💡 <span id="salaryGuideText">טווח מומלץ לג'וניור: ₪18,000 – ₪26,000</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="toggle-row">
+            <span class="toggle-label">🏢 עלות מעביד</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="employerToggle" onchange="toggleEmployer()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="employer-box hidden" id="employerBox">
+            <div class="employer-computed" id="employerComputed">עלות מעביד: ₪29,700 / חודש</div>
+            <div class="employer-mult">
+              מקדם: <input type="text" id="employerMult" value="1.35" oninput="onMultInput()" onfocus="this.select()">
+              <span>כולל סוציאליות, פנסיה, ביטוח</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="toggle-row">
+            <span class="toggle-label">📋 מע"מ (18%)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="vatToggle" onchange="toggleVat()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="vat-hint hidden" id="vatHint">מע"מ יתווסף לסה"כ העלויות</div>
         </div>
 
         <div class="separator">
