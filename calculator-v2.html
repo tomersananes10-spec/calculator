@@ -31,18 +31,6 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
 .page-title{font-size:28px;font-weight:900;color:var(--text);letter-spacing:-.5px}
 .page-sub{font-size:13px;color:var(--text3);margin-top:4px}
 
-/* ═══ PROGRESS ═══ */
-.progress{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:32px}
-.step{display:flex;align-items:center;gap:0;position:relative}
-.step-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:2.5px solid var(--border);color:var(--text3);background:var(--surface);transition:all .3s var(--ease);position:relative;z-index:2;cursor:pointer}
-.step-dot:hover{border-color:var(--border2);color:var(--text2)}
-.step.active .step-dot{border-color:var(--primary);background:var(--primary);color:#fff;box-shadow:0 0 0 5px rgba(13,148,136,.12)}
-.step.done .step-dot{border-color:var(--green);background:var(--green);color:#fff}
-.step-label{position:absolute;top:44px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:600;color:var(--text3);transition:color .2s}
-.step.active .step-label{color:var(--primary)}
-.step.done .step-label{color:var(--green)}
-.step-line{width:80px;height:2.5px;background:var(--border);margin:0 -1px;position:relative;z-index:1;transition:background .3s}
-.step-line.done{background:var(--green)}
 
 /* ═══ ACCORDION ═══ */
 .accordion{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;border:2px solid transparent;transition:all .3s}
@@ -184,7 +172,6 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
   .split-row{grid-template-columns:1fr}
   .float-inner{padding:10px 16px}
   .float-main{font-size:17px}
-  .step-line{width:50px}
   .result-card{padding:18px}
 }
 
@@ -216,23 +203,6 @@ body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--t
     <div class="page-sub">חישוב עלות העסקה כוללת עבור גיוס כוח אדם בגופים ממשלתיים</div>
   </div>
 
-  <!-- PROGRESS -->
-  <div class="progress">
-    <div class="step active" onclick="toggleAcc(0)">
-      <div class="step-dot">1</div>
-      <span class="step-label">הגדרות בסיס</span>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" onclick="toggleAcc(1)">
-      <div class="step-dot">2</div>
-      <span class="step-label">פרטי העסקה</span>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" onclick="toggleAcc(2)">
-      <div class="step-dot">3</div>
-      <span class="step-label">עלויות נוספות</span>
-    </div>
-  </div>
 
   <!-- ═══ ACCORDION 1: BASE ═══ -->
   <div class="accordion open active" data-acc="0">
