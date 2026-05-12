@@ -215,35 +215,36 @@ CLAUDE_CODE_TOMER/
 | 28.04 | תיקון העלאת תמונות בפרופיל — מיגרציה, storage buckets, RLS |
 | 28.04 | שדרוג עיצוב דף פרופיל — באנר גרדיאנט, אווטאר חופף, כרטיסים עם אייקונים צבעוניים, אנימציות |
 | 28.04 | רובד 5 — תיקון חיפוש, AI timeout, שדרוג UI לכרטיסים מודרניים |
+| 12.05 | שדרוג מסך אדמין — 9 טאבים, מודול admin חדש, מיגרציית DB |
 
 ---
 
 ## 10. שיחה אחרונה
 
-> **תאריך**: 28.04.2026
-> **נושא**: שדרוג מלא של רובד 5 — UI, חיפוש, AI
+> **תאריך**: 12.05.2026
+> **נושא**: שדרוג מלא של מסך אדמין — 4 טאבים → 9 טאבים
 
 ### מה בוצע:
-- שדרוג תצוגת שירותים מטבלה לגריד כרטיסים מודרני (card grid)
-- גרדיאנט צבעוני בראש כל כרטיס לפי ספק ענן (GCP כתום, AWS אדום)
-- בדג'ים צבעוניים לקטגוריה, סוג שירות וספק ענן
-- תיקון ספינינג נצחי של AI — הוספת AbortController עם timeout של 15 שניות
-- הודעת שגיאה ברורה כש-AI לא זמין
-- חיפוש טקסט חכם — פיצול מילים מחוברות בעברית (expandTerms), stemming משופר
-- Debounce של 300ms על חיפוש טקסט
-- מקש Enter מפעיל חיפוש AI
-- Memoization של קטגוריות שירותים לביצועים
-
-### commits:
-```
-b4c2659 fix(roved5): AI search via server proxy, smarter keyword search, working category filters
-eebe6e9 fix(roved5): Hebrew stemming for search, working AI button, better stop words
-a741fdf feat(roved5): premium card UI, AI timeout fix, smarter Hebrew search
-```
+- בנייה מלאה של מודול admin חדש ב-`modules/admin/`
+- 9 טאבים: לוח בקרה אנליטי, משתמשים, מנהלי מערכת, תמיכה, פיתוח, תקינות, איכות נתונים, אבטחת מידע, שגיאות
+- AdminPanel.tsx — shell עם lazy loading לכל קומפוננטה
+- useAdminData.ts — hook עם admin_get_all_profiles משודרג (company, phone, last_sign_in_at, calculation_count, brief_count)
+- UsersTable — טבלה משודרגת עם חיפוש, פילטר (פעילים/לא פעילים/אדמינים), סטטוס אמיתי מ-last_sign_in_at
+- UserProfileDialog — מודל פרטי משתמש עם באנר סטטוס, פרטים אישיים, ציר זמן, סטטיסטיקות פעילות, תובנות
+- AnalyticsDashboard — KPIs + גרף צמיחת משתמשים (Recharts AreaChart) + בורר טווח זמן
+- SupportTickets — טיקטי תמיכה עם סיכום, פילטר, מודל פרטי טיקט + עדכון סטטוס/חומרה
+- DevTasks — CRUD משימות פיתוח עם עדיפויות, סטטוסים, מודל הוספה
+- HealthCheck — 6 בדיקות תקינות (DB, storage, tables, RPC) עם תזמון
+- DataQuality — טבלת תוצאות עם שכבות, פילטרים, פרטים מורחבים
+- SecurityMonitor — סריקת אבטחה עם התראה קריטית, KPIs
+- AppErrors — 100 שגיאות אחרונות עם סיכום שעתי/יומי, ניקוי ישנות
+- מיגרציה 005: טבלאות support_tickets, dev_tasks, app_errors, data_quality_checks + עמודות חדשות ב-profiles + RPC משודרג
+- Admin.tsx הפך ל-wrapper דק שמייבא AdminPanel
+- CSS Modules בלבד — בלי shadcn/tailwind
 
 ### מצב נוכחי:
-- רובד 5 עובד — כרטיסים מודרניים, חיפוש טקסט עם stemming, פילטרים לפי קטגוריה/ענן/סוג
-- AI search חסום עקב Gemini billing (Free Tier quota=0) — מציג הודעת שגיאה מסודרת
+- Build עובר, TypeScript ללא שגיאות
+- מיגרציה הורצה בהצלחה על digitek-dev
 - הכל ב-branch `develop`
 
 ---
