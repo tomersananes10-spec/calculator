@@ -143,10 +143,10 @@ BEGIN
   FROM public.profiles p
   JOIN auth.users u ON u.id = p.id
   LEFT JOIN (
-    SELECT c.user_id, COUNT(*) AS cnt
+    SELECT c.owner_id, COUNT(*) AS cnt
     FROM public.calculations c
-    GROUP BY c.user_id
-  ) calc ON calc.user_id = p.id
+    GROUP BY c.owner_id
+  ) calc ON calc.owner_id = p.id
   LEFT JOIN (
     SELECT b.user_id, COUNT(*) AS cnt
     FROM public.briefs b
