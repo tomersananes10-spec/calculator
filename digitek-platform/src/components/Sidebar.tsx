@@ -25,7 +25,7 @@ interface Props {
 }
 
 export function Sidebar({ isOpen, onClose }: Props) {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const fullName = user?.user_metadata?.full_name ?? user?.email ?? 'משתמש'
   const avatarUrl = user?.user_metadata?.avatar_url
   const initial = fullName[0]?.toUpperCase() ?? '?'
@@ -65,6 +65,20 @@ export function Sidebar({ isOpen, onClose }: Props) {
           </NavLink>
         ))}
       </nav>
+
+      {/* Admin link — only for admins */}
+      {isAdmin && (
+        <NavLink
+          to="/admin"
+          className={({ isActive }) =>
+            `${styles.navItem} ${styles.adminLink} ${isActive ? styles.navItemActive : ''}`
+          }
+          onClick={onClose}
+        >
+          <span className={styles.navIcon}>🛡️</span>
+          <span className={styles.navLabel}>ניהול מערכת</span>
+        </NavLink>
+      )}
 
       {/* Bottom section */}
       <div className={styles.bottom}>
