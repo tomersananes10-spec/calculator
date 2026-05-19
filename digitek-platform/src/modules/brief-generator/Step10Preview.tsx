@@ -32,8 +32,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function Step10Preview({ state, onBack, onSubmit, saving }: Props) {
   const [exporting, setExporting] = useState(false)
   const { identification, currentSituation, existingArchitecture,
-          projectDescription, deliverables, workPackages, timeline,
-          management, goals } = state
+          projectDescription, templateDeliverables, templateShush, timeline,
+          management, goals, boilerplateSections } = state
 
   async function handleExport() {
     setExporting(true)
@@ -41,8 +41,8 @@ export default function Step10Preview({ state, onBack, onSubmit, saving }: Props
     finally { setExporting(false) }
   }
 
-  const selectedDelivs = deliverables.filter(d => d.selected)
-  const filledWP = workPackages.filter(w => w.quantity > 0)
+  const selectedDelivs = templateDeliverables.filter(d => d.selected)
+  const filledShush = templateShush.filter(s => s.quantity > 0)
 
   return (
     <div>
@@ -91,13 +91,14 @@ export default function Step10Preview({ state, onBack, onSubmit, saving }: Props
         </Section>
 
         {selectedDelivs.length > 0 && (
-          <Section title="5. תוצרים נדרשים">
+          <Section title="5. תפוקות — תוצרים נדרשים">
             <table className={styles.previewTable}>
-              <thead><tr><th>תוצר</th><th>כמות</th><th>הערות</th></tr></thead>
+              <thead><tr><th>תפוקה</th><th>תיאור חבילת עבודה</th></tr></thead>
               <tbody>
                 {selectedDelivs.map(d => (
                   <tr key={d.id}>
-                    <td>{d.name}</td><td>{d.quantity}</td><td>{d.notes}</td>
+                    <td style={{ fontWeight: 600 }}>{d.name}</td>
+                    <td style={{ whiteSpace: 'pre-wrap', fontSize: 12 }}>{d.description}</td>
                   </tr>
                 ))}
               </tbody>
@@ -105,14 +106,17 @@ export default function Step10Preview({ state, onBack, onSubmit, saving }: Props
           </Section>
         )}
 
-        {filledWP.length > 0 && (
-          <Section title="6. חבילות עבודה">
+        {filledShush.length > 0 && (
+          <Section title="6. שו&quot;שים — יחידות תמחור">
             <table className={styles.previewTable}>
-              <thead><tr><th>שם</th><th>גודל</th><th>תיאור</th><th>כמות</th></tr></thead>
+              <thead><tr><th>עולם תוכן</th><th>מורכבות</th><th>מדדים כמותיים</th><th>תיאור</th><th>כמות</th></tr></thead>
               <tbody>
-                {filledWP.map(w => (
-                  <tr key={w.id}>
-                    <td>{w.name}</td><td>{w.size}</td><td>{w.description}</td><td>{w.quantity}</td>
+                {filledShush.map(s => (
+                  <tr key={s.id}>
+                    <td>{s.contentArea}</td><td>{s.complexity}</td>
+                    <td style={{ fontSize: 12 }}>{s.quantitativeMetrics}</td>
+                    <td style={{ fontSize: 12 }}>{s.workDescription}</td>
+                    <td>{s.quantity}</td>
                   </tr>
                 ))}
               </tbody>
@@ -164,6 +168,22 @@ export default function Step10Preview({ state, onBack, onSubmit, saving }: Props
             </table>
           )}
         </Section>
+
+        {Object.values(boilerplateSections).some(v => v?.trim()) && (
+          <Section title="סעיפי מימוש (2.1-2.16)">
+            <div style={{ fontSize: 12, color: 'var(--text2)' }}>
+              {boilerplateSections.implementationApproach && <Field label="2.1 אפיון מהלך העבודה" value="✓ מלא" />}
+              {boilerplateSections.developmentRequirements && <Field label="2.1.2 דרישות פיתוח" value="✓ מלא" />}
+              {boilerplateSections.techArchitecture && <Field label="2.1.3 טכנולוגיות" value="✓ מלא" />}
+              {boilerplateSections.methodology && <Field label="2.1.4 מתודולוגיה" value="✓ מלא" />}
+              {boilerplateSections.nimbusBackground && <Field label="2.2 נימבוס" value="✓ מלא" />}
+              {boilerplateSections.projectScope && <Field label="2.5 היקף" value="✓ מלא" />}
+              {boilerplateSections.performanceTesting && <Field label="2.9 בדיקות ביצועים" value="✓ מלא" />}
+              {boilerplateSections.securityTesting && <Field label="2.10 אבטחת מידע" value="✓ מלא" />}
+              {boilerplateSections.warrantyMaintenance && <Field label="2.16 אחריות ותחזוקה" value="✓ מלא" />}
+            </div>
+          </Section>
+        )}
 
         <Section title="9. מדדים ויעדים">
           <Field label="KPIs" value={goals.kpis} />

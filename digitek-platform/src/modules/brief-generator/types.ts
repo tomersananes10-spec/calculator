@@ -48,6 +48,41 @@ export interface CloudServiceItem {
   monthlyCost: number
 }
 
+export interface TemplateDeliverable {
+  id: string
+  name: string
+  description: string
+  selected: boolean
+  sizeCategory?: 'small' | 'medium' | 'large'
+}
+
+export interface TemplateShush {
+  id: string
+  contentArea: string
+  complexity: string
+  quantitativeMetrics: string
+  workDescription: string
+  quantity: number
+}
+
+export interface BoilerplateSections {
+  implementationApproach: string
+  developmentRequirements: string
+  techArchitecture: string
+  methodology: string
+  nimbusBackground: string
+  projectScope: string
+  serviceLocationDesc: string
+  regulations: string
+  performanceTesting: string
+  securityTesting: string
+  environments: string
+  documentation: string
+  deliveryTesting: string
+  acceptanceTesting: string
+  warrantyMaintenance: string
+}
+
 export interface WizardState {
   currentStep: number
   identification: {
@@ -108,6 +143,9 @@ export interface WizardState {
     maintenancePeriodMonths: number
   }
   cloudServices: CloudServiceItem[]
+  templateDeliverables: TemplateDeliverable[]
+  templateShush: TemplateShush[]
+  boilerplateSections: BoilerplateSections
   goals: {
     kpis: string
     successCriteria: string
@@ -185,6 +223,25 @@ export const INITIAL_STATE: WizardState = {
   deliverables: [],
   workPackages: [],
   cloudServices: [],
+  templateDeliverables: [],
+  templateShush: [],
+  boilerplateSections: {
+    implementationApproach: '',
+    developmentRequirements: '',
+    techArchitecture: '',
+    methodology: '',
+    nimbusBackground: '',
+    projectScope: '',
+    serviceLocationDesc: '',
+    regulations: '',
+    performanceTesting: '',
+    securityTesting: '',
+    environments: '',
+    documentation: '',
+    deliveryTesting: '',
+    acceptanceTesting: '',
+    warrantyMaintenance: '',
+  },
   timeline: {
     estimatedStartDate: '',
     totalDurationMonths: 12,

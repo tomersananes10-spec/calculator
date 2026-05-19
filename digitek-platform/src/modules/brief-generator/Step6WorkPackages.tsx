@@ -1,58 +1,52 @@
 import { useEffect } from "react"
-import type { WizardState, WorkPackageRow } from "./types"
-import { getClusterWorkPackages } from "./briefData"
+import type { WizardState, TemplateShush } from "./types"
+import { getTemplateShush } from "./briefTemplateData"
 import s from "./BriefWizard.module.css"
 
 interface Props {
   state: WizardState
-  onChangeWorkPackages: (rows: WorkPackageRow[]) => void
+  onChangeShush: (rows: TemplateShush[]) => void
   onNext: () => void
   onBack: () => void
   onSave: () => void
 }
 
-const SIZE_LABEL: Record<string, string> = {
-  small: "קטן", medium: "בינוני", large: "גדול", fixed: "קבוע",
-}
-
-export function Step6WorkPackages({ state, onChangeWorkPackages, onNext, onBack, onSave }: Props) {
+export function Step6WorkPackages({ state, onChangeShush, onNext, onBack, onSave }: Props) {
   const clusterId = state.identification.selectedCluster?.id ?? ""
+  const specId = state.identification.selectedSpecialization?.id
 
   useEffect(() => {
-    if (state.workPackages.length === 0 && clusterId) {
-      onChangeWorkPackages(getClusterWorkPackages(clusterId))
+    if (state.templateShush.length === 0 && clusterId) {
+      onChangeShush(getTemplateShush(clusterId, specId ?? undefined))
     }
-  }, [clusterId])
+  }, [clusterId, specId])
 
-  const rows = state.workPackages
+  const rows = state.templateShush
 
-  function updateQty(id: string, qty: number) {
-    onChangeWorkPackages(rows.map(r => r.id === id ? { ...r, quantity: qty } : r))
+  function updateRow(id: string, field: keyof TemplateShush, value: unknown) {
+    onChangeShush(rows.map(r => r.id === id ? { ...r, [field]: value } : r))
   }
 
   function addRow() {
-    onChangeWorkPackages([...rows, {
-      id: "custom-wp-" + Date.now(),
-      name: "",
-      size: "fixed" as const,
-      description: "",
-      quantity: 1,
+    onChangeShush([...rows, {
+      id: "custom-shush-" + Date.now(),
+      contentArea: "",
+      complexity: "פשוט",
+      quantitativeMetrics: "",
+      workDescription: "",
+      quantity: 0,
     }])
   }
 
-  function updateRow(id: string, field: keyof WorkPackageRow, value: unknown) {
-    onChangeWorkPackages(rows.map(r => r.id === id ? { ...r, [field]: value } : r))
-  }
-
   function removeRow(id: string) {
-    onChangeWorkPackages(rows.filter(r => r.id !== id))
+    onChangeShush(rows.filter(r => r.id !== id))
   }
 
   return (
     <div>
       <div className={s.stepHeader}>
-        <h2>שו"שים - יחידות תמחור</h2>
-        <p>הגדר כמה יחידות מכל סוג שו"ש נדרשות</p>
+        <h2>שו"שים — יחידות תמחור</h2>
+        <p>הגדר כמויות לכל שו"ש. השו"שים מוגדרים לפי עולם תוכן, מורכבות ומדדים כמותיים.</p>
       </div>
 
       {rows.length === 0 && (
@@ -66,10 +60,11 @@ export function Step6WorkPackages({ state, onChangeWorkPackages, onNext, onBack,
           <table className={s.table}>
             <thead>
               <tr>
-                <th>שם השו"ש</th>
-                <th style={{ width: 70 }}>גודל</th>
-                <th>תיאור / קריטריונים</th>
-                <th style={{ width: 80 }}>כמות</th>
+                <th>עולם תוכן / משפחת שו"ש</th>
+                <th style={{ width: 100 }}>מורכבות</th>
+                <th>מדדים כמותיים לתימחור</th>
+                <th>תיאור השו"ש והעבודה הנדרשת</th>
+                <th style={{ width: 70 }}>כמות</th>
                 <th style={{ width: 40 }}></th>
               </tr>
             </thead>
@@ -77,19 +72,25 @@ export function Step6WorkPackages({ state, onChangeWorkPackages, onNext, onBack,
               {rows.map(row => (
                 <tr key={row.id}>
                   <td>
-                    <input className={s.tableInput} value={row.name}
-                      onChange={e => updateRow(row.id, "name", e.target.value)} />
+                    <input className={s.tableInput} value={row.contentArea}
+                      onChange={e => updateRow(row.id, "contentArea", e.target.value)} />
                   </td>
                   <td>
-                    <span className={s.sizeBadge}>{SIZE_LABEL[row.size]}</span>
+                    <input className={s.tableInput} value={row.complexity}
+                      onChange={e => updateRow(row.id, "complexity", e.target.value)}
+                      style={{ textAlign: 'center' }} />
                   </td>
                   <td>
-                    <input className={s.tableInput} value={row.description}
-                      onChange={e => updateRow(row.id, "description", e.target.value)} />
+                    <input className={s.tableInput} value={row.quantitativeMetrics}
+                      onChange={e => updateRow(row.id, "quantitativeMetrics", e.target.value)} />
+                  </td>
+                  <td>
+                    <input className={s.tableInput} value={row.workDescription}
+                      onChange={e => updateRow(row.id, "workDescription", e.target.value)} />
                   </td>
                   <td>
                     <input className={s.tableInputSm} type="number" min={0} value={row.quantity}
-                      onChange={e => updateQty(row.id, Number(e.target.value))} />
+                      onChange={e => updateRow(row.id, "quantity", Number(e.target.value))} />
                   </td>
                   <td>
                     <button className={s.removeBtn} onClick={() => removeRow(row.id)}>X</button>

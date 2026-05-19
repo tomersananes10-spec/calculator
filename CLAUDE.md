@@ -216,35 +216,27 @@ CLAUDE_CODE_TOMER/
 | 28.04 | שדרוג עיצוב דף פרופיל — באנר גרדיאנט, אווטאר חופף, כרטיסים עם אייקונים צבעוניים, אנימציות |
 | 28.04 | רובד 5 — תיקון חיפוש, AI timeout, שדרוג UI לכרטיסים מודרניים |
 | 12.05 | שדרוג מסך אדמין — 9 טאבים, מודול admin חדש, מיגרציית DB |
+| 18.05 | שכתוב מלא של ייצוא Word בבריפים — התאמה לתבנית הממשלתית הרשמית |
+| 18.05 | גישת Template-based: טעינת תבנית .docx מקורית + החלפת תוכן דינמי עם שמירת עיצוב מלא |
 
 ---
 
 ## 10. שיחה אחרונה
 
-> **תאריך**: 12.05.2026
-> **נושא**: שדרוג מלא של מסך אדמין — 4 טאבים → 9 טאבים
+> **תאריך**: 18.05.2026
+> **נושא**: ייצוא Word — גישת Template-based עם תבנית ממשלתית מקורית
 
 ### מה בוצע:
-- בנייה מלאה של מודול admin חדש ב-`modules/admin/`
-- 9 טאבים: לוח בקרה אנליטי, משתמשים, מנהלי מערכת, תמיכה, פיתוח, תקינות, איכות נתונים, אבטחת מידע, שגיאות
-- AdminPanel.tsx — shell עם lazy loading לכל קומפוננטה
-- useAdminData.ts — hook עם admin_get_all_profiles משודרג (company, phone, last_sign_in_at, calculation_count, brief_count)
-- UsersTable — טבלה משודרגת עם חיפוש, פילטר (פעילים/לא פעילים/אדמינים), סטטוס אמיתי מ-last_sign_in_at
-- UserProfileDialog — מודל פרטי משתמש עם באנר סטטוס, פרטים אישיים, ציר זמן, סטטיסטיקות פעילות, תובנות
-- AnalyticsDashboard — KPIs + גרף צמיחת משתמשים (Recharts AreaChart) + בורר טווח זמן
-- SupportTickets — טיקטי תמיכה עם סיכום, פילטר, מודל פרטי טיקט + עדכון סטטוס/חומרה
-- DevTasks — CRUD משימות פיתוח עם עדיפויות, סטטוסים, מודל הוספה
-- HealthCheck — 6 בדיקות תקינות (DB, storage, tables, RPC) עם תזמון
-- DataQuality — טבלת תוצאות עם שכבות, פילטרים, פרטים מורחבים
-- SecurityMonitor — סריקת אבטחה עם התראה קריטית, KPIs
-- AppErrors — 100 שגיאות אחרונות עם סיכום שעתי/יומי, ניקוי ישנות
-- מיגרציה 005: טבלאות support_tickets, dev_tasks, app_errors, data_quality_checks + עמודות חדשות ב-profiles + RPC משודרג
-- Admin.tsx הפך ל-wrapper דק שמייבא AdminPanel
-- CSS Modules בלבד — בלי shadcn/tailwind
+- שכתוב מלא של `wordExport.ts` — גישת template-based: טעינת תבנית .docx מקורית של רשות התקשוב + החלפת תוכן דינמי
+- תבנית ממשלתית מקורית (`brief-template.docx`) מוגשת מ-`/public/` — שומרת על כל העיצוב: לוגו, כותרות צבעוניות, מסגרות, סגנונות, header/footer
+- PizZip + DOMParser — פרסור document.xml, החלפת טקסט ב-DOM, שמירה חזרה ל-ZIP
+- 11 שלבי החלפה: כותרת, שם פרויקט, תקציב, אבני דרך, סעיפים 1.1-1.3, טבלת תפוקות, טבלת שו"שים, 15 סעיפי בוילרפלייט
+- דחיסת DEFLATE — הקובץ יורד מ-1.3MB ל-~200KB
+- תאימות לאחור: fallback מ-templateDeliverables/templateShush לשדות ישנים
 
 ### מצב נוכחי:
-- Build עובר, TypeScript ללא שגיאות
-- מיגרציה הורצה בהצלחה על digitek-dev
+- Build עובר (tsc), TypeScript ללא שגיאות
+- ייצוא Word נבדק בדפדפן — עיצוב זהה לתבנית הממשלתית המקורית
 - הכל ב-branch `develop`
 
 ---

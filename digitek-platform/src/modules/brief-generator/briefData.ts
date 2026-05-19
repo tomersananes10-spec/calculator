@@ -125,3 +125,5 @@ export function getClusterDeliverables(clusterId: string): DeliverableRow[] {
 export function getClusterWorkPackages(clusterId: string): WorkPackageRow[] {
   return (WORK_PACKAGES[clusterId] ?? []).map(w => ({ ...w }))
 }
+
+export { getTemplateDeliverables, getTemplateShush, TEMPLATE_TIMELINE_PHASES } from "./briefTemplateData"

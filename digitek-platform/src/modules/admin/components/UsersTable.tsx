@@ -21,8 +21,9 @@ export default function UsersTable({
   onToggleAdmin,
   onUpdateName,
   onDeleteUser,
-  onRefresh,
+  onRefresh: _onRefresh,
 }: Props) {
+  void _onRefresh
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterType>('all')
   const [editingId, setEditingId] = useState<string | null>(null)

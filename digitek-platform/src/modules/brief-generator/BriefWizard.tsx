@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import type { WizardState, DeliverableRow, WorkPackageRow, CloudServiceItem } from './types'
+import type { WizardState, CloudServiceItem, TemplateDeliverable, TemplateShush } from './types'
 import { INITIAL_STATE } from './types'
 import { shouldShowArchitectureStep } from './Step3Architecture'
 import { useBriefs } from '../../hooks/useBriefs'
@@ -13,7 +13,8 @@ import { Step7Timeline } from './Step7Timeline'
 import { Step8Management } from './Step8Management'
 import { Step9Goals } from './Step9Goals'
 import { Step10CloudServices } from './Step10CloudServices'
-import Step11Preview from './Step10Preview'
+import { Step11Boilerplate } from './Step11Boilerplate'
+import Step12Preview from './Step10Preview'
 import s from './BriefWizard.module.css'
 
 const ALL_STEPS = [
@@ -21,13 +22,14 @@ const ALL_STEPS = [
   { n: 2,  label: 'מצב קיים' },
   { n: 3,  label: 'ארכיטקטורה' },
   { n: 4,  label: 'תיאור' },
-  { n: 5,  label: 'תוצרים' },
+  { n: 5,  label: 'תפוקות' },
   { n: 6,  label: 'שו"שים' },
   { n: 7,  label: 'לוח זמנים' },
   { n: 8,  label: 'ניהול' },
   { n: 9,  label: 'יעדים' },
   { n: 10, label: 'שירותי ענן' },
-  { n: 11, label: 'תצוגה מקדימה' },
+  { n: 11, label: 'סעיפי מימוש' },
+  { n: 12, label: 'תצוגה מקדימה' },
 ]
 
 interface Props {
@@ -97,11 +99,11 @@ export function BriefWizard({ briefId, onClose, initialState }: Props) {
   function onChange(path: string, value: unknown) {
     setState(prev => setPath(prev as unknown as Record<string, unknown>, path, value) as unknown as WizardState)
   }
-  function onChangeDeliverables(rows: DeliverableRow[]) {
-    setState(prev => ({ ...prev, deliverables: rows }))
+  function onChangeDeliverables(rows: TemplateDeliverable[]) {
+    setState(prev => ({ ...prev, templateDeliverables: rows }))
   }
-  function onChangeWorkPackages(rows: WorkPackageRow[]) {
-    setState(prev => ({ ...prev, workPackages: rows }))
+  function onChangeShush(rows: TemplateShush[]) {
+    setState(prev => ({ ...prev, templateShush: rows }))
   }
   function onChangeCloudServices(items: CloudServiceItem[]) {
     setState(prev => ({ ...prev, cloudServices: items }))
@@ -171,12 +173,13 @@ export function BriefWizard({ briefId, onClose, initialState }: Props) {
         {step === 3  && <Step3Architecture state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
         {step === 4  && <Step4ProjectDescription state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
         {step === 5  && <Step5Deliverables state={state} onChangeDeliverables={onChangeDeliverables} onNext={next} onBack={back} onSave={handleSaveNow} />}
-        {step === 6  && <Step6WorkPackages state={state} onChangeWorkPackages={onChangeWorkPackages} onNext={next} onBack={back} onSave={handleSaveNow} />}
+        {step === 6  && <Step6WorkPackages state={state} onChangeShush={onChangeShush} onNext={next} onBack={back} onSave={handleSaveNow} />}
         {step === 7  && <Step7Timeline state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
         {step === 8  && <Step8Management state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
         {step === 9  && <Step9Goals state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
         {step === 10 && <Step10CloudServices state={state} onChangeCloudServices={onChangeCloudServices} onNext={next} onBack={back} onSave={handleSaveNow} />}
-        {step === 11 && <Step11Preview state={state} onBack={back} onSubmit={handleSubmit} saving={saveStatus === 'saving'} />}
+        {step === 11 && <Step11Boilerplate state={state} onChange={onChange} onNext={next} onBack={back} onSave={handleSaveNow} />}
+        {step === 12 && <Step12Preview state={state} onBack={back} onSubmit={handleSubmit} saving={saveStatus === 'saving'} />}
       </div>
       {toast && (
         <div style={{

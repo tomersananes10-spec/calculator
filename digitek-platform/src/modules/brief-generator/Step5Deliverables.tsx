@@ -1,41 +1,46 @@
 import { useEffect } from "react"
-import type { WizardState, DeliverableRow } from "./types"
-import { getClusterDeliverables } from "./briefData"
+import type { WizardState, TemplateDeliverable } from "./types"
+import { getTemplateDeliverables } from "./briefTemplateData"
 import s from "./BriefWizard.module.css"
 
 interface Props {
   state: WizardState
-  onChangeDeliverables: (rows: DeliverableRow[]) => void
+  onChangeDeliverables: (rows: TemplateDeliverable[]) => void
   onNext: () => void
   onBack: () => void
   onSave: () => void
 }
 
+const SIZE_OPTIONS = [
+  { value: "small", label: "קטן" },
+  { value: "medium", label: "בינוני" },
+  { value: "large", label: "גדול" },
+]
+
 export function Step5Deliverables({ state, onChangeDeliverables, onNext, onBack, onSave }: Props) {
   const clusterId = state.identification.selectedCluster?.id ?? ""
+  const specId = state.identification.selectedSpecialization?.id
 
   useEffect(() => {
-    if (state.deliverables.length === 0 && clusterId) {
-      onChangeDeliverables(getClusterDeliverables(clusterId))
+    if (state.templateDeliverables.length === 0 && clusterId) {
+      onChangeDeliverables(getTemplateDeliverables(clusterId, specId ?? undefined))
     }
-  }, [clusterId])
+  }, [clusterId, specId])
 
-  const rows = state.deliverables
+  const rows = state.templateDeliverables
   const isEmpty = rows.length === 0
 
-  function updateRow(id: string, field: keyof DeliverableRow, value: unknown) {
+  function updateRow(id: string, field: keyof TemplateDeliverable, value: unknown) {
     onChangeDeliverables(rows.map(r => r.id === id ? { ...r, [field]: value } : r))
   }
 
   function addRow() {
-    const newRow: DeliverableRow = {
+    onChangeDeliverables([...rows, {
       id: "custom-" + Date.now(),
       name: "",
+      description: "",
       selected: true,
-      quantity: 1,
-      notes: "",
-    }
-    onChangeDeliverables([...rows, newRow])
+    }])
   }
 
   function removeRow(id: string) {
@@ -47,59 +52,71 @@ export function Step5Deliverables({ state, onChangeDeliverables, onNext, onBack,
   return (
     <div>
       <div className={s.stepHeader}>
-        <h2>חבילות עבודה - תוצרים</h2>
-        <p>בחר את התוצרים הנדרשים והגדר כמויות</p>
+        <h2>תפוקות — תוצרים נדרשים</h2>
+        <p>בחר את התפוקות הרלוונטיות לפרויקט. ניתן לערוך את התיאורים.</p>
       </div>
 
       {isEmpty && (
         <div className={s.emptyNote}>
-          לאשכול זה אין תוצרים מוגדרים מראש. הוסף שורות ידנית.
+          לאשכול זה אין תפוקות מוגדרות מראש. הוסף שורות ידנית.
         </div>
       )}
 
-      {rows.length > 0 && (
-        <div className={s.tableWrap}>
-          <table className={s.table}>
-            <thead>
-              <tr>
-                <th style={{ width: 40 }}>בחר</th>
-                <th>שם התוצר</th>
-                <th style={{ width: 80 }}>כמות</th>
-                <th>הערות</th>
-                <th style={{ width: 40 }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map(row => (
-                <tr key={row.id} className={row.selected ? "" : s.rowDimmed}>
-                  <td>
-                    <input type="checkbox" checked={row.selected}
-                      onChange={e => updateRow(row.id, "selected", e.target.checked)} />
-                  </td>
-                  <td>
-                    <input className={s.tableInput} value={row.name}
-                      onChange={e => updateRow(row.id, "name", e.target.value)} />
-                  </td>
-                  <td>
-                    <input className={s.tableInputSm} type="number" min={1} value={row.quantity}
-                      onChange={e => updateRow(row.id, "quantity", Number(e.target.value))} />
-                  </td>
-                  <td>
-                    <input className={s.tableInput} value={row.notes}
-                      placeholder="הערה אופציונלית..."
-                      onChange={e => updateRow(row.id, "notes", e.target.value)} />
-                  </td>
-                  <td>
-                    <button className={s.removeBtn} onClick={() => removeRow(row.id)}>X</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {rows.map(row => (
+        <div key={row.id} className={s.deliverableCard} style={{
+          opacity: row.selected ? 1 : 0.5,
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius)',
+          padding: '16px',
+          marginBottom: '12px',
+          background: row.selected ? 'var(--surface)' : 'transparent',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <input
+              type="checkbox"
+              checked={row.selected}
+              onChange={e => updateRow(row.id, "selected", e.target.checked)}
+              style={{ marginTop: 4 }}
+            />
+            <div style={{ flex: 1 }}>
+              <input
+                className={s.tableInput}
+                value={row.name}
+                onChange={e => updateRow(row.id, "name", e.target.value)}
+                style={{ fontWeight: 'bold', fontSize: '1rem', width: '100%', marginBottom: 8 }}
+                placeholder="שם התפוקה"
+              />
+              <textarea
+                className={s.tableInput}
+                value={row.description}
+                onChange={e => updateRow(row.id, "description", e.target.value)}
+                rows={4}
+                style={{ width: '100%', resize: 'vertical', lineHeight: 1.6 }}
+                placeholder="תיאור חבילת העבודה..."
+              />
+              {row.sizeCategory !== undefined && (
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: '0.875rem', color: 'var(--text2)' }}>גודל:</span>
+                  {SIZE_OPTIONS.map(opt => (
+                    <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.875rem' }}>
+                      <input
+                        type="radio"
+                        name={`size-${row.id}`}
+                        checked={row.sizeCategory === opt.value}
+                        onChange={() => updateRow(row.id, "sizeCategory", opt.value)}
+                      />
+                      {opt.label}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button className={s.removeBtn} onClick={() => removeRow(row.id)} title="הסר">X</button>
+          </div>
         </div>
-      )}
+      ))}
 
-      <button className={s.addRowBtn} onClick={addRow}>+ הוסף תוצר</button>
+      <button className={s.addRowBtn} onClick={addRow}>+ הוסף תפוקה</button>
 
       <div className={s.navBtns}>
         <button className={s.btnSecondary} onClick={onBack}>חזרה</button>
