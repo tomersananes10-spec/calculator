@@ -218,26 +218,34 @@ CLAUDE_CODE_TOMER/
 | 12.05 | שדרוג מסך אדמין — 9 טאבים, מודול admin חדש, מיגרציית DB |
 | 18.05 | שכתוב מלא של ייצוא Word בבריפים — התאמה לתבנית הממשלתית הרשמית |
 | 18.05 | גישת Template-based: טעינת תבנית .docx מקורית + החלפת תוכן דינמי עם שמירת עיצוב מלא |
+| 19.05 | מודול Test — הצגת תבנית Word עם docx-preview + ויזרד 3 שלבים לעריכה |
+| 19.05 | שדרוג מודול בריפים — מיפוי מלא של כל שלבי הוויזרד ל-Word + docx-preview בתצוגה מקדימה |
+| 19.05 | עדכון תבנית Word — 11 תגיות חדשות (ministry, timeline, architecture, management, cloud, goals) |
 
 ---
 
 ## 10. שיחה אחרונה
 
-> **תאריך**: 18.05.2026
-> **נושא**: ייצוא Word — גישת Template-based עם תבנית ממשלתית מקורית
+> **תאריך**: 19.05.2026
+> **נושא**: מודול Test + שדרוג מודול בריפים — docx-preview + מיפוי מלא לתבנית Word
 
 ### מה בוצע:
-- שכתוב מלא של `wordExport.ts` — גישת template-based: טעינת תבנית .docx מקורית של רשות התקשוב + החלפת תוכן דינמי
-- תבנית ממשלתית מקורית (`brief-template.docx`) מוגשת מ-`/public/` — שומרת על כל העיצוב: לוגו, כותרות צבעוניות, מסגרות, סגנונות, header/footer
-- PizZip + DOMParser — פרסור document.xml, החלפת טקסט ב-DOM, שמירה חזרה ל-ZIP
-- 11 שלבי החלפה: כותרת, שם פרויקט, תקציב, אבני דרך, סעיפים 1.1-1.3, טבלת תפוקות, טבלת שו"שים, 15 סעיפי בוילרפלייט
-- דחיסת DEFLATE — הקובץ יורד מ-1.3MB ל-~200KB
-- תאימות לאחור: fallback מ-templateDeliverables/templateShush לשדות ישנים
+- מודול Test חדש (`/test`) — הצגת תבנית Word עם docx-preview + ויזרד 3 שלבים לעריכת עמוד 1
+- שדרוג `wordExport.ts` — 5 פונקציות build חדשות (architecture, timeline, management, cloud, goals) + ייצוא `generateBriefBlob()`
+- שכתוב `Step10Preview.tsx` — docx-preview (`renderAsync`) במקום HTML preview ישן
+- עדכון `BriefWizard.module.css` — קלאסים חדשים לתצוגה מקדימה
+- עדכון תבנית Word (`brief-template.docx`) — 11 תגיות חדשות: ministry, tenderNumber, writtenDate, architectureSection, timelineSection, managementSection, cloudServicesSection, goalsSection, expectedBenefits, targetAudience, usersCount
+- סקריפט `add-new-template-tags.cjs` — הוספת התגיות החדשות לתבנית
 
-### מצב נוכחי:
-- Build עובר (tsc), TypeScript ללא שגיאות
-- ייצוא Word נבדק בדפדפן — עיצוב זהה לתבנית הממשלתית המקורית
-- הכל ב-branch `develop`
+### עיקרון עבודה:
+- כל שלב בוויזרד עורך שדות שממפים ישירות לתגיות בתבנית Word
+- שדה שמולא → מופיע ב-Word; שדה ריק → לא מופיע (nullGetter)
+- תצוגה מקדימה = docx-preview שמציג את ה-Word האמיתי בדפדפן
+
+### אימות:
+- TypeScript עובר ללא שגיאות
+- כל 33+ תגיות נמצאות בתבנית (18 רגילות + 13 bp_ + 2 לולאות)
+- Commits: `e2b4c32`, `051bb24`, `72f451c`, `57cb7ad` pushed to `develop`
 
 ---
 
