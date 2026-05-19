@@ -17,6 +17,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/approvals',  label: 'מורשי חתימה', icon: '✅', badge: 5 },
   { href: '/suppliers',  label: 'ספקים זוכים - LIBA', icon: '🏢' },
   // { href: '/projects',   label: 'פרויקטים',   icon: '📊' },
+  { href: '/test',       label: 'בדיקה',      icon: '🧪' },
 ]
 
 interface Props {

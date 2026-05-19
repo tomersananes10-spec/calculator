@@ -10,6 +10,7 @@ import { Roved5Page }      from './pages/Roved5Page'
 import { ApprovalsPage }   from './pages/ApprovalsPage'
 import { SuppliersPage }   from './pages/SuppliersPage'
 import { ProjectsPage }    from './pages/ProjectsPage'
+import { TestPage }        from './pages/TestPage'
 import { ProtectedRoute }  from './components/ProtectedRoute'
 import { AppLayout }       from './components/AppLayout'
 
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/projects"       element={<Protected><ProjectsPage /></Protected>} />
         <Route path="/profile"        element={<Protected><Profile /></Protected>} />
         <Route path="/admin"          element={<Protected><Admin /></Protected>} />
+        <Route path="/test"           element={<Protected><TestPage /></Protected>} />
         <Route path="*"               element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
