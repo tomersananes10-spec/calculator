@@ -394,6 +394,27 @@
 /* ─── PREVIEW (Step10) ─── */
 .previewBody { display: flex; flex-direction: column; gap: 0; }
 
+.previewViewer {
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: auto;
+  background: #fff;
+  max-height: 75vh;
+  box-shadow: var(--shadow);
+}
+
+.previewLoading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text2);
+  font-size: 0.95rem;
+}
+
+.docxWrapper {
+  padding: 1rem;
+}
+
 .previewSection {
   border: 1px solid var(--border);
   border-radius: var(--radius);
