@@ -1,0 +1,180 @@
+.page {
+  max-width: 900px;
+}
+
+.headerLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.meta {
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 20px;
+}
+
+.statusBanner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.bannerPass {
+  composes: statusBanner;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  color: var(--green-text);
+}
+
+.bannerFail {
+  composes: statusBanner;
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: var(--red-text);
+}
+
+.bannerReview {
+  composes: statusBanner;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: var(--amber-text);
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.statBox {
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.statBoxValue {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.statBoxLabel {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  margin-top: 24px;
+}
+
+.reqCard {
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reqName {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.reqEvidence {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.decisionCard {
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.decisionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
+}
+
+.decisionNotes {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.auditList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auditItem {
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.auditAction {
+  font-weight: 600;
+}
+
+.auditTime {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: var(--text3);
+}

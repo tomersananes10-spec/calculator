@@ -1,0 +1,30 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pass {
+  background: var(--green-bg);
+  color: var(--green-text);
+}
+
+.fail {
+  background: var(--red-bg);
+  color: var(--red-text);
+}
+
+.review {
+  background: var(--amber-bg);
+  color: var(--amber-text);
+}
+
+.neutral {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text2);
+}

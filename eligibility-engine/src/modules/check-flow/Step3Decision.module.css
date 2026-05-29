@@ -1,0 +1,157 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.reqBlock {
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 18px;
+}
+
+.reqName {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.decisionRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.decisionBtn {
+  padding: 10px 14px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-pill);
+  background: var(--surface-solid);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text2);
+}
+
+.decisionBtn:hover {
+  border-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.decisionBtnActive {
+  composes: decisionBtn;
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.decisionBtnApproved {
+  composes: decisionBtn;
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+
+.decisionBtnRequiresDocs {
+  composes: decisionBtn;
+  background: var(--amber);
+  color: #fff;
+  border-color: var(--amber);
+}
+
+.decisionBtnRejected {
+  composes: decisionBtn;
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+
+.notesLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-top: 12px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  min-height: 120px;
+  resize: vertical;
+  background: var(--surface-solid);
+  color: var(--text);
+  line-height: 1.7;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btnPrimary {
+  padding: 11px 26px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnPrimary:hover {
+  opacity: 0.9;
+}
+
+.btnSuccess {
+  composes: btnPrimary;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.btnOutline {
+  padding: 11px 26px;
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btnOutline:hover {
+  border-color: var(--primary-light);
+  color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .decisionRow {
+    grid-template-columns: 1fr;
+  }
+}
