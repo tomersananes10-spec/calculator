@@ -1,4 +1,4 @@
-import { useReducer, useState } from 'react'
+import { useReducer, useRef, useState } from 'react'
 import type { CheckWizardState, CheckResult, HumanDecision, CvSource } from '../engine/types'
 import { runEligibilityCheck, runEligibilityCheckWithAI } from '../engine/engine'
 import { ROLE_TEMPLATES } from '../../data/roleTemplates'
@@ -95,6 +95,7 @@ export function useCheck() {
   const [savedCheckId, setSavedCheckId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const { saveCheck, saveDecision } = useCheckHistory()
+  const cvFileRef = useRef<File | null>(null)
 
   async function runCheck() {
     const template = ROLE_TEMPLATES[state.roleTemplateId]
@@ -120,6 +121,7 @@ export function useCheck() {
         roleTemplateName: template.name,
         cvText: state.cvText,
         checkResult: result,
+        cvFile: cvFileRef.current ?? undefined,
       })
       if (checkId) setSavedCheckId(checkId)
     } catch {
@@ -172,6 +174,7 @@ export function useCheck() {
       return
     }
     dispatch({ type: 'FILE_PARSE_START', payload: file.name })
+    cvFileRef.current = file
     try {
       const result = await parseFile(file)
       if (!result.text.trim()) {

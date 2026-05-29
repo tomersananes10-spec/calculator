@@ -45,6 +45,19 @@ export function useCheckHistory() {
 
   useEffect(() => { fetchChecks() }, [fetchChecks])
 
+  async function uploadCvFile(file: File, userId: string): Promise<string | null> {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'bin'
+    const path = `${userId}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage
+      .from('cv-files')
+      .upload(path, file, { contentType: file.type })
+    if (error) {
+      console.error('CV upload error:', error)
+      return null
+    }
+    return path
+  }
+
   async function saveCheck(params: {
     candidateName: string
     candidateCompany: string
@@ -52,6 +65,7 @@ export function useCheckHistory() {
     roleTemplateName: string
     cvText: string
     checkResult: CheckResult
+    cvFile?: File
   }) {
     const { data: candidate } = await supabase
       .from('candidates')
@@ -63,6 +77,12 @@ export function useCheckHistory() {
       .select('id')
       .single()
 
+    const userId = (await supabase.auth.getUser()).data.user?.id
+    let cvFilePath: string | null = null
+    if (params.cvFile && userId) {
+      cvFilePath = await uploadCvFile(params.cvFile, userId)
+    }
+
     const { data, error } = await supabase
       .from('eligibility_checks')
       .insert({
@@ -72,12 +92,13 @@ export function useCheckHistory() {
         role_template_id: params.roleTemplateId,
         role_template_name: params.roleTemplateName,
         cv_text: params.cvText,
+        cv_file_path: cvFilePath,
         engine_version: params.checkResult.metadata.engineVersion,
         overall_status: params.checkResult.overallStatus,
         overall_score: params.checkResult.overallScore,
         estimated_years: params.checkResult.estimatedYears,
         results: params.checkResult.results,
-        checked_by: (await supabase.auth.getUser()).data.user?.id,
+        checked_by: userId,
       })
       .select('id')
       .single()
