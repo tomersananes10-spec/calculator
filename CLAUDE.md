@@ -221,31 +221,29 @@ CLAUDE_CODE_TOMER/
 | 19.05 | מודול Test — הצגת תבנית Word עם docx-preview + ויזרד 3 שלבים לעריכה |
 | 19.05 | שדרוג מודול בריפים — מיפוי מלא של כל שלבי הוויזרד ל-Word + docx-preview בתצוגה מקדימה |
 | 19.05 | עדכון תבנית Word — 11 תגיות חדשות (ministry, timeline, architecture, management, cloud, goals) |
+| 29.05 | Eligibility Engine — פרויקט נפרד: שלבים 1-4 (מנוע keyword, Supabase, דשבורד, העלאת PDF/DOCX) |
 
 ---
 
 ## 10. שיחה אחרונה
 
-> **תאריך**: 19.05.2026
-> **נושא**: מודול Test + שדרוג מודול בריפים — docx-preview + מיפוי מלא לתבנית Word
+> **תאריך**: 29.05.2026
+> **נושא**: Eligibility Engine — Phase 4: העלאת קבצי PDF/DOCX
 
 ### מה בוצע:
-- מודול Test חדש (`/test`) — הצגת תבנית Word עם docx-preview + ויזרד 3 שלבים לעריכת עמוד 1
-- שדרוג `wordExport.ts` — 5 פונקציות build חדשות (architecture, timeline, management, cloud, goals) + ייצוא `generateBriefBlob()`
-- שכתוב `Step10Preview.tsx` — docx-preview (`renderAsync`) במקום HTML preview ישן
-- עדכון `BriefWizard.module.css` — קלאסים חדשים לתצוגה מקדימה
-- עדכון תבנית Word (`brief-template.docx`) — 11 תגיות חדשות: ministry, tenderNumber, writtenDate, architectureSection, timelineSection, managementSection, cloudServicesSection, goalsSection, expectedBenefits, targetAudience, usersCount
-- סקריפט `add-new-template-tags.cjs` — הוספת התגיות החדשות לתבנית
-
-### עיקרון עבודה:
-- כל שלב בוויזרד עורך שדות שממפים ישירות לתגיות בתבנית Word
-- שדה שמולא → מופיע ב-Word; שדה ריק → לא מופיע (nullGetter)
-- תצוגה מקדימה = docx-preview שמציג את ה-Word האמיתי בדפדפן
+- מודול `fileParser.ts` — פענוח PDF (pdfjs-dist) ו-DOCX (mammoth) צד-לקוח
+- שדרוג `types.ts` — הוספת `cvSource`, `cvFileName`, `cvPageCount`, `isParsing`
+- שדרוג `useCheck.ts` — actions חדשים: FILE_PARSE_START/COMPLETE/ERROR, CLEAR_FILE + פונקציית `handleFile`
+- שכתוב `Step1Intake.tsx` — אזור drag-and-drop + file input + תצוגת קובץ שהועלה + תצוגת טקסט שחולץ
+- שדרוג `Step1Intake.module.css` — סגנונות drop zone, spinner, divider, extracted text
+- הוספת `--success`, `--danger` ל-theme.css
 
 ### אימות:
 - TypeScript עובר ללא שגיאות
-- כל 33+ תגיות נמצאות בתבנית (18 רגילות + 13 bp_ + 2 לולאות)
-- Commits: `e2b4c32`, `051bb24`, `72f451c`, `57cb7ad` pushed to `develop`
+- PDF upload עובד (calc-print-test.pdf — 2 עמודים, 1,734 תווים)
+- DOCX upload עובד (הוראת תכמ.docx — 63,033 תווים)
+- UI: drop zone + "או הקלידו טקסט" divider + הסר קובץ + הצג טקסט שחולץ
+- Commit: `a5c9db1` pushed to `develop`
 
 ---
 
