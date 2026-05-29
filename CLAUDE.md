@@ -228,22 +228,30 @@ CLAUDE_CODE_TOMER/
 ## 10. שיחה אחרונה
 
 > **תאריך**: 29.05.2026
-> **נושא**: Eligibility Engine — Phase 4: העלאת קבצי PDF/DOCX
+> **נושא**: Eligibility Engine — Phase 4 + Phase 5: העלאת קבצים + AI (Gemini)
 
-### מה בוצע:
+### מה בוצע — Phase 4 (העלאת קבצים):
 - מודול `fileParser.ts` — פענוח PDF (pdfjs-dist) ו-DOCX (mammoth) צד-לקוח
-- שדרוג `types.ts` — הוספת `cvSource`, `cvFileName`, `cvPageCount`, `isParsing`
-- שדרוג `useCheck.ts` — actions חדשים: FILE_PARSE_START/COMPLETE/ERROR, CLEAR_FILE + פונקציית `handleFile`
-- שכתוב `Step1Intake.tsx` — אזור drag-and-drop + file input + תצוגת קובץ שהועלה + תצוגת טקסט שחולץ
-- שדרוג `Step1Intake.module.css` — סגנונות drop zone, spinner, divider, extracted text
-- הוספת `--success`, `--danger` ל-theme.css
+- שדרוג Step1Intake — אזור drag-and-drop + file input + תצוגת קובץ שהועלה
+- תמיכה ב-PDF, DOCX, DOC עד 10MB
+
+### מה בוצע — Phase 5 (AI Gemini):
+- API proxy (`api/eligibility-ai.ts`) — Vercel serverless → Gemini 2.5 Flash
+- מודול `aiEngine.ts` — prompt מובנה לכל דרישה, parsing JSON response
+- שדרוג `engine.ts` — `runEligibilityCheckWithAI()` ממזג keyword (40%) + AI (60%)
+- Toggle AI ב-Step1 עם תג BETA + כפתור "הרץ בדיקה + AI"
+- תיבת "ניתוח AI" ב-Step2Results — reasoning, evidence, missing info
+- Graceful degradation: אם AI נכשל לדרישה, תוצאת keyword משמשת
 
 ### אימות:
 - TypeScript עובר ללא שגיאות
-- PDF upload עובד (calc-print-test.pdf — 2 עמודים, 1,734 תווים)
-- DOCX upload עובד (הוראת תכמ.docx — 63,033 תווים)
-- UI: drop zone + "או הקלידו טקסט" divider + הסר קובץ + הצג טקסט שחולץ
-- Commit: `a5c9db1` pushed to `develop`
+- Build עובר
+- בדיקה רגילה (keyword) עובדת תקין
+- AI toggle UI מוצג ומשנה את כפתור ההרצה
+- Commits: `a5c9db1`, `c00418e`, `726d79c` pushed to `develop`
+
+### TODO:
+- [ ] הוסף GEMINI_API_KEY ב-Vercel dashboard (Settings → Environment Variables)
 
 ---
 
