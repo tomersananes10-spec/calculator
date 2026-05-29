@@ -7,6 +7,7 @@ export default async function handler(req: any, res: any) {
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseKey) {
+    console.error('[keep-alive] Missing Supabase env vars')
     return res.status(500).json({ error: 'Supabase env vars not configured' })
   }
 
@@ -18,12 +19,15 @@ export default async function handler(req: any, res: any) {
       },
     })
 
+    console.log(`[keep-alive] Ping OK — status=${response.status} at ${new Date().toISOString()}`)
+
     return res.status(200).json({
       ok: response.ok,
       status: response.status,
       timestamp: new Date().toISOString(),
     })
-  } catch {
+  } catch (err) {
+    console.error('[keep-alive] Failed to reach Supabase:', err)
     return res.status(502).json({ error: 'Failed to reach Supabase' })
   }
 }
