@@ -1,6 +1,6 @@
 import { useReducer, useState } from 'react'
 import type { CheckWizardState, CheckResult, HumanDecision, CvSource } from '../engine/types'
-import { runEligibilityCheck } from '../engine/engine'
+import { runEligibilityCheck, runEligibilityCheckWithAI } from '../engine/engine'
 import { ROLE_TEMPLATES } from '../../data/roleTemplates'
 import { useCheckHistory } from '../../hooks/useCheckHistory'
 import { parseFile, isFileSupported, MAX_FILE_SIZE_MB } from '../engine/fileParser'
@@ -14,6 +14,7 @@ type Action =
   | { type: 'FILE_PARSE_COMPLETE'; payload: { text: string; source: CvSource; fileName: string; pageCount?: number } }
   | { type: 'FILE_PARSE_ERROR'; payload: string }
   | { type: 'CLEAR_FILE' }
+  | { type: 'TOGGLE_AI' }
   | { type: 'RUN_CHECK' }
   | { type: 'CHECK_COMPLETE'; payload: CheckResult }
   | { type: 'CHECK_ERROR'; payload: string }
@@ -32,6 +33,7 @@ const initialState: CheckWizardState = {
   cvFileName: null,
   cvPageCount: null,
   isParsing: false,
+  useAI: false,
   checkResult: null,
   decisions: {},
   decisionNotes: '',
@@ -64,6 +66,8 @@ function reducer(state: CheckWizardState, action: Action): CheckWizardState {
       return { ...state, isParsing: false, error: action.payload, cvFileName: null }
     case 'CLEAR_FILE':
       return { ...state, cvText: '', cvSource: 'text', cvFileName: null, cvPageCount: null }
+    case 'TOGGLE_AI':
+      return { ...state, useAI: !state.useAI }
     case 'RUN_CHECK':
       return { ...state, isRunning: true, error: null }
     case 'CHECK_COMPLETE':
@@ -104,7 +108,9 @@ export function useCheck() {
     }
     dispatch({ type: 'RUN_CHECK' })
     try {
-      const result = runEligibilityCheck(state.cvText, template)
+      const result = state.useAI
+        ? await runEligibilityCheckWithAI(state.cvText, template)
+        : runEligibilityCheck(state.cvText, template)
       dispatch({ type: 'CHECK_COMPLETE', payload: result })
 
       const checkId = await saveCheck({

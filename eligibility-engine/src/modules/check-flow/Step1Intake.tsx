@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback } from 'react'
 import { getRoleTemplateList, SAMPLE_CV } from '../../data/roleTemplates'
 import { SUPPORTED_TYPES } from '../engine/fileParser'
-import { Upload, FileText, X, FileCheck } from 'lucide-react'
+import { Upload, FileText, X, FileCheck, Sparkles } from 'lucide-react'
 import type { CheckWizardState } from '../engine/types'
 import s from './Step1Intake.module.css'
 
@@ -153,13 +153,32 @@ export function Step1Intake({ state, dispatch, onRun, onFile }: Step1Props) {
 
       {state.error && <div className={s.error}>{state.error}</div>}
 
+      <label className={s.aiToggle}>
+        <input
+          type="checkbox"
+          checked={state.useAI}
+          onChange={() => dispatch({ type: 'TOGGLE_AI' })}
+          className={s.aiCheckbox}
+        />
+        <span className={`${s.aiToggleTrack} ${state.useAI ? s.aiToggleTrackOn : ''}`}>
+          <span className={s.aiToggleThumb} />
+        </span>
+        <Sparkles size={16} className={state.useAI ? s.aiIconOn : s.aiIconOff} />
+        <span className={s.aiToggleLabel}>
+          ניתוח AI (Gemini)
+        </span>
+        {state.useAI && <span className={s.aiBetaBadge}>BETA</span>}
+      </label>
+
       <div className={s.actions}>
         <button
           className={s.btnPrimary}
           onClick={onRun}
           disabled={state.isRunning || state.isParsing || !state.cvText.trim()}
         >
-          {state.isRunning ? 'מנתח...' : '🔍 הרץ בדיקת תנאי סף'}
+          {state.isRunning
+            ? state.useAI ? '🤖 מנתח עם AI...' : 'מנתח...'
+            : state.useAI ? '🤖 הרץ בדיקה + AI' : '🔍 הרץ בדיקת תנאי סף'}
         </button>
         {!state.cvText.trim() && !hasFile && (
           <button

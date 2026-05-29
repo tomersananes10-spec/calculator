@@ -1,5 +1,6 @@
-import type { RoleTemplate, CheckResult, RequirementResult } from './types'
+import type { RoleTemplate, CheckResult, RequirementResult, RequirementStatus } from './types'
 import { analyzeRequirement, detectYears, getTotalYears } from './keywordEngine'
+import { analyzeRequirementWithAI } from './aiEngine'
 
 export function runEligibilityCheck(cvText: string, template: RoleTemplate): CheckResult {
   const startTime = Date.now()
@@ -10,6 +11,59 @@ export function runEligibilityCheck(cvText: string, template: RoleTemplate): Che
     analyzeRequirement(cvText, req)
   )
 
+  return buildCheckResult(results, estimatedYears, cvText.length, startTime, 'keyword-v1')
+}
+
+export async function runEligibilityCheckWithAI(cvText: string, template: RoleTemplate): Promise<CheckResult> {
+  const startTime = Date.now()
+  const yearDetections = detectYears(cvText)
+  const estimatedYears = getTotalYears(yearDetections)
+
+  const keywordResults = template.requirements.map(req =>
+    analyzeRequirement(cvText, req)
+  )
+
+  const aiResults = await Promise.allSettled(
+    template.requirements.map(req => analyzeRequirementWithAI(cvText, req))
+  )
+
+  const results: RequirementResult[] = keywordResults.map((kwResult, i) => {
+    const aiSettled = aiResults[i]
+    if (aiSettled.status !== 'fulfilled') return kwResult
+
+    const ai = aiSettled.value
+    const mergedScore = Math.round(kwResult.score * 0.4 + ai.score * 0.6)
+    const mergedConfidence = Math.min(0.99, kwResult.confidence * 0.3 + ai.confidence * 0.7)
+
+    let mergedStatus: RequirementStatus
+    if (kwResult.status === 'fail' && ai.status === 'pass') {
+      mergedStatus = 'requires_review'
+    } else if (kwResult.status === 'pass' && ai.status === 'fail') {
+      mergedStatus = 'requires_review'
+    } else {
+      mergedStatus = ai.status
+    }
+
+    return {
+      ...kwResult,
+      score: mergedScore,
+      confidence: mergedConfidence,
+      status: mergedStatus,
+      summary: ai.reasoning || kwResult.summary,
+      ai,
+    }
+  })
+
+  return buildCheckResult(results, estimatedYears, cvText.length, startTime, 'keyword+ai-v1')
+}
+
+function buildCheckResult(
+  results: RequirementResult[],
+  estimatedYears: number,
+  cvLength: number,
+  startTime: number,
+  engineVersion: string,
+): CheckResult {
   const totalWeight = results.reduce((sum, r) => sum + r.requirement.weight, 0)
   const weightedScore = totalWeight > 0
     ? results.reduce((sum, r) => sum + r.score * r.requirement.weight, 0) / totalWeight
@@ -32,9 +86,9 @@ export function runEligibilityCheck(cvText: string, template: RoleTemplate): Che
     estimatedYears,
     results,
     metadata: {
-      engineVersion: 'keyword-v1',
+      engineVersion,
       analyzedAt: new Date().toISOString(),
-      cvLength: cvText.length,
+      cvLength,
       processingTimeMs: Date.now() - startTime,
     },
   }

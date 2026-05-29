@@ -205,6 +205,73 @@
   direction: rtl;
 }
 
+/* AI Toggle */
+.aiToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.aiCheckbox {
+  display: none;
+}
+
+.aiToggleTrack {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background: var(--border2);
+  border-radius: 11px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.aiToggleTrackOn {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+}
+
+.aiToggleThumb {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.aiToggleTrackOn .aiToggleThumb {
+  transform: translateX(-18px);
+}
+
+.aiIconOn {
+  color: var(--primary);
+}
+
+.aiIconOff {
+  color: var(--text3);
+}
+
+.aiToggleLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.aiBetaBadge {
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.5px;
+}
+
 .actions {
   display: flex;
   gap: 10px;

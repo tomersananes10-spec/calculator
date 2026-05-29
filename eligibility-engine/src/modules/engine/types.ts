@@ -55,6 +55,16 @@ export interface YearDetection {
   confidence: number
 }
 
+export interface AiAnalysis {
+  status: RequirementStatus
+  score: number
+  confidence: number
+  estimatedYears: number
+  evidence: string[]
+  reasoning: string
+  missingInfo?: string
+}
+
 export interface RequirementResult {
   requirementId: string
   requirement: Requirement
@@ -65,6 +75,7 @@ export interface RequirementResult {
   yearDetections: YearDetection[]
   keywordScore: number
   summary: string
+  ai?: AiAnalysis
 }
 
 export interface CheckResult {
@@ -100,6 +111,7 @@ export interface CheckWizardState {
   cvFileName: string | null
   cvPageCount: number | null
   isParsing: boolean
+  useAI: boolean
   checkResult: CheckResult | null
   decisions: Record<string, HumanDecision>
   decisionNotes: string

@@ -2,7 +2,7 @@ import type { CheckResult } from '../engine/types'
 import { Badge } from '../../components/ui/Badge'
 import { ProgressBar } from '../../components/ui/ProgressBar'
 import { StatusIcon, statusLabel, reqStatusLabel } from '../../components/ui/StatusIcon'
-import { Lock } from 'lucide-react'
+import { Lock, Sparkles } from 'lucide-react'
 import s from './Step2Results.module.css'
 
 interface Step2Props {
@@ -100,6 +100,26 @@ export function Step2Results({ result, onNext, onBack }: Step2Props) {
                 </span>
               ))}
             </div>
+
+            {req.ai && (
+              <div className={s.aiBox}>
+                <div className={s.aiBoxHeader}>
+                  <Sparkles size={14} />
+                  <span>ניתוח AI</span>
+                </div>
+                <div className={s.aiReasoning}>{req.ai.reasoning}</div>
+                {req.ai.evidence.length > 0 && (
+                  <div className={s.aiEvidence}>
+                    {req.ai.evidence.map((ev, i) => (
+                      <div key={i} className={s.aiEvidenceItem}>• {ev}</div>
+                    ))}
+                  </div>
+                )}
+                {req.ai.missingInfo && (
+                  <div className={s.aiMissing}>חסר: {req.ai.missingInfo}</div>
+                )}
+              </div>
+            )}
           </div>
         )
       })}
