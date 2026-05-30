@@ -222,36 +222,44 @@ CLAUDE_CODE_TOMER/
 | 19.05 | שדרוג מודול בריפים — מיפוי מלא של כל שלבי הוויזרד ל-Word + docx-preview בתצוגה מקדימה |
 | 19.05 | עדכון תבנית Word — 11 תגיות חדשות (ministry, timeline, architecture, management, cloud, goals) |
 | 29.05 | Eligibility Engine — פרויקט נפרד: שלבים 1-4 (מנוע keyword, Supabase, דשבורד, העלאת PDF/DOCX) |
+| 30.05 | Supabase keep-alive — שחזור digitek-dev, השהיית digitek-platform (לא בשימוש), החלפת Vercel cron שבור ב-GitHub Actions workflow |
 
 ---
 
 ## 10. שיחה אחרונה
 
-> **תאריך**: 29.05.2026
-> **נושא**: Eligibility Engine — Phase 4 + Phase 5: העלאת קבצים + AI (Gemini)
+> **תאריך**: 30.05.2026
+> **נושא**: digitek-dev נשהה ע"י Supabase — אבחון מלא ותיקון תשתית keep-alive
 
-### מה בוצע — Phase 4 (העלאת קבצים):
-- מודול `fileParser.ts` — פענוח PDF (pdfjs-dist) ו-DOCX (mammoth) צד-לקוח
-- שדרוג Step1Intake — אזור drag-and-drop + file input + תצוגת קובץ שהועלה
-- תמיכה ב-PDF, DOCX, DOC עד 10MB
+### הבעיה:
+- Supabase שלח מייל שפרויקט `digitek-dev` הושהה אוטומטית אחרי 7 ימי inactivity
+- LIBA preview (`calculator-git-develop-...vercel.app`) הפסיק לעבוד — אין DB
 
-### מה בוצע — Phase 5 (AI Gemini):
-- API proxy (`api/eligibility-ai.ts`) — Vercel serverless → Gemini 2.5 Flash
-- מודול `aiEngine.ts` — prompt מובנה לכל דרישה, parsing JSON response
-- שדרוג `engine.ts` — `runEligibilityCheckWithAI()` ממזג keyword (40%) + AI (60%)
-- Toggle AI ב-Step1 עם תג BETA + כפתור "הרץ בדיקה + AI"
-- תיבת "ניתוח AI" ב-Step2Results — reasoning, evidence, missing info
-- Graceful degradation: אם AI נכשל לדרישה, תוצאת keyword משמשת
+### אבחון — שורש הבעיה (3 כשלים מצטברים):
+1. **Free Tier מגביל ל-2 פרויקטים פעילים בארגון** — ויש 3 (digitek-dev, digitek-platform, eligibility-engine). אז `digitek-dev` נשהה בכפייה גם אם כל ההגדרות תקינות.
+2. **`digitek-platform` הוקם כפרוד אבל מעולם לא היה בשימוש** — כל 4 הטבלאות הכילו 0 שורות. תפס סלוט לחינם.
+3. **הקיפ-אלייב ב-Vercel (`api/keep-alive.ts` + `vercel.json` cron) מעולם לא רץ** — Vercel cron רץ רק על production deployment, והדפלוי האחרון לפרוד היה 3.5.2026 (לפני שהוסף הקיפ-אלייב). מאז 17+ קומיטים על main לא קיבלו דפלוי לפרוד. בנוסף — LIBA כלל לא משתמש בפרוד אמיתי, כל השימוש דרך develop preview.
+
+### מה בוצע (דרך Supabase MCP):
+- `pause_project` על `digitek-platform` (פינוי סלוט)
+- `restore_project` על `digitek-dev` (LIBA חזר לעבוד)
+- מצב סופי: digitek-dev ✅ ACTIVE_HEALTHY, eligibility-engine ✅ ACTIVE_HEALTHY, digitek-platform ⏸️ INACTIVE
+
+### תיקון keep-alive — GitHub Actions במקום Vercel cron:
+- קובץ חדש: `.github/workflows/supabase-keep-alive.yml`
+- רץ פעם ביום ב-9:00 UTC + workflow_dispatch ידני
+- פינג ל-`digitek-dev` REST API עם anon key (פומבי, מוטמע בקליינט)
+- חינם, לא תלוי ב-Vercel, לוגים ב-GitHub UI
+- Commit `c8c623e` ב-develop, cherry-picked כ-`6c22416` ל-main (כדי שcron schedule יפעל)
 
 ### אימות:
-- TypeScript עובר ללא שגיאות
-- Build עובר
-- בדיקה רגילה (keyword) עובדת תקין
-- AI toggle UI מוצג ומשנה את כפתור ההרצה
-- Commits: `a5c9db1`, `c00418e`, `726d79c` pushed to `develop`
+- digitek-dev חזר לעבוד — LIBA preview אמור להתחבר שוב
+- workflow נראה ב-GitHub Actions UI אחרי שעלה ל-main
+- אימות הרצה: workflow_dispatch ידני מ-https://github.com/tomersananes10-spec/calculator/actions
 
 ### TODO:
-- [ ] הוסף GEMINI_API_KEY ב-Vercel dashboard (Settings → Environment Variables)
+- [ ] להריץ workflow ידנית פעם אחת ולוודא ✅ ירוק
+- [ ] לשקול להסיר `api/keep-alive.ts` והcron מ-`vercel.json` (קוד מת — לא רץ)
 
 ---
 
