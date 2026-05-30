@@ -1,0 +1,25 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping digitek-dev
+        env:
+          SUPABASE_URL: https://ildwyncxoytvallkrqjo.supabase.co
+          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsZHd5bmN4b3l0dmFsbGtycWpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTg4MTIsImV4cCI6MjA5MDg5NDgxMn0.8BpdtIEH0ah01sdbsoolqC4hd38jCO2_VcWTo1WdkLk
+        run: |
+          response=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/profiles?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "digitek-dev ping status: $response"
+          if [ "$response" != "200" ] && [ "$response" != "206" ]; then
+            echo "::error::Unexpected status from digitek-dev: $response"
+            exit 1
+          fi
