@@ -102,6 +102,133 @@
   margin: 0;
 }
 
+/* ── Scope modal (Step 2 — click ℹ) ── */
+.scopeOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: 400;
+  cursor: pointer;
+  animation: scopeFadeIn 0.15s ease;
+}
+.scopeModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border-radius: 16px;
+  width: 560px;
+  max-width: calc(100vw - 32px);
+  max-height: 85vh;
+  overflow-y: auto;
+  z-index: 401;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 24px 28px 28px;
+  animation: scopeFadeInScale 0.2s ease;
+}
+@keyframes scopeFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scopeFadeInScale {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.scopeCloseBtn {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text2);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.15s;
+  font-family: inherit;
+  padding: 0;
+}
+.scopeCloseBtn:hover {
+  border-color: var(--red);
+  color: var(--red);
+  background: var(--red-bg);
+}
+
+.scopeModalHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 8px;
+}
+.scopeModalIcon {
+  font-size: 28px;
+  line-height: 1;
+}
+.scopeModalTitle {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 0;
+}
+.scopeModalSub {
+  font-size: 12px;
+  color: var(--text3);
+  margin: 4px 40px 18px 0;
+}
+.scopeModalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scopeSizeBlock {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+.scopeSizeHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.scopeSizeName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teal);
+}
+.scopeSizePrice {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.scopeSizeText {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text2);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .scopeModal {
+    padding: 18px 18px 22px;
+  }
+  .scopeModalTitle {
+    font-size: 16px;
+  }
+}
+
 /* ── Size pills (Step 3) ── */
 .sizePills {
   display: flex;

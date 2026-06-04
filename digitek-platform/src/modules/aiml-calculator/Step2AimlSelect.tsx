@@ -11,13 +11,6 @@ interface Props {
   dispatch: AimlDispatch
 }
 
-interface TipState {
-  visible: boolean
-  item: AimlItem | null
-  x: number
-  y: number
-}
-
 function getPriceRange(item: AimlItem): string {
   const vals = Object.values(item.prices)
   const min = Math.min(...vals)
@@ -26,16 +19,11 @@ function getPriceRange(item: AimlItem): string {
 }
 
 export function Step2AimlSelect({ state, dispatch }: Props) {
-  const [tip, setTip] = useState<TipState>({ visible: false, item: null, x: 0, y: 0 })
+  const [scopeItem, setScopeItem] = useState<AimlItem | null>(null)
 
-  function showInfo(e: React.MouseEvent, item: AimlItem) {
+  function openScope(e: React.MouseEvent, item: AimlItem) {
     e.stopPropagation()
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    setTip({ visible: true, item, x: rect.left, y: rect.bottom + 6 })
-  }
-
-  function hideInfo() {
-    setTip(t => ({ ...t, visible: false }))
+    setScopeItem(item)
   }
 
   function proceed() {
@@ -46,7 +34,7 @@ export function Step2AimlSelect({ state, dispatch }: Props) {
   const selectedCount = countSelected(state)
 
   return (
-    <div onClick={hideInfo}>
+    <div>
       <div className={s.stepHeader}>
         <h2>בחירת תוצרי AI/ML</h2>
         <p>בחר את התוצרים הרלוונטיים לפרויקט שלך — לפי סעיף 3.16 (16 תוצרים זמינים)</p>
@@ -68,7 +56,7 @@ export function Step2AimlSelect({ state, dispatch }: Props) {
                 <button
                   type="button"
                   className={s.roleInfoBtn}
-                  onClick={e => showInfo(e, item)}
+                  onClick={e => openScope(e, item)}
                   aria-label="תיאור תכולה"
                 >
                   ℹ
@@ -95,24 +83,38 @@ export function Step2AimlSelect({ state, dispatch }: Props) {
         </button>
       </div>
 
-      {tip.visible && tip.item && (
-        <div
-          className={aiml.scopeTip}
-          style={{ left: tip.x, top: tip.y }}
-        >
-          <div className={aiml.scopeTipSize}>
-            {AIML_SIZE_LABELS.small} · {fmtCurrency(tip.item.prices.small)}
+      {scopeItem && (
+        <>
+          <div className={aiml.scopeOverlay} onClick={() => setScopeItem(null)} />
+          <div className={aiml.scopeModal} role="dialog" aria-labelledby="scope-title">
+            <button
+              type="button"
+              className={aiml.scopeCloseBtn}
+              onClick={() => setScopeItem(null)}
+              aria-label="סגור"
+              title="סגור"
+            >
+              ✕
+            </button>
+            <div className={aiml.scopeModalHead}>
+              <span className={aiml.scopeModalIcon}>{scopeItem.icon}</span>
+              <h3 id="scope-title" className={aiml.scopeModalTitle}>{scopeItem.name}</h3>
+            </div>
+            <p className={aiml.scopeModalSub}>תכולת עבודה לכל גודל — לפי סעיף 3.16</p>
+
+            <div className={aiml.scopeModalBody}>
+              {(['small', 'medium', 'large'] as const).map(size => (
+                <div key={size} className={aiml.scopeSizeBlock}>
+                  <div className={aiml.scopeSizeHead}>
+                    <span className={aiml.scopeSizeName}>{AIML_SIZE_LABELS[size]}</span>
+                    <span className={aiml.scopeSizePrice}>{fmtCurrency(scopeItem.prices[size])}</span>
+                  </div>
+                  <p className={aiml.scopeSizeText}>{scopeItem.scope[size]}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          {tip.item.scope.small}
-          <div className={aiml.scopeTipSize}>
-            {AIML_SIZE_LABELS.medium} · {fmtCurrency(tip.item.prices.medium)}
-          </div>
-          {tip.item.scope.medium}
-          <div className={aiml.scopeTipSize}>
-            {AIML_SIZE_LABELS.large} · {fmtCurrency(tip.item.prices.large)}
-          </div>
-          {tip.item.scope.large}
-        </div>
+        </>
       )}
     </div>
   )
