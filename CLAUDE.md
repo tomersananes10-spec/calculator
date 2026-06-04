@@ -236,6 +236,7 @@ CLAUDE_CODE_TOMER/
 | 30.05 | Supabase keep-alive — שחזור digitek-dev, השהיית digitek-platform (לא בשימוש), החלפת Vercel cron שבור ב-GitHub Actions workflow |
 | 04.06 | מחשבון AI/ML — מודול חדש: 16 תוצרים × 3 גדלים לפי סעיף 3.16. מסך טבלאי "זריז", localStorage, אינטגרציה ל-Sidebar + Dashboard |
 | 04.06 | מחשבון AI/ML — שכתוב לויזרד 4 שלבים זהה ל-TAKAM, בתוך אותו `/calculator` עם toggle "דאטה / AI" בראש |
+| 04.06 | מחשבון AI/ML v3 — feature parity, מודאל תכולות, יועץ AI (Gemini פעיל), תיקון `url.insteadOf` + הסרת `vercel.json` cron ⇒ דפלוי חזר לעבוד. סיכום מלא: [docs/sessions/2026-06-04-aiml-calculator.md](docs/sessions/2026-06-04-aiml-calculator.md) |
 | 04.06 | מחשבון AI/ML — feature-parity עם TAKAM: תקופת התקשרות, מאצ'ינג, סיכון, שמור + החישובים שלי (localStorage), הסבר UX, scope display, toggle "שעות/תוצרים" |
 
 ---
