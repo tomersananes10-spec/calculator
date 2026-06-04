@@ -37,28 +37,26 @@ export function Calculator() {
   }
 
   return (
-    <div>
-      <div style={{ padding: '20px 28px 0', display: 'flex', justifyContent: 'flex-start' }}>
-        <div className={aiml.modeToggle} role="tablist" aria-label="בחירת סוג מחשבון">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'data'}
-            className={`${aiml.modeBtn} ${mode === 'data' ? aiml.modeBtnOn : ''}`}
-            onClick={() => switchMode('data')}
-          >
-            🧮 מחשבון דאטה
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'ai'}
-            className={`${aiml.modeBtn} ${mode === 'ai' ? aiml.modeBtnOn : ''}`}
-            onClick={() => switchMode('ai')}
-          >
-            🤖 מחשבון AI
-          </button>
-        </div>
+    <div className={aiml.calcWrap}>
+      <div className={aiml.modeToggle} role="tablist" aria-label="בחירת סוג מחשבון">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'data'}
+          className={`${aiml.modeBtn} ${mode === 'data' ? aiml.modeBtnOn : ''}`}
+          onClick={() => switchMode('data')}
+        >
+          🧮 דאטה
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'ai'}
+          className={`${aiml.modeBtn} ${mode === 'ai' ? aiml.modeBtnOn : ''}`}
+          onClick={() => switchMode('ai')}
+        >
+          🤖 AI
+        </button>
       </div>
 
       {mode === 'data' ? <TakamCalculator /> : <AimlCalculator />}

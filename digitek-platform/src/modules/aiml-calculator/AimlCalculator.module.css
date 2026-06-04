@@ -1,38 +1,59 @@
 /* AI/ML wizard — specific extras on top of TakamCalculator.module.css */
 
-/* ── Mode toggle (top of Calculator page) ── */
+/* ── Calculator wrapper (holds floating mode toggle) ── */
+.calcWrap {
+  position: relative;
+}
+
+/* ── Mode toggle — small, floating, top-left ── */
 .modeToggle {
-  display: flex;
-  gap: 6px;
-  background: #f1f5f9;
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  padding: 4px;
-  max-width: 360px;
+  position: absolute;
+  top: 22px;
+  left: 24px;
+  z-index: 10;
+  display: inline-flex;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 .modeBtn {
-  flex: 1;
-  padding: 10px 16px;
-  border-radius: 9px;
+  padding: 6px 12px;
+  border-radius: 999px;
   border: none;
   background: transparent;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text2);
   cursor: pointer;
   transition: all 0.15s;
-  display: flex;
+  white-space: nowrap;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 4px;
+}
+.modeBtn:hover:not(.modeBtnOn) {
+  color: var(--teal);
 }
 .modeBtnOn {
-  background: var(--surface);
-  color: var(--teal);
+  background: var(--teal);
+  color: #fff;
   font-weight: 700;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--teal-mid);
+}
+@media (max-width: 768px) {
+  .modeToggle {
+    top: 14px;
+    left: 14px;
+    padding: 2px;
+  }
+  .modeBtn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
 }
 
 /* ── Size pills (Step 3) ── */
