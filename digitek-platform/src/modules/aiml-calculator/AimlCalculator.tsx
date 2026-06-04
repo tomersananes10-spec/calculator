@@ -1,172 +1,58 @@
-import { useState } from 'react'
 import { useAimlCalculator } from './useAimlCalculator'
-import { AIML_ITEMS } from './data'
-import { fmtCurrency, grandTotal, rowTotal, countSelected } from './calc'
-import type { AimlItem, AimlSize } from './types'
-import s from './AimlCalculator.module.css'
+import { Step1AimlSetup } from './Step1AimlSetup'
+import { Step2AimlSelect } from './Step2AimlSelect'
+import { Step3AimlSizing } from './Step3AimlSizing'
+import { Step4AimlResults } from './Step4AimlResults'
+import type { AimlStep } from './types'
+import s from '../takam-calculator/TakamCalculator.module.css'
 
-interface TipState {
-  item: AimlItem
-  top: number
-  left: number
-}
+const STEP_NAMES = ['הגדרת פרויקט', 'בחירת תוצרים', 'גודל וכמויות', 'תוצאות']
 
 export function AimlCalculator() {
   const [state, dispatch] = useAimlCalculator()
-  const [tip, setTip] = useState<TipState | null>(null)
 
-  const total = grandTotal(state, AIML_ITEMS)
-  const selected = countSelected(state)
-
-  function openTip(e: React.MouseEvent<HTMLButtonElement>, item: AimlItem) {
-    const rect = e.currentTarget.getBoundingClientRect()
-    setTip({ item, top: rect.bottom + 8, left: Math.max(10, rect.left - 200) })
+  function tryGoStep(n: AimlStep) {
+    if (n < state.currentStep) dispatch({ type: 'GO_STEP', payload: n })
   }
 
-  function resetAll() {
-    if (confirm('לאפס את כל הבחירות?')) dispatch({ type: 'RESET' })
-  }
+  const isResultsStep = state.currentStep === 4
 
   return (
-    <div className={s.wrap}>
-      <div className={s.topbar}>
-        <h1 className={s.title}>
-          מחשבון AI/ML
-          <span className={s.subtitle}> · 3.16 ייעוץ ויישום AI/ML בענן · {AIML_ITEMS.length} תוצרים</span>
-        </h1>
-        <div className={s.totalPill}>
-          {selected > 0 ? `${selected} נבחרו · ` : ''}סה"כ: {fmtCurrency(total)}
+    <div className={s.page}>
+      <div className={s.pageHeader}>
+        <div>
+          <h1 className={s.pageTitle}>מחשבון AI/ML</h1>
+          <p className={s.pageSub}>חישוב עלויות תוצרי AI/ML לפי סעיף 3.16</p>
         </div>
       </div>
 
-      <div className={s.panel}>
-        <div className={s.projectRow}>
-          <label>
-            <span>שם פרויקט</span>
-            <input
-              type="text"
-              placeholder="פלטפורמת AI/ML משרדית"
-              value={state.project.name}
-              onChange={e => dispatch({ type: 'SET_PROJECT_NAME', payload: e.target.value })}
-            />
-          </label>
-          <label>
-            <span>משרד / יחידה</span>
-            <input
-              type="text"
-              placeholder="משרד הביטחון"
-              value={state.project.ministry}
-              onChange={e => dispatch({ type: 'SET_MINISTRY', payload: e.target.value })}
-            />
-          </label>
-        </div>
-
-        <table className={s.table}>
-          <thead>
-            <tr>
-              <th className={s.ck}></th>
-              <th>תוצר</th>
-              <th>גודל</th>
-              <th>כמות בסיס</th>
-              <th>+ נוספת</th>
-              <th>מחיר ליחידה</th>
-              <th>סה"כ</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {AIML_ITEMS.map(item => {
-              const entry = state.entries[item.id]
-              const total = rowTotal(entry, item)
+      <div className={s.wizardProgress}>
+        <div className={s.stepsRow}>
+          <div className={s.steps}>
+            {STEP_NAMES.map((name, i) => {
+              const n = (i + 1) as AimlStep
+              const cls = n < state.currentStep ? s.stepDone : n === state.currentStep ? s.stepActive : s.stepFuture
               return (
-                <tr key={item.id} className={entry.checked ? s.checked : s.unchecked}>
-                  <td className={s.ck}>
-                    <input
-                      type="checkbox"
-                      checked={entry.checked}
-                      onChange={() => dispatch({ type: 'TOGGLE_CHECK', payload: item.id })}
-                      aria-label={`בחר ${item.name}`}
-                    />
-                  </td>
-                  <td className={s.name}>
-                    {item.icon} {item.name}
-                  </td>
-                  <td>
-                    <select
-                      value={entry.size}
-                      onChange={e =>
-                        dispatch({ type: 'SET_SIZE', payload: { itemId: item.id, size: e.target.value as AimlSize } })
-                      }
-                    >
-                      <option value="small">קטן</option>
-                      <option value="medium">בינוני</option>
-                      <option value="large">גדול</option>
-                    </select>
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      min={0}
-                      value={entry.baseQty}
-                      onChange={e =>
-                        dispatch({ type: 'SET_BASE_QTY', payload: { itemId: item.id, qty: +e.target.value || 0 } })
-                      }
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      min={0}
-                      value={entry.extraQty}
-                      onChange={e =>
-                        dispatch({ type: 'SET_EXTRA_QTY', payload: { itemId: item.id, qty: +e.target.value || 0 } })
-                      }
-                    />
-                  </td>
-                  <td className={s.price}>{fmtCurrency(item.prices[entry.size])}</td>
-                  <td className={s.rowTotal}>{entry.checked ? fmtCurrency(total) : '—'}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className={s.infoBtn}
-                      onMouseEnter={e => openTip(e, item)}
-                      onMouseLeave={() => setTip(null)}
-                      onFocus={e => openTip(e as unknown as React.MouseEvent<HTMLButtonElement>, item)}
-                      onBlur={() => setTip(null)}
-                      title="תיאור תכולה"
-                      aria-label={`תיאור תכולה — ${item.name}`}
-                    >
-                      ℹ
-                    </button>
-                  </td>
-                </tr>
+                <div key={n} className={`${s.step} ${cls}`} onClick={() => tryGoStep(n)}>
+                  <div className={s.stepNum}>{n < state.currentStep ? '✓' : String(n)}</div>
+                  <div className={s.stepInfo}>
+                    <span className={s.stepLabel}>שלב {n}</span>
+                    <span className={s.stepName}>{name}</span>
+                  </div>
+                  {i < 3 && <span className={s.stepSep}>›</span>}
+                </div>
               )
             })}
-          </tbody>
-        </table>
-
-        <div className={s.grand}>
-          <span className={s.grandLabel}>סה"כ עלות הפרויקט</span>
-          <span className={s.grandAmount}>{fmtCurrency(total)}</span>
-        </div>
-
-        <div className={s.actions}>
-          <button type="button" className={`${s.btn} ${s.btnSecondary}`} onClick={resetAll}>
-            איפוס
-          </button>
+          </div>
         </div>
       </div>
 
-      {tip && (
-        <div className={s.tip} style={{ top: tip.top, left: tip.left }}>
-          <div className={s.tipSize}>קטן · {fmtCurrency(tip.item.prices.small)}</div>
-          {tip.item.scope.small}
-          <div className={s.tipSize}>בינוני · {fmtCurrency(tip.item.prices.medium)}</div>
-          {tip.item.scope.medium}
-          <div className={s.tipSize}>גדול · {fmtCurrency(tip.item.prices.large)}</div>
-          {tip.item.scope.large}
-        </div>
-      )}
+      <div className={isResultsStep ? s.mainWide : s.main}>
+        {state.currentStep === 1 && <Step1AimlSetup state={state} dispatch={dispatch} />}
+        {state.currentStep === 2 && <Step2AimlSelect state={state} dispatch={dispatch} />}
+        {state.currentStep === 3 && <Step3AimlSizing state={state} dispatch={dispatch} />}
+        {state.currentStep === 4 && <Step4AimlResults state={state} dispatch={dispatch} />}
+      </div>
     </div>
   )
 }

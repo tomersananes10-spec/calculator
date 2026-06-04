@@ -1,15 +1,15 @@
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, type Dispatch } from 'react'
 import { AIML_ITEMS } from './data'
-import type { AimlEntry, AimlSize, AimlState } from './types'
+import type { AimlEntry, AimlSize, AimlState, AimlStep } from './types'
 
-const STORAGE_KEY = 'aimlCalc:v1'
+const STORAGE_KEY = 'aimlCalc:v2'
 
 function initialState(): AimlState {
   const entries: Record<string, AimlEntry> = {}
   AIML_ITEMS.forEach(item => {
     entries[item.id] = { itemId: item.id, checked: false, size: 'medium', baseQty: 1, extraQty: 0 }
   })
-  return { project: { name: '', ministry: '' }, entries }
+  return { project: { name: '', ministry: '' }, entries, currentStep: 1 }
 }
 
 function loadFromStorage(): AimlState {
@@ -21,22 +21,24 @@ function loadFromStorage(): AimlState {
     return {
       project: { ...base.project, ...(saved.project || {}) },
       entries: { ...base.entries, ...(saved.entries || {}) },
+      currentStep: saved.currentStep ?? 1,
     }
   } catch {
     return initialState()
   }
 }
 
-type Action =
+export type AimlAction =
   | { type: 'SET_PROJECT_NAME'; payload: string }
   | { type: 'SET_MINISTRY'; payload: string }
   | { type: 'TOGGLE_CHECK'; payload: string }
   | { type: 'SET_SIZE'; payload: { itemId: string; size: AimlSize } }
   | { type: 'SET_BASE_QTY'; payload: { itemId: string; qty: number } }
   | { type: 'SET_EXTRA_QTY'; payload: { itemId: string; qty: number } }
+  | { type: 'GO_STEP'; payload: AimlStep }
   | { type: 'RESET' }
 
-function reducer(state: AimlState, action: Action): AimlState {
+function reducer(state: AimlState, action: AimlAction): AimlState {
   switch (action.type) {
     case 'SET_PROJECT_NAME':
       return { ...state, project: { ...state.project, name: action.payload } }
@@ -50,7 +52,7 @@ function reducer(state: AimlState, action: Action): AimlState {
     case 'SET_SIZE': {
       const e = state.entries[action.payload.itemId]
       if (!e) return state
-      return { ...state, entries: { ...state.entries, [action.payload.itemId]: { ...e, size: action.payload.size, checked: true } } }
+      return { ...state, entries: { ...state.entries, [action.payload.itemId]: { ...e, size: action.payload.size } } }
     }
     case 'SET_BASE_QTY': {
       const e = state.entries[action.payload.itemId]
@@ -62,6 +64,8 @@ function reducer(state: AimlState, action: Action): AimlState {
       if (!e) return state
       return { ...state, entries: { ...state.entries, [action.payload.itemId]: { ...e, extraQty: Math.max(0, action.payload.qty) } } }
     }
+    case 'GO_STEP':
+      return { ...state, currentStep: action.payload }
     case 'RESET':
       return initialState()
   }
@@ -80,3 +84,5 @@ export function useAimlCalculator() {
 
   return [state, dispatch] as const
 }
+
+export type AimlDispatch = Dispatch<AimlAction>

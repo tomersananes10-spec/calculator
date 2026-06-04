@@ -1,256 +1,250 @@
-.wrap {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 24px;
-  font-family: 'Heebo', sans-serif;
-  color: var(--text);
-}
+/* AI/ML wizard — specific extras on top of TakamCalculator.module.css */
 
-.topbar {
+/* ── Mode toggle (top of Calculator page) ── */
+.modeToggle {
+  display: flex;
+  gap: 6px;
+  background: #f1f5f9;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+  max-width: 360px;
+}
+.modeBtn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: var(--surface);
-  padding: 16px 24px;
-  border-radius: var(--radius);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  margin-bottom: 16px;
-}
-
-.title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--navy);
-}
-
-.subtitle {
-  font-weight: 400;
-  color: var(--text3);
-  font-size: 14px;
-  margin-right: 8px;
-}
-
-.totalPill {
-  background: var(--primary-bg);
-  color: var(--primary-dark);
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.panel {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.projectRow {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.projectRow label {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  justify-content: center;
   gap: 6px;
 }
-
-.projectRow span {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text2);
+.modeBtnOn {
+  background: var(--surface);
+  color: var(--teal);
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--teal-mid);
 }
 
-.projectRow input {
-  padding: 10px 12px;
-  border: 1px solid var(--border);
+/* ── Size pills (Step 3) ── */
+.sizePills {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.sizePill {
+  flex: 1;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border2);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sizePill:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+.sizePillOn {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
+/* ── Qty inputs (Step 3) ── */
+.qtyRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.qtyField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.qtyLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+}
+.qtyInput {
+  padding: 8px 10px;
+  border: 1.5px solid var(--border2);
   border-radius: 8px;
   font-family: inherit;
   font-size: 14px;
+  text-align: center;
   background: var(--surface);
-}
-
-.projectRow input:focus {
+  color: var(--text);
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-bg);
+  transition: border-color 0.15s;
+}
+.qtyInput:focus {
+  border-color: var(--teal);
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
+/* ── Item scope text (under name) ── */
+.itemScope {
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.5;
+  margin-top: 4px;
 }
 
-.table thead th {
-  padding: 10px 8px;
-  font-size: 12px;
+/* ── Price label inside card ── */
+.itemPriceRange {
+  font-size: 11px;
+  color: var(--teal);
   font-weight: 600;
-  color: var(--text2);
-  text-align: right;
-  border-bottom: 2px solid var(--border);
-  background: #f8fafc;
+  margin-top: 2px;
+}
+.itemRowTotal {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--teal);
+  text-align: left;
 }
 
-.table tbody td {
-  padding: 10px 8px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
+/* ── Sizing card layout (Step 3) ── */
+.sizingCard {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  transition: box-shadow 0.2s;
 }
-
-.table tbody tr:hover {
-  background: #fafbfc;
+.sizingCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
-
-.table tbody tr.checked {
-  background: var(--primary-bg);
-}
-
-.table tbody tr.checked:hover {
-  background: #dbeafe;
-}
-
-.name {
-  font-weight: 600;
+.sizingCardName {
+  font-size: 14px;
+  font-weight: 700;
   color: var(--text);
 }
-
-.price {
-  color: var(--text2);
-  font-variant-numeric: tabular-nums;
-}
-
-.rowTotal {
-  font-weight: 700;
-  color: var(--primary-dark);
-  font-variant-numeric: tabular-nums;
-}
-
-.ck {
-  width: 32px;
-  text-align: center;
-}
-
-.table select,
-.table input {
-  padding: 6px 8px;
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 13px;
-  background: var(--surface);
-}
-
-.table select {
-  width: 90px;
-}
-
-.table input[type='number'] {
-  width: 60px;
-  text-align: center;
-}
-
-.table tr.unchecked select,
-.table tr.unchecked input {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-.table tr.unchecked .price,
-.table tr.unchecked .rowTotal {
-  color: var(--text3);
-}
-
-.infoBtn {
+.sizingRemoveBtn {
   background: none;
   border: none;
-  cursor: pointer;
-  font-size: 14px;
   color: var(--text3);
-  padding: 4px 8px;
-  border-radius: 4px;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.15s;
 }
-
-.infoBtn:hover {
-  background: var(--primary-bg);
-  color: var(--primary);
+.sizingRemoveBtn:hover {
+  color: var(--red);
 }
-
-.grand {
-  margin-top: 20px;
-  padding: 16px 20px;
-  background: linear-gradient(135deg, var(--primary-bg), #dbeafe);
-  border-radius: var(--radius);
+.sizingFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.sizingPrice {
+  font-size: 12px;
+  color: var(--text3);
 }
 
-.grandLabel {
-  font-size: 14px;
-  color: var(--text2);
-}
-
-.grandAmount {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--primary-dark);
-}
-
-.actions {
-  margin-top: 16px;
+/* ── Selected count summary bar ── */
+.summaryBar {
+  background: var(--navy);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 16px 20px;
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.summaryLabel {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+}
+.summaryValue {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
 }
 
-.btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
+/* ── Info tooltip button (small ℹ on cards) ── */
+.itemInfoBtn {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 700;
   cursor: pointer;
-  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+  padding: 0;
   transition: all 0.15s;
 }
-
-.btnSecondary {
-  background: var(--surface);
-  color: var(--text);
-  border-color: var(--border2);
+.itemInfoBtn:hover {
+  border-color: var(--teal);
+  background: var(--teal-pale);
+  color: var(--teal);
 }
 
-.btnSecondary:hover {
-  background: #f1f5f9;
-}
-
-.tip {
+/* ── Scope tooltip overlay ── */
+.scopeTip {
   position: fixed;
-  background: #1e293b;
-  color: #f1f5f9;
-  padding: 10px 14px;
-  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  max-width: 320px;
   font-size: 12px;
+  z-index: 500;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   line-height: 1.6;
-  max-width: 380px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
   pointer-events: none;
 }
-
-.tipSize {
+.scopeTipSize {
   font-weight: 700;
-  color: #93c5fd;
+  color: #5eead4;
   margin-top: 6px;
 }
-
-.tipSize:first-child {
+.scopeTipSize:first-child {
   margin-top: 0;
+}
+
+@media (max-width: 768px) {
+  .modeToggle {
+    max-width: none;
+  }
+  .qtyRow {
+    grid-template-columns: 1fr 1fr;
+  }
 }

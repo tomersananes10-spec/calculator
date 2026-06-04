@@ -1,4 +1,5 @@
 export type AimlSize = 'small' | 'medium' | 'large'
+export type AimlStep = 1 | 2 | 3 | 4
 
 export interface AimlItem {
   id: string
@@ -19,4 +20,5 @@ export interface AimlEntry {
 export interface AimlState {
   project: { name: string; ministry: string }
   entries: Record<string, AimlEntry>
+  currentStep: AimlStep
 }

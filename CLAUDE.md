@@ -86,12 +86,16 @@ CLAUDE_CODE_TOMER/
 │   │   │   │   ├── briefData.ts         ← נתוני ברירת מחדל
 │   │   │   │   ├── types.ts             ← טיפוסים
 │   │   │   │   └── wordExport.ts        ← ייצוא ל-Word
-│   │   │   ├── aiml-calculator/    ← מחשבון AI/ML (3.16) — מסך טבלאי
-│   │   │   │   ├── AimlCalculator.tsx   ← קומפוננטה ראשית
+│   │   │   ├── aiml-calculator/    ← מחשבון AI/ML (3.16) — ויזרד 4 שלבים
+│   │   │   │   ├── AimlCalculator.tsx   ← ויזרד ראשי
+│   │   │   │   ├── Step1AimlSetup.tsx   ← שם פרויקט + משרד
+│   │   │   │   ├── Step2AimlSelect.tsx  ← בחירת תוצרים (16 כרטיסים)
+│   │   │   │   ├── Step3AimlSizing.tsx  ← גודל וכמויות (size pills + qty)
+│   │   │   │   ├── Step4AimlResults.tsx ← תוצאות + סיכום מע"מ
 │   │   │   │   ├── data.ts             ← 16 פריטים × 3 גדלים + תיאורי תכולות
 │   │   │   │   ├── calc.ts             ← חישוב סה"כ
-│   │   │   │   ├── useAimlCalculator.ts ← reducer + localStorage
-│   │   │   │   └── types.ts            ← AimlItem, AimlEntry
+│   │   │   │   ├── useAimlCalculator.ts ← reducer + localStorage + currentStep
+│   │   │   │   └── types.ts            ← AimlItem, AimlEntry, AimlStep
 │   │   │   └── roved5/             ← רובד 5 — שירותים מאושרים
 │   │   │       ├── Roved5.tsx           ← רשימה + חיפוש
 │   │   │       ├── ServiceCard.tsx      ← כרטיס שירות
@@ -231,45 +235,46 @@ CLAUDE_CODE_TOMER/
 | 29.05 | Eligibility Engine — פרויקט נפרד: שלבים 1-4 (מנוע keyword, Supabase, דשבורד, העלאת PDF/DOCX) |
 | 30.05 | Supabase keep-alive — שחזור digitek-dev, השהיית digitek-platform (לא בשימוש), החלפת Vercel cron שבור ב-GitHub Actions workflow |
 | 04.06 | מחשבון AI/ML — מודול חדש: 16 תוצרים × 3 גדלים לפי סעיף 3.16. מסך טבלאי "זריז", localStorage, אינטגרציה ל-Sidebar + Dashboard |
+| 04.06 | מחשבון AI/ML — שכתוב לויזרד 4 שלבים זהה ל-TAKAM, בתוך אותו `/calculator` עם toggle "דאטה / AI" בראש |
 
 ---
 
 ## 10. שיחה אחרונה
 
 > **תאריך**: 04.06.2026
-> **נושא**: מחשבון AI/ML — מודול חדש לפי מחירון סעיף 3.16
+> **נושא**: מחשבון AI/ML — בנייה ואיחוד לויזרד תחת מחשבון תכ"ם
 
-### הקלט:
-- קובץ `Calculator - AI ML/מחירון AI ML.xlsx` עם 16 תוצרים × 3 גדלים (קטן/בינוני/גדול), טווח מחירים 40K-300K
+### Iteration A — מסך טבלאי "זריז":
+- תחילה נבנה מודול עם 16 תוצרים × 3 גדלים לפי סעיף 3.16 כמסך טבלאי
+- Route נפרד `/aiml-calculator`, פריט סיידבר עצמאי, כרטיס דשבורד
+- commit `c368e0e` ל-develop
 
-### תהליך:
-1. ניתוח הקובץ דרך xlsx של digitek-platform (2 גיליונות: `מחירים`, `תכולות`)
-2. תכנון 3 מוקאפים: טבלה / ויזרד / Cards — נבנה קובץ `Calculator - AI ML/mockups.html` עצמאי עם נתונים אמיתיים
-3. המשתמש בחר גישה A (טבלה) — הכי "זריז"
-4. בנייה ב-LIBA כמודול חדש
+### Iteration B — איחוד לויזרד תחת `/calculator` (Current):
+המשתמש ביקש שהמחשבון AI יהיה **בתוך** מחשבון תכ"ם עם toggle "מחשבון דאטה / מחשבון AI" בראש העמוד, ושהויזרד יהיה זהה במבנה לזה של TAKAM אבל עם תכולות AI.
 
-### מה נבנה (MVP — UI + חישוב בלבד):
-- `digitek-platform/src/modules/aiml-calculator/` — 6 קבצים (types, data, calc, useAimlCalculator, AimlCalculator.tsx + .module.css)
-- `useAimlCalculator` שומר ב-localStorage תחת `aimlCalc:v1`
-- `digitek-platform/src/pages/AimlCalculatorPage.tsx` — wrapper
-- Route חדש `/aiml-calculator` ב-`App.tsx`
-- פריט תפריט "מחשבון AI/ML" 🤖 ב-`Sidebar.tsx`
-- כרטיס מודול ב-`Dashboard.tsx` (secondary grid)
+מה השתנה:
+- `Calculator.tsx` (page wrapper) — קיבל toggle בראש שמחליף בין `<TakamCalculator />` ל-`<AimlCalculator />`. מצב נשמר ב-localStorage + URL param (`?mode=ai`)
+- `AimlCalculator.tsx` — שכתוב מאפס לויזרד 4 שלבים עם stepper זהה ל-TAKAM
+- 4 קבצי שלבים חדשים: `Step1AimlSetup` (פרויקט+משרד), `Step2AimlSelect` (16 כרטיסים), `Step3AimlSizing` (size pills + qty), `Step4AimlResults` (טבלת פירוט + summary card עם מע"מ)
+- שיתוף CSS: שלבי AIML מייבאים את `TakamCalculator.module.css` כדי לקבל בדיוק את אותם stepper, navRow, cardBox, panel, summaryCard וכו'. `AimlCalculator.module.css` מכיל רק תוספות ספציפיות (size pills, qty inputs, modeToggle, scopeTip)
+- `useAimlCalculator` — הוסף `currentStep` ו-`GO_STEP` action. שמירה ב-`aimlCalc:v2`
+- Sidebar + Dashboard — הקישורים מצביעים ל-`/calculator?mode=ai` (במקום `/aiml-calculator` שהפך ל-redirect)
+- Route `/aiml-calculator` — הפך ל-`<Navigate to="/calculator?mode=ai">` לתאימות לאחור
 
 ### אימות (Playwright):
-- כל 16 התוצרים נטענו ✅
-- סימון 3 פריטים + שינוי גדלים: spec(medium=70K) + ML(medium=150K) + LLM+RAG(large=300K) = 520,000 ✅ (תואם לאקסל)
-- שורות לא מסומנות באפור עם inputs disabled ✅
-- topbar pill: "3 נבחרו · סה"כ: ₪ 520,000" ✅
-- Sidebar highlight + Dashboard card עובדים ✅
+- שלב 1: פרויקט+משרד ✅ ולידציה עובדת
+- שלב 2: 16 כרטיסים, סימון 3 (spec, NLP, CV/OCR), הכפתור משתנה ל"המשך עם 3 תוצרים" ✅
+- שלב 3: summary bar (₪ 250,000), 3 sizing cards עם size pills + תיאור תכולה מתעדכן לפי גודל ✅
+- שלב 4: 2-column layout — טבלת פירוט (70K+100K+80K) + summary card עם מע"מ 18% = ₪ 295,000 ✅
+- Toggle בראש מחליף בין דאטה/AI ושומר ב-URL ו-localStorage ✅
 - `npx tsc --noEmit` עבר נקי
 
 ### עוד לא בוצע (לעתיד):
-- [ ] שמירה ב-Supabase (טבלה `aiml_calculations` עם RLS)
+- [ ] שמירה ב-Supabase (טבלה `aiml_calculations` עם RLS) — כמו TAKAM
 - [ ] ייצוא Word/PDF
-- [ ] AI Advisor למחשבון
+- [ ] AI Advisor למחשבון AI
 - [ ] שיתוף חישובים
-- [ ] commit + push ל-develop (המשתמש לא ביקש עדיין)
+- [ ] קיבוע toggle יותר בולט (קצת קטן מדי כרגע — לשפר אסתטיקה)
 
 ---
 
