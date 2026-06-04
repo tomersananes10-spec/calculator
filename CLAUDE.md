@@ -86,6 +86,12 @@ CLAUDE_CODE_TOMER/
 │   │   │   │   ├── briefData.ts         ← נתוני ברירת מחדל
 │   │   │   │   ├── types.ts             ← טיפוסים
 │   │   │   │   └── wordExport.ts        ← ייצוא ל-Word
+│   │   │   ├── aiml-calculator/    ← מחשבון AI/ML (3.16) — מסך טבלאי
+│   │   │   │   ├── AimlCalculator.tsx   ← קומפוננטה ראשית
+│   │   │   │   ├── data.ts             ← 16 פריטים × 3 גדלים + תיאורי תכולות
+│   │   │   │   ├── calc.ts             ← חישוב סה"כ
+│   │   │   │   ├── useAimlCalculator.ts ← reducer + localStorage
+│   │   │   │   └── types.ts            ← AimlItem, AimlEntry
 │   │   │   └── roved5/             ← רובד 5 — שירותים מאושרים
 │   │   │       ├── Roved5.tsx           ← רשימה + חיפוש
 │   │   │       ├── ServiceCard.tsx      ← כרטיס שירות
@@ -121,6 +127,7 @@ CLAUDE_CODE_TOMER/
 |-------|----|-------|
 | `/` | Dashboard | עובד |
 | `/calculator` | מחשבון תכ"ם | עובד |
+| `/aiml-calculator` | מחשבון AI/ML (3.16) | עובד |
 | `/briefs` | מחולל בריפים | עובד |
 | `/brief-generator` | מחולל בריפים (alias) | עובד |
 | `/layer5` | רובד 5 | עובד |
@@ -223,43 +230,46 @@ CLAUDE_CODE_TOMER/
 | 19.05 | עדכון תבנית Word — 11 תגיות חדשות (ministry, timeline, architecture, management, cloud, goals) |
 | 29.05 | Eligibility Engine — פרויקט נפרד: שלבים 1-4 (מנוע keyword, Supabase, דשבורד, העלאת PDF/DOCX) |
 | 30.05 | Supabase keep-alive — שחזור digitek-dev, השהיית digitek-platform (לא בשימוש), החלפת Vercel cron שבור ב-GitHub Actions workflow |
+| 04.06 | מחשבון AI/ML — מודול חדש: 16 תוצרים × 3 גדלים לפי סעיף 3.16. מסך טבלאי "זריז", localStorage, אינטגרציה ל-Sidebar + Dashboard |
 
 ---
 
 ## 10. שיחה אחרונה
 
-> **תאריך**: 30.05.2026
-> **נושא**: digitek-dev נשהה ע"י Supabase — אבחון מלא ותיקון תשתית keep-alive
+> **תאריך**: 04.06.2026
+> **נושא**: מחשבון AI/ML — מודול חדש לפי מחירון סעיף 3.16
 
-### הבעיה:
-- Supabase שלח מייל שפרויקט `digitek-dev` הושהה אוטומטית אחרי 7 ימי inactivity
-- LIBA preview (`calculator-git-develop-...vercel.app`) הפסיק לעבוד — אין DB
+### הקלט:
+- קובץ `Calculator - AI ML/מחירון AI ML.xlsx` עם 16 תוצרים × 3 גדלים (קטן/בינוני/גדול), טווח מחירים 40K-300K
 
-### אבחון — שורש הבעיה (3 כשלים מצטברים):
-1. **Free Tier מגביל ל-2 פרויקטים פעילים בארגון** — ויש 3 (digitek-dev, digitek-platform, eligibility-engine). אז `digitek-dev` נשהה בכפייה גם אם כל ההגדרות תקינות.
-2. **`digitek-platform` הוקם כפרוד אבל מעולם לא היה בשימוש** — כל 4 הטבלאות הכילו 0 שורות. תפס סלוט לחינם.
-3. **הקיפ-אלייב ב-Vercel (`api/keep-alive.ts` + `vercel.json` cron) מעולם לא רץ** — Vercel cron רץ רק על production deployment, והדפלוי האחרון לפרוד היה 3.5.2026 (לפני שהוסף הקיפ-אלייב). מאז 17+ קומיטים על main לא קיבלו דפלוי לפרוד. בנוסף — LIBA כלל לא משתמש בפרוד אמיתי, כל השימוש דרך develop preview.
+### תהליך:
+1. ניתוח הקובץ דרך xlsx של digitek-platform (2 גיליונות: `מחירים`, `תכולות`)
+2. תכנון 3 מוקאפים: טבלה / ויזרד / Cards — נבנה קובץ `Calculator - AI ML/mockups.html` עצמאי עם נתונים אמיתיים
+3. המשתמש בחר גישה A (טבלה) — הכי "זריז"
+4. בנייה ב-LIBA כמודול חדש
 
-### מה בוצע (דרך Supabase MCP):
-- `pause_project` על `digitek-platform` (פינוי סלוט)
-- `restore_project` על `digitek-dev` (LIBA חזר לעבוד)
-- מצב סופי: digitek-dev ✅ ACTIVE_HEALTHY, eligibility-engine ✅ ACTIVE_HEALTHY, digitek-platform ⏸️ INACTIVE
+### מה נבנה (MVP — UI + חישוב בלבד):
+- `digitek-platform/src/modules/aiml-calculator/` — 6 קבצים (types, data, calc, useAimlCalculator, AimlCalculator.tsx + .module.css)
+- `useAimlCalculator` שומר ב-localStorage תחת `aimlCalc:v1`
+- `digitek-platform/src/pages/AimlCalculatorPage.tsx` — wrapper
+- Route חדש `/aiml-calculator` ב-`App.tsx`
+- פריט תפריט "מחשבון AI/ML" 🤖 ב-`Sidebar.tsx`
+- כרטיס מודול ב-`Dashboard.tsx` (secondary grid)
 
-### תיקון keep-alive — GitHub Actions במקום Vercel cron:
-- קובץ חדש: `.github/workflows/supabase-keep-alive.yml`
-- רץ פעם ביום ב-9:00 UTC + workflow_dispatch ידני
-- פינג ל-`digitek-dev` REST API עם anon key (פומבי, מוטמע בקליינט)
-- חינם, לא תלוי ב-Vercel, לוגים ב-GitHub UI
-- Commit `c8c623e` ב-develop, cherry-picked כ-`6c22416` ל-main (כדי שcron schedule יפעל)
+### אימות (Playwright):
+- כל 16 התוצרים נטענו ✅
+- סימון 3 פריטים + שינוי גדלים: spec(medium=70K) + ML(medium=150K) + LLM+RAG(large=300K) = 520,000 ✅ (תואם לאקסל)
+- שורות לא מסומנות באפור עם inputs disabled ✅
+- topbar pill: "3 נבחרו · סה"כ: ₪ 520,000" ✅
+- Sidebar highlight + Dashboard card עובדים ✅
+- `npx tsc --noEmit` עבר נקי
 
-### אימות:
-- digitek-dev חזר לעבוד — LIBA preview אמור להתחבר שוב
-- workflow נראה ב-GitHub Actions UI אחרי שעלה ל-main
-- אימות הרצה: workflow_dispatch ידני מ-https://github.com/tomersananes10-spec/calculator/actions
-
-### TODO:
-- [ ] להריץ workflow ידנית פעם אחת ולוודא ✅ ירוק
-- [ ] לשקול להסיר `api/keep-alive.ts` והcron מ-`vercel.json` (קוד מת — לא רץ)
+### עוד לא בוצע (לעתיד):
+- [ ] שמירה ב-Supabase (טבלה `aiml_calculations` עם RLS)
+- [ ] ייצוא Word/PDF
+- [ ] AI Advisor למחשבון
+- [ ] שיתוף חישובים
+- [ ] commit + push ל-develop (המשתמש לא ביקש עדיין)
 
 ---
 

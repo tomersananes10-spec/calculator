@@ -13,6 +13,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/',           label: 'בית',        icon: '🏠' },
   { href: '/briefs',     label: 'בריפים',     icon: '📋', badge: 24 },
   { href: '/calculator', label: 'מחשבון תכ"ם', icon: '🧮' },
+  { href: '/aiml-calculator', label: 'מחשבון AI/ML', icon: '🤖' },
   { href: '/layer5',     label: 'רובד 5',      icon: '⚖️' },
   { href: '/approvals',  label: 'מורשי חתימה', icon: '✅', badge: 5 },
   { href: '/suppliers',  label: 'ספקים זוכים - LIBA', icon: '🏢' },

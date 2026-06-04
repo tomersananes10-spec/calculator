@@ -182,6 +182,18 @@ export function Dashboard() {
             <Link to="/suppliers" className={styles.actionLink}>צפה ברשימה</Link>
           </div>
         </div>
+
+        {/* AI/ML Calculator */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>מחשבון AI/ML</h2>
+            <Link to="/aiml-calculator" className={styles.viewAll}>פתח ←</Link>
+          </div>
+          <div className={styles.emptyState}>
+            <p>תמחור פרויקטי AI/ML לפי סעיף 3.16</p>
+            <Link to="/aiml-calculator" className={styles.actionLink}>+ חישוב חדש</Link>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Login }           from './pages/Login'
 import { Dashboard }       from './pages/Dashboard'
 import { Calculator }      from './pages/Calculator'
+import { AimlCalculatorPage } from './pages/AimlCalculatorPage'
 import { BriefGenerator }  from './pages/BriefGenerator'
 import { Admin }           from './pages/Admin'
 import { Profile }         from './pages/Profile'
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/"               element={<Protected><Dashboard /></Protected>} />
         <Route path="/briefs"         element={<Protected><BriefGenerator /></Protected>} />
         <Route path="/calculator"     element={<Protected><Calculator /></Protected>} />
+        <Route path="/aiml-calculator" element={<Protected><AimlCalculatorPage /></Protected>} />
         <Route path="/brief-generator" element={<Protected><BriefGenerator /></Protected>} />
         <Route path="/layer5"         element={<Protected><Roved5Page /></Protected>} />
         <Route path="/approvals"      element={<Protected><ApprovalsPage /></Protected>} />

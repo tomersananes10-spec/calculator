@@ -1,0 +1,256 @@
+.wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family: 'Heebo', sans-serif;
+  color: var(--text);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  padding: 16px 24px;
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  margin-bottom: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.subtitle {
+  font-weight: 400;
+  color: var(--text3);
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.totalPill {
+  background: var(--primary-bg);
+  color: var(--primary-dark);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.projectRow {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.projectRow label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.projectRow span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+
+.projectRow input {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--surface);
+}
+
+.projectRow input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-bg);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  padding: 10px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  text-align: right;
+  border-bottom: 2px solid var(--border);
+  background: #f8fafc;
+}
+
+.table tbody td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.table tbody tr.checked {
+  background: var(--primary-bg);
+}
+
+.table tbody tr.checked:hover {
+  background: #dbeafe;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.price {
+  color: var(--text2);
+  font-variant-numeric: tabular-nums;
+}
+
+.rowTotal {
+  font-weight: 700;
+  color: var(--primary-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+.ck {
+  width: 32px;
+  text-align: center;
+}
+
+.table select,
+.table input {
+  padding: 6px 8px;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  background: var(--surface);
+}
+
+.table select {
+  width: 90px;
+}
+
+.table input[type='number'] {
+  width: 60px;
+  text-align: center;
+}
+
+.table tr.unchecked select,
+.table tr.unchecked input {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.table tr.unchecked .price,
+.table tr.unchecked .rowTotal {
+  color: var(--text3);
+}
+
+.infoBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text3);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.infoBtn:hover {
+  background: var(--primary-bg);
+  color: var(--primary);
+}
+
+.grand {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--primary-bg), #dbeafe);
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.grandLabel {
+  font-size: 14px;
+  color: var(--text2);
+}
+
+.grandAmount {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.btnSecondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border2);
+}
+
+.btnSecondary:hover {
+  background: #f1f5f9;
+}
+
+.tip {
+  position: fixed;
+  background: #1e293b;
+  color: #f1f5f9;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  max-width: 380px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.tipSize {
+  font-weight: 700;
+  color: #93c5fd;
+  margin-top: 6px;
+}
+
+.tipSize:first-child {
+  margin-top: 0;
+}
