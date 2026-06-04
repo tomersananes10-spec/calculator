@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import type { AimlState } from './types'
+import type { AimlPeriod, AimlState } from './types'
 import type { AimlDispatch } from './useAimlCalculator'
 import s from '../takam-calculator/TakamCalculator.module.css'
+import aiml from './AimlCalculator.module.css'
 
 interface Props {
   state: AimlState
   dispatch: AimlDispatch
 }
+
+const PERIOD_LABELS: Record<AimlPeriod, string> = { 6: '6 חודשים', 12: 'שנה', 24: 'שנתיים' }
 
 export function Step1AimlSetup({ state, dispatch }: Props) {
   const [nameError, setNameError] = useState(false)
@@ -26,6 +29,14 @@ export function Step1AimlSetup({ state, dispatch }: Props) {
       <div className={s.stepHeader}>
         <h2>הגדרת פרויקט</h2>
         <p>מלא את פרטי הפרויקט לפני שמתחילים לבחור תוצרי AI/ML</p>
+      </div>
+
+      <div className={aiml.infoBanner}>
+        <span className={aiml.infoIcon}>💡</span>
+        <div className={aiml.infoText}>
+          <strong>מחשבון תוצרים</strong> — כל תוצר מתומחר ביחידה (קטן / בינוני / גדול) לפי סעיף 3.16. <br />
+          זקוק לתמחור <strong>לפי שעות מומחה</strong> (כגון מהנדס נתונים)? עבור ל<strong>מחשבון שעות</strong> בפינה השמאלית-עליונה.
+        </div>
       </div>
 
       <div className={s.cardBox}>
@@ -60,6 +71,25 @@ export function Step1AimlSetup({ state, dispatch }: Props) {
             onKeyDown={e => e.key === 'Enter' && proceed()}
           />
           {ministryError && <span className={s.fieldError}>משרד / גוף מזמין הוא שדה חובה</span>}
+        </div>
+      </div>
+
+      <div className={s.cardBox}>
+        <div className={s.field}>
+          <label className={s.fieldLabel}>תקופת התקשרות</label>
+          <div className={s.seg}>
+            {([6, 12, 24] as const).map(p => (
+              <button
+                key={p}
+                type="button"
+                className={`${s.segBtn} ${state.period === p ? s.segBtnOn : ''}`}
+                onClick={() => dispatch({ type: 'SET_PERIOD', payload: p })}
+              >
+                {PERIOD_LABELS[p]}
+              </button>
+            ))}
+          </div>
+          <span className={s.fieldSub}>משפיע על פריסה חודשית של העלות בתוצאות</span>
         </div>
       </div>
 

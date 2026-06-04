@@ -43,19 +43,21 @@ export function Calculator() {
           type="button"
           role="tab"
           aria-selected={mode === 'data'}
+          title="לפי שעות מומחה — תכ&quot;ם"
           className={`${aiml.modeBtn} ${mode === 'data' ? aiml.modeBtnOn : ''}`}
           onClick={() => switchMode('data')}
         >
-          🧮 דאטה
+          ⏱️ שעות
         </button>
         <button
           type="button"
           role="tab"
           aria-selected={mode === 'ai'}
+          title="לפי תוצרי AI/ML — סעיף 3.16"
           className={`${aiml.modeBtn} ${mode === 'ai' ? aiml.modeBtnOn : ''}`}
           onClick={() => switchMode('ai')}
         >
-          🤖 AI
+          🤖 תוצרים
         </button>
       </div>
 

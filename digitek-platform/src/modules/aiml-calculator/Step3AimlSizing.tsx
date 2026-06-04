@@ -24,7 +24,7 @@ export function Step3AimlSizing({ state, dispatch }: Props) {
     <div>
       <div className={s.stepHeader}>
         <h2>גודל וכמויות</h2>
-        <p>קבע לכל תוצר את הגודל (קטן / בינוני / גדול) ואת הכמות הנדרשת</p>
+        <p>קבע לכל תוצר את הגודל לפי תכולת העבודה הצפויה — והכמות הנדרשת</p>
       </div>
 
       <div className={aiml.summaryBar}>
@@ -71,7 +71,10 @@ export function Step3AimlSizing({ state, dispatch }: Props) {
                 ))}
               </div>
 
-              <div className={aiml.itemScope}>{item.scope[entry.size]}</div>
+              <div className={aiml.scopeBlock}>
+                <span className={aiml.scopeTitle}>תכולת עבודה ({AIML_SIZE_LABELS[entry.size]}):</span>
+                <p className={aiml.scopeText}>{item.scope[entry.size]}</p>
+              </div>
 
               <div className={aiml.qtyRow}>
                 <div className={aiml.qtyField}>

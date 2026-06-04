@@ -1,18 +1,53 @@
+import { useState } from 'react'
 import { useAimlCalculator } from './useAimlCalculator'
+import { useAimlHistory } from './useAimlHistory'
+import { AimlHistoryPanel } from './AimlHistoryPanel'
 import { Step1AimlSetup } from './Step1AimlSetup'
 import { Step2AimlSelect } from './Step2AimlSelect'
 import { Step3AimlSizing } from './Step3AimlSizing'
 import { Step4AimlResults } from './Step4AimlResults'
-import type { AimlStep } from './types'
+import type { AimlStep, SavedAimlCalculation } from './types'
 import s from '../takam-calculator/TakamCalculator.module.css'
 
 const STEP_NAMES = ['הגדרת פרויקט', 'בחירת תוצרים', 'גודל וכמויות', 'תוצאות']
 
 export function AimlCalculator() {
   const [state, dispatch] = useAimlCalculator()
+  const history = useAimlHistory()
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [saveMsg, setSaveMsg] = useState<string | null>(null)
 
   function tryGoStep(n: AimlStep) {
     if (n < state.currentStep) dispatch({ type: 'GO_STEP', payload: n })
+  }
+
+  function handleSave() {
+    if (!state.project.name.trim()) {
+      setSaveMsg('יש למלא שם פרויקט')
+      setTimeout(() => setSaveMsg(null), 2500)
+      return
+    }
+    const id = history.saveCalculation(state)
+    dispatch({ type: 'SET_CALC_ID', payload: id })
+    setSaveMsg('נשמר!')
+    setTimeout(() => setSaveMsg(null), 2000)
+  }
+
+  function handleLoad(calc: SavedAimlCalculation) {
+    dispatch({
+      type: 'LOAD',
+      payload: {
+        project: { name: calc.name, ministry: calc.ministry },
+        entries: calc.entries,
+        period: calc.period,
+        matchingOn: calc.matchingOn,
+        matchingPct: calc.matchingPct,
+        riskPct: calc.riskPct,
+        calculationId: calc.id,
+        currentStep: 4,
+      },
+    })
+    setHistoryOpen(false)
   }
 
   const isResultsStep = state.currentStep === 4
@@ -21,8 +56,8 @@ export function AimlCalculator() {
     <div className={s.page}>
       <div className={s.pageHeader}>
         <div>
-          <h1 className={s.pageTitle}>מחשבון AI/ML</h1>
-          <p className={s.pageSub}>חישוב עלויות תוצרי AI/ML לפי סעיף 3.16</p>
+          <h1 className={s.pageTitle}>מחשבון תוצרי AI/ML</h1>
+          <p className={s.pageSub}>תמחור לפי תוצרים — סעיף 3.16 (ייעוץ ויישום AI/ML בענן)</p>
         </div>
       </div>
 
@@ -44,6 +79,18 @@ export function AimlCalculator() {
               )
             })}
           </div>
+
+          <div className={s.wizardActions}>
+            <button className={s.saveHeaderBtn} onClick={handleSave}>
+              {saveMsg === 'נשמר!' ? '✓ נשמר!' : saveMsg ? `✕ ${saveMsg}` : '💾 שמור'}
+            </button>
+            <button className={s.historyBtn} onClick={() => setHistoryOpen(true)}>
+              📋 החישובים שלי
+              {history.calculations.length > 0 && (
+                <span className={s.historyBadge}>{history.calculations.length}</span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -53,6 +100,14 @@ export function AimlCalculator() {
         {state.currentStep === 3 && <Step3AimlSizing state={state} dispatch={dispatch} />}
         {state.currentStep === 4 && <Step4AimlResults state={state} dispatch={dispatch} />}
       </div>
+
+      <AimlHistoryPanel
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        calculations={history.calculations}
+        onLoad={handleLoad}
+        onDelete={history.deleteCalculation}
+      />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import type { AimlState } from './types'
 import type { AimlDispatch } from './useAimlCalculator'
 import { AIML_ITEMS, AIML_SIZE_LABELS } from './data'
-import { fmtCurrency, grandTotal, rowTotal, countSelected } from './calc'
+import { computeBreakdown, fmtCurrency, rowTotal, countSelected } from './calc'
 import s from '../takam-calculator/TakamCalculator.module.css'
 
 interface Props {
@@ -9,13 +9,16 @@ interface Props {
   dispatch: AimlDispatch
 }
 
-const VAT_RATE = 0.18
-
 export function Step4AimlResults({ state, dispatch }: Props) {
   const selected = AIML_ITEMS.filter(item => state.entries[item.id].checked)
-  const subtotal = grandTotal(state, AIML_ITEMS)
-  const vat = subtotal * VAT_RATE
-  const totalWithVat = subtotal + vat
+  const b = computeBreakdown(state, AIML_ITEMS)
+
+  function bumpRisk(delta: number) {
+    dispatch({ type: 'SET_RISK_PCT', payload: state.riskPct + delta })
+  }
+  function bumpMatching(delta: number) {
+    dispatch({ type: 'SET_MATCHING_PCT', payload: state.matchingPct + delta })
+  }
 
   return (
     <div className={s.twoCol}>
@@ -72,27 +75,100 @@ export function Step4AimlResults({ state, dispatch }: Props) {
             </div>
           )}
         </div>
+
+        {/* Matching + Risk controls */}
+        <div className={s.panel}>
+          <div className={s.panelHeader}>
+            <h3 className={s.panelTitle}>תוספות חישוב</h3>
+          </div>
+
+          <div className={s.controlsGrid}>
+            <div className={s.toggleRow}>
+              <div className={s.toggleInfo}>
+                <span className={s.toggleName}>מאצ'ינג מערך</span>
+                <span className={s.toggleSub}>תוספת אחוז לכיסוי תקורות / רכש משלים</span>
+              </div>
+              <button
+                type="button"
+                className={`${s.sw} ${state.matchingOn ? s.swOn : ''}`}
+                onClick={() => dispatch({ type: 'TOGGLE_MATCHING' })}
+                aria-label="הפעל מאצ'ינג"
+              />
+            </div>
+
+            {state.matchingOn && (
+              <div className={s.controlItem}>
+                <span className={s.controlLabel}>אחוז מאצ'ינג</span>
+                <div className={s.pctStepper}>
+                  <button className={s.stepBtn} onClick={() => bumpMatching(-5)} aria-label="הפחת">−</button>
+                  <div className={s.pctInputWrap}>
+                    <input
+                      className={s.pctInput}
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={state.matchingPct}
+                      onChange={e => dispatch({ type: 'SET_MATCHING_PCT', payload: +e.target.value || 0 })}
+                    />
+                    <span className={s.pctSign}>%</span>
+                  </div>
+                  <button className={s.stepBtn} onClick={() => bumpMatching(5)} aria-label="הוסף">+</button>
+                </div>
+              </div>
+            )}
+
+            <div className={s.controlItem}>
+              <span className={s.controlLabel}>תוספת סיכון</span>
+              <div className={s.pctStepper}>
+                <button className={s.stepBtn} onClick={() => bumpRisk(-5)} aria-label="הפחת">−</button>
+                <div className={s.pctInputWrap}>
+                  <input
+                    className={s.pctInput}
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={state.riskPct}
+                    onChange={e => dispatch({ type: 'SET_RISK_PCT', payload: +e.target.value || 0 })}
+                  />
+                  <span className={s.pctSign}>%</span>
+                </div>
+                <button className={s.stepBtn} onClick={() => bumpRisk(5)} aria-label="הוסף">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* RIGHT: summary card */}
       <div className={s.rightPanel}>
         <div className={s.summaryCard}>
           <div className={s.summaryTitle}>סה"כ עלות הפרויקט</div>
-          <div className={s.summaryGrand}>{fmtCurrency(subtotal)}</div>
+          <div className={s.summaryGrand}>{fmtCurrency(b.beforeVat)}</div>
 
           <div className={s.summaryBreakdown}>
             <div className={s.summaryRow}>
-              <span>תוצרים</span>
+              <span>תוצרים נבחרים</span>
               <span>{countSelected(state)}</span>
             </div>
             <div className={s.summaryRow}>
-              <span>סך-הכל יחידות</span>
-              <span>
-                {selected.reduce((sum, item) => {
-                  const entry = state.entries[item.id]
-                  return sum + entry.baseQty + entry.extraQty
-                }, 0)}
-              </span>
+              <span>סכום בסיס</span>
+              <span>{fmtCurrency(b.subtotal)}</span>
+            </div>
+            {state.matchingOn && b.matchingDelta > 0 && (
+              <div className={s.summaryRow}>
+                <span>מאצ'ינג ({state.matchingPct}%)</span>
+                <span>+{fmtCurrency(b.matchingDelta)}</span>
+              </div>
+            )}
+            {b.riskDelta > 0 && (
+              <div className={s.summaryRow}>
+                <span>סיכון ({state.riskPct}%)</span>
+                <span>+{fmtCurrency(b.riskDelta)}</span>
+              </div>
+            )}
+            <div className={s.summaryRow}>
+              <span>פריסה ל-{state.period} חודשים</span>
+              <span>{fmtCurrency(b.perMonth)} / חודש</span>
             </div>
           </div>
 
@@ -100,11 +176,11 @@ export function Step4AimlResults({ state, dispatch }: Props) {
 
           <div className={s.summaryVAT}>
             <span>מע"מ (18%)</span>
-            <span>{fmtCurrency(vat)}</span>
+            <span>{fmtCurrency(b.vat)}</span>
           </div>
           <div className={s.summaryTotal}>
             <span>סה"כ כולל מע"מ</span>
-            <span>{fmtCurrency(totalWithVat)}</span>
+            <span>{fmtCurrency(b.withVat)}</span>
           </div>
 
           <div className={s.summaryActions}>
