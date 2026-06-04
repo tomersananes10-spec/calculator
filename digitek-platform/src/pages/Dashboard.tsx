@@ -70,10 +70,10 @@ export function Dashboard() {
 
       {/* Main module cards — 2 columns */}
       <div className={styles.modulesGrid}>
-        {/* TAKAM Calculator */}
+        {/* Calculator (TAKAM + AI/ML) */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>מחשבון תכ"ם</h2>
+            <h2 className={styles.cardTitle}>מחשבון</h2>
             <Link to="/calculator" className={styles.viewAll}>פתח מחשבון ←</Link>
           </div>
           {calcHistory.loading ? (
@@ -183,17 +183,6 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* AI/ML Calculator */}
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>מחשבון AI/ML</h2>
-            <Link to="/calculator?mode=ai" className={styles.viewAll}>פתח ←</Link>
-          </div>
-          <div className={styles.emptyState}>
-            <p>תמחור פרויקטי AI/ML לפי סעיף 3.16</p>
-            <Link to="/calculator?mode=ai" className={styles.actionLink}>+ חישוב חדש</Link>
-          </div>
-        </div>
       </div>
     </div>
   )
