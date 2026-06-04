@@ -238,49 +238,67 @@ CLAUDE_CODE_TOMER/
 | 04.06 | מחשבון AI/ML — שכתוב לויזרד 4 שלבים זהה ל-TAKAM, בתוך אותו `/calculator` עם toggle "דאטה / AI" בראש |
 | 04.06 | מחשבון AI/ML v3 — feature parity, מודאל תכולות, יועץ AI (Gemini פעיל), תיקון `url.insteadOf` + הסרת `vercel.json` cron ⇒ דפלוי חזר לעבוד. סיכום מלא: [docs/sessions/2026-06-04-aiml-calculator.md](docs/sessions/2026-06-04-aiml-calculator.md) |
 | 04.06 | מחשבון AI/ML — feature-parity עם TAKAM: תקופת התקשרות, מאצ'ינג, סיכון, שמור + החישובים שלי (localStorage), הסבר UX, scope display, toggle "שעות/תוצרים" |
+| 04.06 | **מורשי חתימה / Tenders CRM — פאזה 1 (Foundation)**: 5 migrations חדשים (006-010), 19 טבלאות (`tenders`, `tender_budgets`, `tender_vendors`, `tender_proposals`, `tender_documents`, `tender_personas`, `tender_audit_log`, `tender_committees`, `tender_committee_meetings`, `tender_protocols`, `tender_contract_templates`, `tender_contracts`, `tender_guarantees`, `tender_insurance`, `tender_purchase_orders`, `tender_milestones`, `tender_invoices`, `tender_vendor_evaluations`, `tender_approval_requests`, `tender_sla_events`, `tender_notifications_queue`) + 6 RPCs (`tender_create`, `tender_advance`, `tender_approval_decide`, `tender_committee_schedule`, `tender_evaluate_gateway`, `tender_stats`, `tender_audit_log_write`) + RLS פר תפקיד. מודול חדש `src/modules/tenders/` עם 13 פרסונות, 12 שלבים, 11 Gateways, FSM, 11 סיכונים, 10 KPIs. אין UI עדיין — פאזה 1 בלבד. |
 
 ---
 
 ## 10. שיחה אחרונה
 
 > **תאריך**: 04.06.2026
-> **נושא**: מחשבון AI/ML — בנייה ואיחוד לויזרד תחת מחשבון תכ"ם
+> **נושא**: מורשי חתימה / Tenders CRM — פאזה 1 Foundation (Schema + Types)
 
-### Iteration A — מסך טבלאי "זריז":
-- תחילה נבנה מודול עם 16 תוצרים × 3 גדלים לפי סעיף 3.16 כמסך טבלאי
-- Route נפרד `/aiml-calculator`, פריט סיידבר עצמאי, כרטיס דשבורד
-- commit `c368e0e` ל-develop
+### הקשר
+המשתמש סיפק 2 קבצי אפיון בתיקיית `מורשי חתימה/`:
+- `אפיון עסקי - מורשי חתימה.docx` — אפיון עסקי מקצה-לקצה (CRM מכרזי דיגיטק לפי תכ"ם 16.2.19)
+- `אפיון_עסקי_מכרז_דיגיטק_גאנט.xlsx` — 5 גליונות (גאנט, שלבים, פרסונות, סיכונים, גאנט ויזואלי)
 
-### Iteration B — איחוד לויזרד תחת `/calculator` (Current):
-המשתמש ביקש שהמחשבון AI יהיה **בתוך** מחשבון תכ"ם עם toggle "מחשבון דאטה / מחשבון AI" בראש העמוד, ושהויזרד יהיה זהה במבנה לזה של TAKAM אבל עם תכולות AI.
+האפיון מגדיר 15 מודולים, 13 פרסונות, 19 ישויות נתונים, 11 Gateways, 7 אינטגרציות, 12 שלבי תהליך (209 ימים סה"כ).
 
-מה השתנה:
-- `Calculator.tsx` (page wrapper) — קיבל toggle בראש שמחליף בין `<TakamCalculator />` ל-`<AimlCalculator />`. מצב נשמר ב-localStorage + URL param (`?mode=ai`)
-- `AimlCalculator.tsx` — שכתוב מאפס לויזרד 4 שלבים עם stepper זהה ל-TAKAM
-- 4 קבצי שלבים חדשים: `Step1AimlSetup` (פרויקט+משרד), `Step2AimlSelect` (16 כרטיסים), `Step3AimlSizing` (size pills + qty), `Step4AimlResults` (טבלת פירוט + summary card עם מע"מ)
-- שיתוף CSS: שלבי AIML מייבאים את `TakamCalculator.module.css` כדי לקבל בדיוק את אותם stepper, navRow, cardBox, panel, summaryCard וכו'. `AimlCalculator.module.css` מכיל רק תוספות ספציפיות (size pills, qty inputs, modeToggle, scopeTip)
-- `useAimlCalculator` — הוסף `currentStep` ו-`GO_STEP` action. שמירה ב-`aimlCalc:v2`
-- Sidebar + Dashboard — הקישורים מצביעים ל-`/calculator?mode=ai` (במקום `/aiml-calculator` שהפך ל-redirect)
-- Route `/aiml-calculator` — הפך ל-`<Navigate to="/calculator?mode=ai">` לתאימות לאחור
+**החלטות שאושרו ב-Plan Mode** (פלאן: `C:\Users\tomer\.claude\plans\joyful-jumping-honey.md`):
+1. היקף: כל 15 המודולים — בפאזות
+2. מיקום: מודול חדש ב-`digitek-platform/src/modules/tenders/` (החלפת stub של `/approvals`)
+3. התחלה: Schema + Types — ללא UI עדיין
 
-### אימות (Playwright):
-- שלב 1: פרויקט+משרד ✅ ולידציה עובדת
-- שלב 2: 16 כרטיסים, סימון 3 (spec, NLP, CV/OCR), הכפתור משתנה ל"המשך עם 3 תוצרים" ✅
-- שלב 3: summary bar (₪ 250,000), 3 sizing cards עם size pills + תיאור תכולה מתעדכן לפי גודל ✅
-- שלב 4: 2-column layout — טבלת פירוט (70K+100K+80K) + summary card עם מע"מ 18% = ₪ 295,000 ✅
-- Toggle בראש מחליף בין דאטה/AI ושומר ב-URL ו-localStorage ✅
-- `npx tsc --noEmit` עבר נקי
+### מה נבנה בפאזה 1
+**5 migrations חדשים** (כולם הופעלו ב-digitek-dev דרך Supabase MCP — `tender_stats()` מחזיר 19 קאונטרים תקינים):
+- [006_tenders_core.sql](digitek-platform/supabase/migrations/006_tenders_core.sql) — 7 ישויות הליבה
+- [007_tenders_committees.sql](digitek-platform/supabase/migrations/007_tenders_committees.sql) — ועדות + פרוטוקולים (M03)
+- [008_tenders_contracts.sql](digitek-platform/supabase/migrations/008_tenders_contracts.sql) — הסכמים, ערבויות, ביטוח, PO (M07, M08)
+- [009_tenders_execution.sql](digitek-platform/supabase/migrations/009_tenders_execution.sql) — אבני דרך, חשבוניות, הערכת ספק (M09, M10)
+- [010_tenders_workflow.sql](digitek-platform/supabase/migrations/010_tenders_workflow.sql) — Approvals, SLA, Notifications + 6 RPCs (M05, M11)
 
-### עוד לא בוצע (לעתיד):
-- [ ] שמירה ב-Supabase (טבלה `aiml_calculations` עם RLS) — כמו TAKAM
-- [ ] ייצוא Word/PDF
-- [ ] AI Advisor למחשבון AI
-- [ ] שיתוף חישובים
-- [ ] קיבוע toggle יותר בולט (קצת קטן מדי כרגע — לשפר אסתטיקה)
+**מודול TypeScript חדש** ב-[src/modules/tenders/](digitek-platform/src/modules/tenders/):
+- [types.ts](digitek-platform/src/modules/tenders/types.ts) — types לכל 19 הישויות + Enums + payloads
+- [stateMachine.ts](digitek-platform/src/modules/tenders/stateMachine.ts) — FSM של 12 שלבים, `canAdvance`, מעברים קדימה + return loops
+- [data/personas.ts](digitek-platform/src/modules/tenders/data/personas.ts) — 13 פרסונות עם תיאורים, הרשאות, מסכים, KPIs
+- [data/stagesBaseline.ts](digitek-platform/src/modules/tenders/data/stagesBaseline.ts) — 12 שלבים עם משכים, אבני דרך, נתיב קריטי
+- [data/gateways.ts](digitek-platform/src/modules/tenders/data/gateways.ts) — G1-G11 + פונקציות evaluator טהורות
+- [data/riskMatrix.ts](digitek-platform/src/modules/tenders/data/riskMatrix.ts) — 11 סיכונים
+- [data/kpis.ts](digitek-platform/src/modules/tenders/data/kpis.ts) — 10 KPIs
+- [index.ts](digitek-platform/src/modules/tenders/index.ts) — re-exports
+
+### אימות
+- ✅ `npx tsc --noEmit` עבר נקי (Exit 0)
+- ✅ כל 5 ה-migrations הופעלו ב-digitek-dev (project_id: `ildwyncxoytvallkrqjo`) ללא שגיאות
+- ✅ `SELECT public.tender_stats()` מחזיר JSON עם 19 קאונטרים = 0 — כל הטבלאות קיימות
+- ✅ Foreign keys ל-`briefs`/`calculations` הקיימים תקינים
+
+### עוד לא בוצע (פאזות 2-6 — לעתיד)
+- [ ] **פאזה 2**: Workflow & SLA Engine (לוח שנה ישראלי, escalations, mock notifications)
+- [ ] **פאזה 3**: Core UI — Wizard פתיחת הליך, Tender 360 (6 Tabs), TenderListPage (החלפת `/approvals`)
+- [ ] **פאזה 4**: מסכי מודול — ועדות, מסמכים, חוזים, אבני דרך, הערכת ספק
+- [ ] **פאזה 5**: אינטגרציות (מערכת תיחורים, אלמ"ה, ERP, חתימה דיגיטלית, פורטל ספקים)
+- [ ] **פאזה 6**: דשבורדים, דוחות KPI, פאנל אדמין מורחב
+
+### הערות שמורות
+- RLS בסיסי (owner + admin); חידוד פר persona ב-`tender_personas` יקרה בפאזה 2
+- חתימה דיגיטלית (Comsign/DocuSign) דורש חשבון בתשלום — abstraction בלבד עד אישור מפורש
+- ה-stub הקיים [ApprovalsPage.tsx](digitek-platform/src/pages/ApprovalsPage.tsx) ב-`/approvals` יוחלף ב-`TenderListPage` בפאזה 3
 
 ---
 
 ## 11. עדיפויות פיתוח
 
-1. [ ] _הכנס כאן את הפיצ'ר הבא_
-2. [ ] ...
+1. [ ] **Tenders CRM — פאזה 2**: Workflow Engine + SLA Engine + לוח שנה ישראלי
+2. [ ] **Tenders CRM — פאזה 3**: Wizard פתיחת הליך + Tender 360 + החלפת `/approvals`
+3. [ ] _הכנס כאן את הפיצ'ר הבא_
