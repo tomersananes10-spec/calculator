@@ -6,6 +6,7 @@ import { Step1AimlSetup } from './Step1AimlSetup'
 import { Step2AimlSelect } from './Step2AimlSelect'
 import { Step3AimlSizing } from './Step3AimlSizing'
 import { Step4AimlResults } from './Step4AimlResults'
+import { AimlAiAdvisorModal } from './AimlAiAdvisorModal'
 import type { AimlStep, SavedAimlCalculation } from './types'
 import s from '../takam-calculator/TakamCalculator.module.css'
 
@@ -100,6 +101,8 @@ export function AimlCalculator() {
         {state.currentStep === 3 && <Step3AimlSizing state={state} dispatch={dispatch} />}
         {state.currentStep === 4 && <Step4AimlResults state={state} dispatch={dispatch} />}
       </div>
+
+      <AimlAiAdvisorModal state={state} dispatch={dispatch} />
 
       <AimlHistoryPanel
         open={historyOpen}
