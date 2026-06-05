@@ -16,6 +16,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/layer5',     label: 'רובד 5',      icon: '⚖️' },
   { href: '/tenders',    label: 'מורשי חתימה', icon: '✅' },
   { href: '/suppliers',  label: 'ספקים זוכים - LIBA', icon: '🏢' },
+  { href: '/vendor-portal', label: 'פורטל ספקים', icon: '🏪' },
   // { href: '/projects',   label: 'פרויקטים',   icon: '📊' },
   { href: '/test',       label: 'בדיקה',      icon: '🧪' },
 ]
