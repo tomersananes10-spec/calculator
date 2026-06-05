@@ -1,0 +1,12 @@
+{
+  "name": "liba-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Root package for Vercel /api serverless functions (LIBA platform).",
+  "dependencies": {
+    "nodemailer": "^6.9.16"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^6.4.17"
+  }
+}
