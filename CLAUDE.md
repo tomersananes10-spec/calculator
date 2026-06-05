@@ -239,10 +239,47 @@ CLAUDE_CODE_TOMER/
 | 04.06 | מחשבון AI/ML v3 — feature parity, מודאל תכולות, יועץ AI (Gemini פעיל), תיקון `url.insteadOf` + הסרת `vercel.json` cron ⇒ דפלוי חזר לעבוד. סיכום מלא: [docs/sessions/2026-06-04-aiml-calculator.md](docs/sessions/2026-06-04-aiml-calculator.md) |
 | 04.06 | מחשבון AI/ML — feature-parity עם TAKAM: תקופת התקשרות, מאצ'ינג, סיכון, שמור + החישובים שלי (localStorage), הסבר UX, scope display, toggle "שעות/תוצרים" |
 | 04.06 | **מורשי חתימה / Tenders CRM — פאזה 1 (Foundation)**: 5 migrations חדשים (006-010), 19 טבלאות (`tenders`, `tender_budgets`, `tender_vendors`, `tender_proposals`, `tender_documents`, `tender_personas`, `tender_audit_log`, `tender_committees`, `tender_committee_meetings`, `tender_protocols`, `tender_contract_templates`, `tender_contracts`, `tender_guarantees`, `tender_insurance`, `tender_purchase_orders`, `tender_milestones`, `tender_invoices`, `tender_vendor_evaluations`, `tender_approval_requests`, `tender_sla_events`, `tender_notifications_queue`) + 6 RPCs (`tender_create`, `tender_advance`, `tender_approval_decide`, `tender_committee_schedule`, `tender_evaluate_gateway`, `tender_stats`, `tender_audit_log_write`) + RLS פר תפקיד. מודול חדש `src/modules/tenders/` עם 13 פרסונות, 12 שלבים, 11 Gateways, FSM, 11 סיכונים, 10 KPIs. אין UI עדיין — פאזה 1 בלבד. |
+| 04.06 | **Tenders CRM — תיקוני אבטחה**: migrations 011 + 012 לאחר 5 ממצאי HIGH/MEDIUM מסקירה אוטומטית. tighten RLS על `tenders` (משתתפים בלבד), ולידציית FSM ב-`tender_advance`, auth gates ב-`tender_evaluate_gateway` ו-`tender_committee_schedule`, REVOKE EXECUTE מ-PUBLIC לכל ה-RPCs + GRANT ל-authenticated, `tender_audit_log_write` פנימי בלבד. |
+| 05.06 | **Tenders CRM — פאזה 2 (Workflow & SLA Engine)**: migration 013 — DB triggers (auto-create SLA event על INSERT אישור, auto-resolve על decide, audit על שינויי signature_status/guarantee/milestone) + טבלת `tender_sla_defaults` עם 12 SLA-ים + RPC `tender_check_sla_breaches`. מודול TS: `lib/slaCalc.ts` (לוח שנה ישראלי — ראשון-חמישי + חגים 2026-2027), `lib/notifications.ts` (תור התראות), `slaEngine.ts` (12 SLA-ים + breach/warn/escalation logic), `workflowEngine.ts` (8 workflows לכל שלב FSM עם sequential/parallel/conditional). |
 
 ---
 
 ## 10. שיחה אחרונה
+
+> **תאריך**: 05.06.2026
+> **נושא**: Tenders CRM — פאזה 2 (Workflow & SLA Engine)
+
+### מה נבנה בפאזה 2
+**מודול TS חדש** [src/modules/tenders/](digitek-platform/src/modules/tenders/):
+- [lib/slaCalc.ts](digitek-platform/src/modules/tenders/lib/slaCalc.ts) — לוח שנה ישראלי. `isBusinessDay`, `addBusinessDays`, `businessDaysBetween`, `nextBusinessDay`. ראשון-חמישי + 25 חגים יהודיים 2026-2027 (hardcoded — לא ספריה חיצונית, [feedback_no_paid_upgrades])
+- [lib/notifications.ts](digitek-platform/src/modules/tenders/lib/notifications.ts) — abstraction מעל `tender_notifications_queue`. `enqueueNotification`, `notifySlaApproaching`, `notifySlaBreached`. dispatch אמיתי בפאזה 5
+- [slaEngine.ts](digitek-platform/src/modules/tenders/slaEngine.ts) — 12 SLA definitions לכל `ApprovalRequestType`. `computeDueAt`, `evaluateSlaStatus` (on_track/approaching/breached/escalated), `slaProgress`
+- [workflowEngine.ts](digitek-platform/src/modules/tenders/workflowEngine.ts) — 8 workflows (S1-S12) עם sequential/parallel/conditional steps. `getWorkflow`, `getNextStep` (approve/reject/return)
+
+**Migration 013** [(013_tenders_sla_triggers.sql)](digitek-platform/supabase/migrations/013_tenders_sla_triggers.sql):
+- טבלה חדשה `tender_sla_defaults` (12 רשומות seed — מראה את `SLA_DEFINITIONS` מ-TS)
+- 5 DB triggers (כולם SECURITY DEFINER + REVOKE EXECUTE FROM PUBLIC/anon/authenticated):
+  - `tender_trg_create_sla_on_approval` — INSERT על אישור → INSERT אוטומטי ב-sla_events
+  - `tender_trg_resolve_sla_on_decision` — UPDATE על status → resolve SLA
+  - `tender_trg_audit_contract_status` — שינוי signature_status → audit log
+  - `tender_trg_audit_guarantee_status` — שינוי status → audit log
+  - `tender_trg_audit_milestone_status` — שינוי status → audit log
+- RPC `tender_check_sla_breaches` (admin only) — sweep ל-breach + escalation, מיועד ל-Vercel cron בעתיד
+
+### אימות
+- ✅ `npx tsc --noEmit` עבר נקי (Exit 0)
+- ✅ Migration 013 הוחל בהצלחה ב-digitek-dev
+- ✅ `SELECT * FROM tender_sla_defaults` מחזיר 12 רשומות תקינות
+
+### עוד לא בוצע (פאזות 3-6)
+- [ ] **פאזה 3**: Wizard פתיחת הליך + Tender 360 (6 Tabs) + החלפת `/approvals` ב-TenderListPage
+- [ ] **פאזה 4**: מסכי מודול — ועדות, מסמכים, חוזים, אבני דרך, הערכת ספק
+- [ ] **פאזה 5**: אינטגרציות + פורטל ספקים + Vercel cron שמפעיל `tender_check_sla_breaches` + dispatcher אמיתי לתור ה-notifications
+- [ ] **פאזה 6**: דשבורדים, דוחות KPI, פאנל אדמין מורחב
+
+---
+
+## (היסטוריית שיחה קודמת — פאזה 1)
 
 > **תאריך**: 04.06.2026
 > **נושא**: מורשי חתימה / Tenders CRM — פאזה 1 Foundation (Schema + Types)
@@ -299,6 +336,6 @@ CLAUDE_CODE_TOMER/
 
 ## 11. עדיפויות פיתוח
 
-1. [ ] **Tenders CRM — פאזה 2**: Workflow Engine + SLA Engine + לוח שנה ישראלי
-2. [ ] **Tenders CRM — פאזה 3**: Wizard פתיחת הליך + Tender 360 + החלפת `/approvals`
+1. [ ] **Tenders CRM — פאזה 3**: Wizard פתיחת הליך + Tender 360 (6 Tabs) + החלפת `/approvals` ב-TenderListPage
+2. [ ] **Tenders CRM — פאזה 4**: מסכי מודול — ועדות, מסמכים, חוזים, אבני דרך
 3. [ ] _הכנס כאן את הפיצ'ר הבא_
