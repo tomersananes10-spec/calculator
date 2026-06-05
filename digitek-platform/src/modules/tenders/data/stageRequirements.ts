@@ -95,6 +95,11 @@ const REQ_PROFESSIONAL_REVIEW: StageRequirement = {
 }
 
 export const STAGE_REQUIREMENTS: Partial<Record<TenderStage, StageRequirementsDef>> = {
+  S0_preconditions: {
+    stage: 'S0_preconditions',
+    nextStage: 'S1_initiation_budget',
+    requirements: [],  // תנאי הסף נבדקים בעת פתיחת ההליך — מעבר אוטומטי ל-S1
+  },
   S1_initiation_budget: {
     stage: 'S1_initiation_budget',
     nextStage: 'S2_olma_approval', // יוכרע ע"י Gateway G1 — אם requires_olma=false נדלג ל-S3
