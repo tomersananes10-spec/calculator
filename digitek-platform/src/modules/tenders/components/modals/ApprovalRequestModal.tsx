@@ -34,7 +34,6 @@ const REQUEST_TYPE_ROLE_HINT: Partial<Record<ApprovalRequestType, string>> = {
 export function ApprovalRequestModal({ open, onClose, tenderId, requestType, estimatedAmount, onSubmitted }: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [amount, setAmount] = useState<number>(estimatedAmount ?? 0)
-  const [requestedFrom, setRequestedFrom] = useState<string>('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -60,7 +59,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
       .insert({
         tender_id: tenderId,
         request_type: requestType,
-        requested_from: requestedFrom || null,
+        requested_from: null,  // ניתוב לפי תפקיד; בעתיד dropdown של משתמשים
         requested_role: roleHint,
         status: 'pending',
         sla_due_at: slaDueAt.toISOString(),
@@ -146,16 +145,10 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
           <div className={s.formGroup}>
             <label className={s.label}>תפקיד נמען</label>
             <input className={s.input} value={roleHint} disabled />
-          </div>
-          <div className={s.formGroup}>
-            <label className={s.label}>משתמש ספציפי (אופציונלי — UUID)</label>
-            <input
-              className={s.input}
-              value={requestedFrom}
-              onChange={e => setRequestedFrom(e.target.value)}
-              placeholder="ריק = ניתוב לפי תפקיד"
-            />
-            <div className={s.hint}>בעתיד יוחלף ב-dropdown של משתמשים. כרגע ריק = ניתוב גנרי.</div>
+            <div className={s.hint}>
+              הבקשה תופיע ב"תור האישורים" של כל בעל תפקיד זה במשרד.
+              בעתיד תוכל להפנות גם למשתמש ספציפי.
+            </div>
           </div>
           <div className={s.foot}>
             <button className={`${s.btn} ${s.btnSecondary}`} onClick={() => setStep(1)}>חזור</button>
@@ -168,7 +161,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
         <>
           <div className={s.summary}>
             <div><strong>סוג בקשה:</strong> {title}</div>
-            <div><strong>נמען:</strong> {roleHint}{requestedFrom && ` (${requestedFrom.slice(0, 8)}…)`}</div>
+            <div><strong>נמען:</strong> {roleHint}</div>
             {isBudgetReq && <div><strong>סכום:</strong> {new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)}</div>}
             <div><strong>SLA יסתיים:</strong> {slaDueAt.toLocaleDateString('he-IL')}</div>
             {notes && <div><strong>הערות:</strong> {notes}</div>}
