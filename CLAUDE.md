@@ -245,6 +245,7 @@ CLAUDE_CODE_TOMER/
 | 05.06 | **Tenders CRM — פאזה 4 (Stage-Driven Actions, מוקאפ C נבחר)**: `WorkflowBar` בראש Tender 360 שמראה שלב נוכחי + פעולה הבאה + progress; `StageMap` sidebar עם 12 שלבים (done/current/future/skipped); Tab "דרישות שלב" עם checklist ופעולות inline; `GateValidationModal` חוסם מעבר עד כל ה-requirements; 5 action modals — `ApprovalRequestModal` (גנרי ל-budget/olma/professional), `TenderNumberModal` (פנימי/חיצוני), `CommitteeProtocolModal` (יציאה/זכיה). `stageRequirements.ts` declarative — קל להוסיף requirements בעתיד. בפאזה זו S1-S4 (ייזום → בדיקה במערכת); S5-S12 בפאזה 4.5. |
 | 05.06 | **Tenders CRM — פאזה 4.5 (Actions לכל 12 השלבים)**: השלמת זרימה end-to-end. `useTender` הורחב לטעון `approval_requests`, `vendors`, `guarantees`, `insurance`, `purchase_orders`, `invoices`, `vendor_evaluations` (13 entities במקביל). `stageRequirements.ts` הורחב לכל S0-S12. 11 modals חדשים: `ApprovalDecisionModal` (אישור/דחיית בקשות פתוחות), S5 (`VendorPickerModal`), S6 (`ProposalModal`, `WinnerSelectionModal`), S8 (`ContractDraftModal`, `GuaranteeModal`, `InsuranceModal`, `SignatoryModal` — שלב 8.5 המקורי), S9 (`PurchaseOrderModal`), S10/S11 (`MilestoneModal`), S12 (`VendorEvaluationModal` — closure blocker). כפתור "📋 N ממתינות לאישור" ב-header מוביל ל-ApprovalDecisionModal. ה-RPC `tender_approval_decide` מחובר דרך wrapper `decideApproval`. |
 | 05.06 | **Tenders CRM — פאזה 5 (Integrations + Vendor Portal)**: 5 Vercel Functions ב-`/api/`: `cron/sla-check.ts` (RPC `tender_check_sla_breaches`), `notifications/dispatch.ts` (mock sender — מעדכן status=sent), `webhooks/signature.ts` + `tendering.ts` + `olma.ts` (stubs מתעדים ל-audit log). כולם משתמשים ב-Supabase REST API ישיר (לא SDK) כדי להימנע מ-dependency. אימות דרך `CRON_SECRET` header. GitHub Action חדש [tender-cron.yml](.github/workflows/tender-cron.yml) קורא ל-dispatch כל 10 דקות + ל-SLA check כל שעה. דורש secrets: `VERCEL_BASE_URL`, `TENDER_CRON_SECRET` ב-GitHub, ו-`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET` ב-Vercel env. דף חדש [VendorPortalPage.tsx](digitek-platform/src/pages/VendorPortalPage.tsx) ב-`/vendor-portal` — מציג למשתמש שיש לו tender_personas.persona_role='vendor' את ההצעות/הסכמים/PO/חשבוניות שלו. Sidebar item חדש "פורטל ספקים". |
+| 05.06 | **Tenders CRM — פאזה 6 (Dashboard + KPIs) + תיקוני אבטחה**: דף חדש [TendersDashboardPage.tsx](digitek-platform/src/pages/TendersDashboardPage.tsx) ב-`/tenders/dashboard` — דשבורד מנהל מינהל הרכש עם 10 KPIs חיים מ-DB (Lead Time ממוצע, % בזמן, % החזרות מועדה, SLA גורם מקצועי, אבני דרך ללא הערות, hever ספק, הפרות SLA 30 יום, הליכים פעילים/סגורים/מבוטלים), בר עומס פעיל לפי 12 שלבים, רשימת 10 הפרות SLA אחרונות (clickable ל-tender), מילון KPIs לפי האפיון. Sidebar item חדש "דשבורד מכרזים". **תיקוני אבטחה לפי סקירה אוטומטית**: 3 webhook endpoints (signature/tendering/olma) קיבלו `Authorization: Bearer <WEBHOOK_SECRET>` + cap לגודל body (64KB) + 503 אם secret לא מוגדר. ה-notifications dispatcher עבר ל-atomic claim — PATCH עם `status=eq.pending` + `id=in.(...)` מבטיח שרק worker אחד תופס כל שורה. |
 
 ---
 
@@ -423,6 +424,13 @@ CLAUDE_CODE_TOMER/
 
 ## 11. עדיפויות פיתוח
 
-1. [ ] **Tenders CRM — פאזה 4.5**: actions לשלבים S5-S12 (הפצה, הצעות, חוזה, PO, אבני דרך, הערכת ספק)
-2. [ ] **Tenders CRM — פאזה 5**: אינטגרציות + פורטל ספקים + Vercel cron
-3. [ ] _הכנס כאן את הפיצ'ר הבא_
+✅ **Tenders CRM — כל 6 הפאזות הסתיימו (5+6.06.2026)**
+
+QA פעולות מומלצות מהמשתמש:
+1. צור הליך חדש דרך `/tenders/new`
+2. עבור את כל 12 השלבים מקצה לקצה — בדוק שכל אקציה עובדת
+3. בדוק את הדשבורד ב-`/tenders/dashboard` שמציג נתונים נכונים
+4. בדוק `/vendor-portal` (דורש שיוך כ-persona vendor להליך)
+
+עדיפויות פיתוח עתידיות (אחרי QA):
+1. [ ] _הכנס כאן את הפיצ'ר הבא_

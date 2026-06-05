@@ -12,6 +12,7 @@ import { TenderListPage }  from './pages/TenderListPage'
 import { TenderWizardPage } from './pages/TenderWizardPage'
 import { TenderDetailPage } from './pages/TenderDetailPage'
 import { VendorPortalPage } from './pages/VendorPortalPage'
+import { TendersDashboardPage } from './pages/TendersDashboardPage'
 import { SuppliersPage }   from './pages/SuppliersPage'
 import { ProjectsPage }    from './pages/ProjectsPage'
 import { TestPage }        from './pages/TestPage'
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/brief-generator" element={<Protected><BriefGenerator /></Protected>} />
         <Route path="/layer5"         element={<Protected><Roved5Page /></Protected>} />
         <Route path="/tenders"        element={<Protected><TenderListPage /></Protected>} />
+        <Route path="/tenders/dashboard" element={<Protected><TendersDashboardPage /></Protected>} />
         <Route path="/tenders/new"    element={<Protected><TenderWizardPage /></Protected>} />
         <Route path="/tenders/:id"    element={<Protected><TenderDetailPage /></Protected>} />
         <Route path="/vendor-portal"  element={<Protected><VendorPortalPage /></Protected>} />

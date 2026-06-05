@@ -1,6 +1,10 @@
-// Notification dispatcher — עובר על tender_notifications_queue ושולח (mock).
-// בעתיד יתחבר ל-SendGrid/Twilio/FCM אמיתיים. כרגע רק מעדכן status=sent.
-// משתמש ב-Supabase REST API ישיר.
+// Notification dispatcher — atomic claim ולאחר מכן dispatch (mock).
+// בעתיד יתחבר ל-SendGrid/Twilio/FCM. כרגע ה-"dispatch" הוא רק עדכון status.
+//
+// אטומיות: PATCH עם תנאי `status=eq.pending` + `id=in.(...)` הוא
+// אטומי ב-PostgREST. רק worker אחד יכול לקדם שורה מ-pending ל-sent.
+// אם dispatch אמיתי ייכשל בעתיד — נצטרך 'processing' state ביניים +
+// watchdog. כרגע אין real dispatch אז זה מספיק.
 
 const BATCH_SIZE = 50
 
@@ -29,42 +33,49 @@ export default async function handler(req: any, res: any) {
   }
 
   const nowIso = new Date().toISOString()
-  // Filter: status=eq.pending AND scheduled_for<=now
-  const queueUrl = `${supabaseUrl}/rest/v1/tender_notifications_queue`
-    + `?select=id,user_id,channel,notification_type,payload`
-    + `&status=eq.pending&scheduled_for=lte.${encodeURIComponent(nowIso)}`
-    + `&order=scheduled_for.asc&limit=${BATCH_SIZE}`
 
   try {
-    const queueRes = await supaFetch(queueUrl, serviceRoleKey, { method: 'GET' })
-    if (!queueRes.ok) {
-      const errBody = await queueRes.text()
-      return res.status(queueRes.status).json({ ok: false, error: errBody })
+    // 1. שלוף candidate IDs (לא מבטיח אטומיות עדיין — זה רק בחירה)
+    const candidatesUrl = `${supabaseUrl}/rest/v1/tender_notifications_queue`
+      + `?select=id`
+      + `&status=eq.pending&scheduled_for=lte.${encodeURIComponent(nowIso)}`
+      + `&order=scheduled_for.asc&limit=${BATCH_SIZE}`
+    const candRes = await supaFetch(candidatesUrl, serviceRoleKey, { method: 'GET' })
+    if (!candRes.ok) {
+      return res.status(candRes.status).json({ ok: false, error: await candRes.text() })
     }
-    const queue: Array<{ id: string }> = await queueRes.json()
-    if (queue.length === 0) {
+    const candidates: Array<{ id: string }> = await candRes.json()
+    if (candidates.length === 0) {
       return res.status(200).json({ ok: true, dispatched: 0, message: 'queue empty' })
     }
 
-    let sentOk = 0
-    const errors: string[] = []
-    for (const n of queue) {
-      const updateUrl = `${supabaseUrl}/rest/v1/tender_notifications_queue?id=eq.${n.id}`
-      const updRes = await supaFetch(updateUrl, serviceRoleKey, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: 'sent', sent_at: new Date().toISOString() }),
-      })
-      if (!updRes.ok) {
-        errors.push(`${n.id}: ${updRes.status}`)
-      } else {
-        sentOk++
-      }
+    // 2. Atomic claim — PATCH עם `status=eq.pending` כתנאי + `id=in.(...)`.
+    //    רק שורות שעדיין pending יעודכנו. אחרים תפס אותם worker אחר.
+    //    Prefer: return=representation מחזיר את השורות שעודכנו בפועל.
+    const ids = candidates.map(c => c.id)
+    const claimUrl = `${supabaseUrl}/rest/v1/tender_notifications_queue`
+      + `?id=in.(${ids.join(',')})&status=eq.pending`
+    const claimRes = await fetch(claimUrl, {
+      method: 'PATCH',
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({ status: 'sent', sent_at: new Date().toISOString() }),
+    })
+
+    if (!claimRes.ok) {
+      return res.status(claimRes.status).json({ ok: false, error: await claimRes.text() })
     }
+    const claimed: Array<{ id: string }> = await claimRes.json()
+
     return res.status(200).json({
       ok: true,
-      dispatched: sentOk,
-      failed: queue.length - sentOk,
-      errors: errors.length > 0 ? errors : undefined,
+      candidates: candidates.length,
+      dispatched: claimed.length,
+      skipped: candidates.length - claimed.length,  // נתפסו ע"י worker אחר
       note: 'mock dispatch — real email/SMS in future iteration',
     })
   } catch (e: unknown) {
