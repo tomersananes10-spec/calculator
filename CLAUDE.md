@@ -241,10 +241,48 @@ CLAUDE_CODE_TOMER/
 | 04.06 | **מורשי חתימה / Tenders CRM — פאזה 1 (Foundation)**: 5 migrations חדשים (006-010), 19 טבלאות (`tenders`, `tender_budgets`, `tender_vendors`, `tender_proposals`, `tender_documents`, `tender_personas`, `tender_audit_log`, `tender_committees`, `tender_committee_meetings`, `tender_protocols`, `tender_contract_templates`, `tender_contracts`, `tender_guarantees`, `tender_insurance`, `tender_purchase_orders`, `tender_milestones`, `tender_invoices`, `tender_vendor_evaluations`, `tender_approval_requests`, `tender_sla_events`, `tender_notifications_queue`) + 6 RPCs (`tender_create`, `tender_advance`, `tender_approval_decide`, `tender_committee_schedule`, `tender_evaluate_gateway`, `tender_stats`, `tender_audit_log_write`) + RLS פר תפקיד. מודול חדש `src/modules/tenders/` עם 13 פרסונות, 12 שלבים, 11 Gateways, FSM, 11 סיכונים, 10 KPIs. אין UI עדיין — פאזה 1 בלבד. |
 | 04.06 | **Tenders CRM — תיקוני אבטחה**: migrations 011 + 012 לאחר 5 ממצאי HIGH/MEDIUM מסקירה אוטומטית. tighten RLS על `tenders` (משתתפים בלבד), ולידציית FSM ב-`tender_advance`, auth gates ב-`tender_evaluate_gateway` ו-`tender_committee_schedule`, REVOKE EXECUTE מ-PUBLIC לכל ה-RPCs + GRANT ל-authenticated, `tender_audit_log_write` פנימי בלבד. |
 | 05.06 | **Tenders CRM — פאזה 2 (Workflow & SLA Engine)**: migration 013 — DB triggers (auto-create SLA event על INSERT אישור, auto-resolve על decide, audit על שינויי signature_status/guarantee/milestone) + טבלת `tender_sla_defaults` עם 12 SLA-ים + RPC `tender_check_sla_breaches`. מודול TS: `lib/slaCalc.ts` (לוח שנה ישראלי — ראשון-חמישי + חגים 2026-2027), `lib/notifications.ts` (תור התראות), `slaEngine.ts` (12 SLA-ים + breach/warn/escalation logic), `workflowEngine.ts` (8 workflows לכל שלב FSM עם sequential/parallel/conditional). |
+| 05.06 | **Tenders CRM — פאזה 3 (Core UI)**: 3 דפים חדשים — `TenderListPage` (`/tenders`) עם סטטיסטיקות, חיפוש, פילטר לפי שלב, רשימת כרטיסים; `TenderWizardPage` (`/tenders/new`) — wizard 4 שלבים עם G1/G7/G9 evaluators חיים והערות אזהרה; `TenderDetailPage` (`/tenders/:id`) — Tender 360 עם 6 Tabs (Overview/Documents/Committees/Vendors/Milestones/Audit) + progress bar של 12 שלבים. 2 hooks חדשים: `useTenderList`, `useTender` + `createTender` ו-`advanceTender` wrappers ל-RPCs. `/approvals` עכשיו → Navigate ל-`/tenders`. Sidebar מצביע ל-`/tenders`. |
 
 ---
 
 ## 10. שיחה אחרונה
+
+> **תאריך**: 05.06.2026
+> **נושא**: Tenders CRM — פאזה 3 (Core UI: Tender List + Wizard + Tender 360)
+
+### מה נבנה בפאזה 3
+**3 דפים חדשים** [src/pages/](digitek-platform/src/pages/):
+- [TenderListPage.tsx](digitek-platform/src/pages/TenderListPage.tsx) — `/tenders` — סטטיסטיקות (4 קופסאות), חיפוש, פילטר לפי שלב, רשימת כרטיסי הליכים עם amount band + stage badge. החלף את ה-stub של `/approvals`.
+- [TenderWizardPage.tsx](digitek-platform/src/pages/TenderWizardPage.tsx) — `/tenders/new` — wizard 4 שלבים: פרטים → פיננסים → קישורים → סקירה. ולידציה פר שלב + הצגת תוצאות Gateway G1/G7/G9 חיים (אזהרות אלמ"ה, מסלול פשוט, תבנית חוזה). יצירה דרך RPC `tender_create`.
+- [TenderDetailPage.tsx](digitek-platform/src/pages/TenderDetailPage.tsx) — `/tenders/:id` — Tender 360 עם 6 Tabs: Overview (פרטים + תקציב + צוות + progress bar 12 שלבים), Documents, Committees (protocols), Vendors (proposals), Milestones (+ contracts), Audit log.
+
+**2 hooks חדשים** [src/modules/tenders/hooks/](digitek-platform/src/modules/tenders/hooks/):
+- [useTenderList.ts](digitek-platform/src/modules/tenders/hooks/useTenderList.ts) — fetch מ-`tenders` עם פילטרים
+- [useTender.ts](digitek-platform/src/modules/tenders/hooks/useTender.ts) — fetch מקבילי של 9 ישויות לתיק מלא + wrappers `createTender` ו-`advanceTender`
+
+**Routing** [src/App.tsx](digitek-platform/src/App.tsx) + [src/components/Sidebar.tsx](digitek-platform/src/components/Sidebar.tsx):
+- 3 routes חדשים: `/tenders`, `/tenders/new`, `/tenders/:id`
+- `/approvals` → `<Navigate to="/tenders">` (תאימות לאחור)
+- Sidebar "מורשי חתימה" עכשיו → `/tenders` (badge הוסר — יחזור בפאזה 4 עם count אמיתי של אישורים ממתינים)
+
+### אימות
+- ✅ `npx tsc --noEmit` עבר נקי
+- ✅ `npx vite build` עבר נקי (132KB CSS, 374KB JS gzipped)
+- ⚠️ לא נבדק ידנית בדפדפן — דורש מהמשתמש לפתוח את ה-preview ב-Vercel ולוודא:
+  - `/tenders` עולה ומציג רשימה ריקה (אין הליכים עדיין ב-DB)
+  - לחיצה על "+ הליך חדש" פותחת את ה-Wizard
+  - מילוי 4 השלבים יוצר tender ומפנה ל-`/tenders/:id`
+  - 6 ה-Tabs ב-Detail עולים
+
+### עוד לא בוצע
+- [ ] **פאזה 4**: actions בתוך ה-Tabs — יצירת בקשת אישור, רישום הצעה, יצירת חוזה, יצירת אבן דרך, הזנת הערכת ספק
+- [ ] **פאזה 4**: dropdowns לבחירת brief/calculation בויזרד (במקום input ידני של UUID)
+- [ ] **פאזה 5**: אינטגרציות + פורטל ספקים + Vercel cron
+- [ ] **פאזה 6**: דשבורדים, דוחות KPI
+
+---
+
+## (היסטוריית שיחה קודמת — פאזה 2)
 
 > **תאריך**: 05.06.2026
 > **נושא**: Tenders CRM — פאזה 2 (Workflow & SLA Engine)
@@ -336,6 +374,6 @@ CLAUDE_CODE_TOMER/
 
 ## 11. עדיפויות פיתוח
 
-1. [ ] **Tenders CRM — פאזה 3**: Wizard פתיחת הליך + Tender 360 (6 Tabs) + החלפת `/approvals` ב-TenderListPage
-2. [ ] **Tenders CRM — פאזה 4**: מסכי מודול — ועדות, מסמכים, חוזים, אבני דרך
+1. [ ] **Tenders CRM — פאזה 4**: actions בתוך Tabs (יצירת אישור/הצעה/חוזה/אבן דרך/הערכה) + dropdowns ל-brief/calculation בויזרד
+2. [ ] **Tenders CRM — פאזה 5**: אינטגרציות + פורטל ספקים + Vercel cron
 3. [ ] _הכנס כאן את הפיצ'ר הבא_

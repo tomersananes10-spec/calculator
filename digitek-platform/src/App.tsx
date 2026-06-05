@@ -8,6 +8,9 @@ import { Profile }         from './pages/Profile'
 import { AuthCallback }    from './pages/AuthCallback'
 import { Roved5Page }      from './pages/Roved5Page'
 import { ApprovalsPage }   from './pages/ApprovalsPage'
+import { TenderListPage }  from './pages/TenderListPage'
+import { TenderWizardPage } from './pages/TenderWizardPage'
+import { TenderDetailPage } from './pages/TenderDetailPage'
 import { SuppliersPage }   from './pages/SuppliersPage'
 import { ProjectsPage }    from './pages/ProjectsPage'
 import { TestPage }        from './pages/TestPage'
@@ -34,7 +37,11 @@ export default function App() {
         <Route path="/aiml-calculator" element={<Navigate to="/calculator?mode=ai" replace />} />
         <Route path="/brief-generator" element={<Protected><BriefGenerator /></Protected>} />
         <Route path="/layer5"         element={<Protected><Roved5Page /></Protected>} />
-        <Route path="/approvals"      element={<Protected><ApprovalsPage /></Protected>} />
+        <Route path="/tenders"        element={<Protected><TenderListPage /></Protected>} />
+        <Route path="/tenders/new"    element={<Protected><TenderWizardPage /></Protected>} />
+        <Route path="/tenders/:id"    element={<Protected><TenderDetailPage /></Protected>} />
+        <Route path="/approvals"      element={<Navigate to="/tenders" replace />} />
+        <Route path="/approvals-old"  element={<Protected><ApprovalsPage /></Protected>} />
         <Route path="/suppliers"      element={<Protected><SuppliersPage /></Protected>} />
         <Route path="/projects"       element={<Protected><ProjectsPage /></Protected>} />
         <Route path="/profile"        element={<Protected><Profile /></Protected>} />

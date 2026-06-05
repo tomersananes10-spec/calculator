@@ -14,7 +14,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/briefs',     label: 'בריפים',     icon: '📋', badge: 24 },
   { href: '/calculator', label: 'מחשבון',     icon: '🧮' },
   { href: '/layer5',     label: 'רובד 5',      icon: '⚖️' },
-  { href: '/approvals',  label: 'מורשי חתימה', icon: '✅', badge: 5 },
+  { href: '/tenders',    label: 'מורשי חתימה', icon: '✅' },
   { href: '/suppliers',  label: 'ספקים זוכים - LIBA', icon: '🏢' },
   // { href: '/projects',   label: 'פרויקטים',   icon: '📊' },
   { href: '/test',       label: 'בדיקה',      icon: '🧪' },
