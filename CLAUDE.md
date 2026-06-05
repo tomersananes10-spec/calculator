@@ -242,10 +242,57 @@ CLAUDE_CODE_TOMER/
 | 04.06 | **Tenders CRM — תיקוני אבטחה**: migrations 011 + 012 לאחר 5 ממצאי HIGH/MEDIUM מסקירה אוטומטית. tighten RLS על `tenders` (משתתפים בלבד), ולידציית FSM ב-`tender_advance`, auth gates ב-`tender_evaluate_gateway` ו-`tender_committee_schedule`, REVOKE EXECUTE מ-PUBLIC לכל ה-RPCs + GRANT ל-authenticated, `tender_audit_log_write` פנימי בלבד. |
 | 05.06 | **Tenders CRM — פאזה 2 (Workflow & SLA Engine)**: migration 013 — DB triggers (auto-create SLA event על INSERT אישור, auto-resolve על decide, audit על שינויי signature_status/guarantee/milestone) + טבלת `tender_sla_defaults` עם 12 SLA-ים + RPC `tender_check_sla_breaches`. מודול TS: `lib/slaCalc.ts` (לוח שנה ישראלי — ראשון-חמישי + חגים 2026-2027), `lib/notifications.ts` (תור התראות), `slaEngine.ts` (12 SLA-ים + breach/warn/escalation logic), `workflowEngine.ts` (8 workflows לכל שלב FSM עם sequential/parallel/conditional). |
 | 05.06 | **Tenders CRM — פאזה 3 (Core UI)**: 3 דפים חדשים — `TenderListPage` (`/tenders`) עם סטטיסטיקות, חיפוש, פילטר לפי שלב, רשימת כרטיסים; `TenderWizardPage` (`/tenders/new`) — wizard 4 שלבים עם G1/G7/G9 evaluators חיים והערות אזהרה; `TenderDetailPage` (`/tenders/:id`) — Tender 360 עם 6 Tabs (Overview/Documents/Committees/Vendors/Milestones/Audit) + progress bar של 12 שלבים. 2 hooks חדשים: `useTenderList`, `useTender` + `createTender` ו-`advanceTender` wrappers ל-RPCs. `/approvals` עכשיו → Navigate ל-`/tenders`. Sidebar מצביע ל-`/tenders`. |
+| 05.06 | **Tenders CRM — פאזה 4 (Stage-Driven Actions, מוקאפ C נבחר)**: `WorkflowBar` בראש Tender 360 שמראה שלב נוכחי + פעולה הבאה + progress; `StageMap` sidebar עם 12 שלבים (done/current/future/skipped); Tab "דרישות שלב" עם checklist ופעולות inline; `GateValidationModal` חוסם מעבר עד כל ה-requirements; 5 action modals — `ApprovalRequestModal` (גנרי ל-budget/olma/professional), `TenderNumberModal` (פנימי/חיצוני), `CommitteeProtocolModal` (יציאה/זכיה). `stageRequirements.ts` declarative — קל להוסיף requirements בעתיד. בפאזה זו S1-S4 (ייזום → בדיקה במערכת); S5-S12 בפאזה 4.5. |
 
 ---
 
 ## 10. שיחה אחרונה
+
+> **תאריך**: 05.06.2026
+> **נושא**: Tenders CRM — פאזה 4 (Stage-Driven Actions — מוקאפ C)
+
+### החלטות מקדימות
+- המשתמש ביקש לראות 3 מוקאפים לכיוון UX לפני פיתוח: נוצר [mockups-tenders-phase4.html](mockups-tenders-phase4.html) עם 3 וריאציות (A/B/C)
+- **המשתמש בחר מוקאפ C** — Stage-Driven Workflow Bar
+- היקף מוסכם: תשתית גנרית מלאה + 5 actions לשלבים S1-S4 (לא לכל 12 השלבים)
+
+### מה נבנה
+**תשתית גנרית** [src/modules/tenders/components/](digitek-platform/src/modules/tenders/components/):
+- [WorkflowBar.tsx](digitek-platform/src/modules/tenders/components/WorkflowBar.tsx) — פס workflow בראש Tender 360. מציג שלב נוכחי, פעולה הבאה, progress, כפתור "המשך לפעולה ←". משנה צבעים: רגיל / amber במצב gate / dashed במצב terminal
+- [StageMap.tsx](digitek-platform/src/modules/tenders/components/StageMap.tsx) — sticky sidebar עם 12 השלבים. צבעים: ירוק=done, כחול=current, אפור=future, קו חצוץ=skipped (לפי G1/G7)
+- [StageRequirementsTab.tsx](digitek-platform/src/modules/tenders/components/StageRequirementsTab.tsx) — Tab חדש (ראשון) עם checklist של דרישות לשלב הנוכחי + כפתורי inline ליצירת ה-action
+- [GateValidationModal.tsx](digitek-platform/src/modules/tenders/components/GateValidationModal.tsx) — בודק requirements לפני `tender_advance`. אם blocker פתוח — מציג רשימה ולא מאפשר. אם הכל בסדר — מבקש הערות ומבצע
+- [Modal.tsx](digitek-platform/src/modules/tenders/components/Modal.tsx) — wrapper גנרי עם overlay + ESC + StepDots component משותף
+
+**הגדרות declarative** [stageRequirements.ts](digitek-platform/src/modules/tenders/data/stageRequirements.ts):
+- כל requirement = predicate על TenderDetailData + action הצבעה. כדי להוסיף שלב חדש בעתיד — מספיק להוסיף entry לטבלת `STAGE_REQUIREMENTS`. `evaluateStageRequirements()` עושה את החישוב + מחזיר `{ canAdvance, pending, progressPct }`
+- בפאזה זו הוגדרו: S1 (budget_approved + tender_number), S2 (olma_approved), S3 (committee_outbound_approved), S4 (tender_number_external + professional_review_approved)
+
+**5 Action Modals** [src/modules/tenders/components/modals/](digitek-platform/src/modules/tenders/components/modals/):
+- [ApprovalRequestModal.tsx](digitek-platform/src/modules/tenders/components/modals/ApprovalRequestModal.tsx) — wizard 3 שלבים גנרי לכל ApprovalRequestType. משמש ל-budget/olma/professional_review. מחשב SLA אמיתי דרך `computeDueAt` מ-slaEngine. עבור budget_approval — יוצר גם רשומת `tender_budgets` בסטטוס pending
+- [TenderNumberModal.tsx](digitek-platform/src/modules/tenders/components/modals/TenderNumberModal.tsx) — modal פשוט להזנת מס' תיחור פנימי או חיצוני. כולל אזהרת סיכון #9 (לא להזין שנה)
+- [CommitteeProtocolModal.tsx](digitek-platform/src/modules/tenders/components/modals/CommitteeProtocolModal.tsx) — wizard 3 שלבים ליצירת פרוטוקול ועדה (יציאה/זכיה). decision options: approved/returned/completion/rejected. מציג הסבר על השפעת ההחלטה על FSM
+- חיווט אוטומטי לפי `activeAction` ב-TenderDetailPage — כל action מ-StageRequirementsTab או מ-WorkflowBar פותח את ה-modal המתאים
+
+**עדכון TenderDetailPage**:
+- ה-layout השתנה ל-2 עמודות (main content + StageMap sidebar)
+- WorkflowBar בראש לפני ה-KPIs
+- "דרישות שלב" Tab חדש כראשון (default)
+- 7 modal handlers בתחתית
+
+### אימות
+- ✅ `npx tsc --noEmit` עבר נקי
+- ✅ `npx vite build` עבר נקי (1.46MB / 380KB gzipped)
+- ⚠️ לא נבדק ידנית בדפדפן — צריך לאמת ב-Vercel preview שהזרימה עובדת end-to-end עם הליך אמיתי
+
+### עוד לא בוצע
+- [ ] **פאזה 4.5**: actions ל-S5 (הפצת פניה לספקים), S6 (רישום הצעות + ניקוד), S7 (פרוטוקול זכיה — modal כבר קיים, צריך רק requirements), S8 (חוזה + ערבות + ביטוח + חתימה), S9 (PO), S10-S11 (אבני דרך + חשבוניות), S12 (הערכת ספק)
+- [ ] **פאזה 5**: אינטגרציות חיצוניות + פורטל ספקים + cron ל-SLA breaches + dispatcher אמיתי לתור התראות
+- [ ] **פאזה 6**: דשבורדים, דוחות KPI, פאנל אדמין מורחב
+
+---
+
+## (היסטוריית שיחה קודמת — פאזה 3)
 
 > **תאריך**: 05.06.2026
 > **נושא**: Tenders CRM — פאזה 3 (Core UI: Tender List + Wizard + Tender 360)
@@ -374,6 +421,6 @@ CLAUDE_CODE_TOMER/
 
 ## 11. עדיפויות פיתוח
 
-1. [ ] **Tenders CRM — פאזה 4**: actions בתוך Tabs (יצירת אישור/הצעה/חוזה/אבן דרך/הערכה) + dropdowns ל-brief/calculation בויזרד
+1. [ ] **Tenders CRM — פאזה 4.5**: actions לשלבים S5-S12 (הפצה, הצעות, חוזה, PO, אבני דרך, הערכת ספק)
 2. [ ] **Tenders CRM — פאזה 5**: אינטגרציות + פורטל ספקים + Vercel cron
 3. [ ] _הכנס כאן את הפיצ'ר הבא_
