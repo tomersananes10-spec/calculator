@@ -207,6 +207,18 @@ export function Dashboard() {
           </div>
         </div>
 
+        {/* Vendor Portal */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>פורטל ספקים</h2>
+            <Link to="/vendor-portal" className={styles.viewAll}>פתח ←</Link>
+          </div>
+          <div className={styles.emptyState}>
+            <p>הצעות, הסכמים, PO וחשבוניות — עבור ספקים</p>
+            <Link to="/vendor-portal" className={styles.actionLink}>כניסה</Link>
+          </div>
+        </div>
+
       </div>
     </div>
   )
