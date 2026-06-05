@@ -12,18 +12,28 @@ export interface NotificationPayload {
 }
 
 export interface EnqueueOptions {
-  userId: string
+  /** משתמש פנימי. חובה אחד מהשניים — או userId או recipientEmail. */
+  userId?: string
+  /** נמען חיצוני (מייל בלבד, לא משתמש רשום). */
+  recipientEmail?: string
+  /** נושא הודעה (יוצג ב-Subject של המייל). */
+  subject?: string
   channel: NotificationChannel
   payload: NotificationPayload
   scheduledFor?: Date
 }
 
 export async function enqueueNotification(opts: EnqueueOptions): Promise<{ ok: boolean; id?: string; error?: string }> {
-  const { userId, channel, payload, scheduledFor } = opts
+  const { userId, recipientEmail, subject, channel, payload, scheduledFor } = opts
+  if (!userId && !recipientEmail) {
+    return { ok: false, error: 'enqueueNotification requires userId or recipientEmail' }
+  }
   const { data, error } = await supabase
     .from('tender_notifications_queue')
     .insert({
-      user_id: userId,
+      user_id: userId ?? null,
+      recipient_email: recipientEmail ?? null,
+      subject: subject ?? null,
       tender_id: payload.tender_id ?? null,
       notification_type: payload.notification_type,
       channel,

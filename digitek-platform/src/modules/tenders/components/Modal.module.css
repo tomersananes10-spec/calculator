@@ -43,6 +43,36 @@
 .textarea { min-height: 80px; resize: vertical; }
 .hint { font-size: 11.5px; color: var(--text3); margin-top: 4px; }
 
+.chipsField {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 7px 10px; border: 1.5px solid var(--border2);
+  border-radius: 8px; background: var(--surface);
+  min-height: 42px; align-items: center;
+  transition: border-color 0.15s;
+}
+.chipsField:focus-within { border-color: var(--primary-light); }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--primary-bg); color: var(--primary-dark);
+  padding: 4px 4px 4px 10px; border-radius: 14px;
+  font-size: 12.5px; font-weight: 600;
+  direction: ltr;
+}
+.chipRemove {
+  background: rgba(0,0,0,0.08); border: none; border-radius: 50%;
+  width: 18px; height: 18px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--primary-dark);
+  font-size: 14px; line-height: 1;
+}
+.chipRemove:hover { background: rgba(0,0,0,0.18); }
+.chipInput {
+  flex: 1; min-width: 160px; border: none; outline: none;
+  font-family: inherit; font-size: 13.5px; color: var(--text);
+  background: transparent; padding: 4px 0;
+  direction: ltr;
+}
+
 .summary {
   background: var(--bg); padding: 14px 16px; border-radius: 8px;
   font-size: 12.5px; margin-bottom: 14px;
