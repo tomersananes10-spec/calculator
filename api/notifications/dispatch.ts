@@ -54,26 +54,47 @@ async function resolveRecipientEmail(row: QueueRow, supabaseUrl: string, key: st
   return rows[0]?.email ?? null
 }
 
+// HTML-escape every untrusted value before interpolating into the email body.
+// Queue rows are writable by authenticated users (RLS allows participants
+// to enqueue), so subject/payload/role_hint/request_type are untrusted input.
+function escHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+// UUID guard for tender_id before embedding in a URL — defence in depth even
+// though tender_id is a uuid column at the DB layer.
+function isUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
+}
+
 function buildHtmlBody(row: QueueRow): { subject: string; html: string; text: string } {
-  const subject = row.subject || `התראת מערכת — ${row.notification_type}`
+  const rawSubject = row.subject || `התראת מערכת — ${row.notification_type}`
   const payload = row.payload || {}
   const bodyText = (payload.body as string) || ''
-  const tenderId = row.tender_id
+  const tenderId = row.tender_id && isUuid(row.tender_id) ? row.tender_id : null
   const roleHint = (payload.role_hint as string) || ''
   const reqType = (payload.request_type as string) || ''
   const slaDue = (payload.sla_due_at as string) || ''
 
-  const slaLine = slaDue ? `<p style="color:#64748b;font-size:13px">⏱️ SLA יסתיים: ${new Date(slaDue).toLocaleString('he-IL')}</p>` : ''
-  const linkLine = tenderId ? `<p><a href="https://liba.vercel.app/tenders/${tenderId}" style="color:#2563eb">פתיחת ההליך במערכת ←</a></p>` : ''
+  const safeSlaTime = slaDue ? escHtml(new Date(slaDue).toLocaleString('he-IL')) : ''
+  const slaLine = safeSlaTime ? `<p style="color:#64748b;font-size:13px">⏱️ SLA יסתיים: ${safeSlaTime}</p>` : ''
+  const linkLine = tenderId
+    ? `<p><a href="https://liba.vercel.app/tenders/${encodeURIComponent(tenderId)}" style="color:#2563eb">פתיחת ההליך במערכת ←</a></p>`
+    : ''
   const bodyHtml = bodyText
-    ? `<div style="background:#f1f5f9;padding:14px 16px;border-radius:8px;margin:14px 0;white-space:pre-wrap">${bodyText.replace(/</g, '&lt;').replace(/\n/g, '<br>')}</div>`
+    ? `<div style="background:#f1f5f9;padding:14px 16px;border-radius:8px;margin:14px 0;white-space:pre-wrap">${escHtml(bodyText).replace(/\n/g, '<br>')}</div>`
     : ''
 
   const html = `<!doctype html>
 <html dir="rtl" lang="he">
 <body style="font-family:Heebo,Arial,sans-serif;line-height:1.6;color:#1e293b;max-width:560px;margin:0 auto;padding:24px">
-  <h2 style="color:#1e293b;margin:0 0 4px">${subject}</h2>
-  ${roleHint ? `<p style="color:#64748b;margin:0 0 14px">פנייה ל${roleHint}${reqType ? ` · ${reqType}` : ''}</p>` : ''}
+  <h2 style="color:#1e293b;margin:0 0 4px">${escHtml(rawSubject)}</h2>
+  ${roleHint ? `<p style="color:#64748b;margin:0 0 14px">פנייה ל${escHtml(roleHint)}${reqType ? ` · ${escHtml(reqType)}` : ''}</p>` : ''}
   ${bodyHtml}
   ${slaLine}
   ${linkLine}
@@ -82,9 +103,9 @@ function buildHtmlBody(row: QueueRow): { subject: string; html: string; text: st
 </body>
 </html>`
 
-  const text = `${subject}\n\n${bodyText}\n\n${slaDue ? `SLA: ${new Date(slaDue).toLocaleString('he-IL')}\n` : ''}${tenderId ? `https://liba.vercel.app/tenders/${tenderId}\n` : ''}`
+  const text = `${rawSubject}\n\n${bodyText}\n\n${slaDue ? `SLA: ${new Date(slaDue).toLocaleString('he-IL')}\n` : ''}${tenderId ? `https://liba.vercel.app/tenders/${tenderId}\n` : ''}`
 
-  return { subject, html, text }
+  return { subject: rawSubject, html, text }
 }
 
 export default async function handler(req: any, res: any) {

@@ -183,6 +183,30 @@ export function Dashboard() {
           </div>
         </div>
 
+        {/* Tenders Dashboard */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>דשבורד מכרזים</h2>
+            <Link to="/tenders/dashboard" className={styles.viewAll}>פתח ←</Link>
+          </div>
+          <div className={styles.emptyState}>
+            <p>10 KPIs, עומס פעיל לפי שלב והפרות SLA</p>
+            <Link to="/tenders/dashboard" className={styles.actionLink}>למינהל הרכש</Link>
+          </div>
+        </div>
+
+        {/* Test */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>בדיקה</h2>
+            <Link to="/test" className={styles.viewAll}>פתח ←</Link>
+          </div>
+          <div className={styles.emptyState}>
+            <p>סביבת בדיקות לתבנית Word</p>
+            <Link to="/test" className={styles.actionLink}>כניסה</Link>
+          </div>
+        </div>
+
       </div>
     </div>
   )
