@@ -11,32 +11,50 @@ export type ActionId =
   | 'create_committee_outbound_protocol'
   | 'create_professional_review'
   | 'create_committee_winner_protocol'
+  | 'distribute_to_vendors'
+  | 'register_proposal'
+  | 'select_winner'
+  | 'draft_contract'
+  | 'verify_guarantee'
+  | 'verify_insurance'
+  | 'sign_contract_internal'
+  | 'create_purchase_order'
+  | 'create_milestone'
+  | 'approve_milestone'
+  | 'approve_invoice'
+  | 'evaluate_vendor'
   | 'advance_stage'
 
 export interface StageRequirement {
   id: string
   label: string
   description?: string
-  /** האם הדרישה מולאה. */
   check: (detail: TenderDetailData) => boolean
-  /** ה-action שיוצר את הדרישה (מצביע ל-modal). */
   action?: ActionId
-  /** דרישה בלוקר — חוסם המשך אם לא מולא. */
   blocker?: boolean
 }
 
 export interface StageRequirementsDef {
   stage: TenderStage
-  /** השלב הבא ב-FSM (לאחר השלמת requirements). */
   nextStage: TenderStage
   requirements: StageRequirement[]
 }
 
+// ───────── shared predicates ─────────
+
+const hasApprovedRequest = (d: TenderDetailData, type: string) =>
+  d.approvalRequests.some(r => r.request_type === type && r.status === 'approved')
+
+const hasApprovedProtocol = (d: TenderDetailData, type: string) =>
+  d.protocols.some(p => p.protocol_type === type && p.decision === 'approved')
+
+// ───────── requirement definitions ─────────
+
 const REQ_BUDGET_APPROVED: StageRequirement = {
   id: 'budget_approved',
   label: 'אישור תקציבי',
-  description: 'אישור תקציב ע"י תקציבן המערך + הקצאת מספר תיחור',
-  check: d => d.budget?.status === 'approved',
+  description: 'אישור תקציב ע"י תקציבן המערך',
+  check: d => d.budget?.status === 'approved' || hasApprovedRequest(d, 'budget_approval'),
   action: 'create_budget_approval',
   blocker: true,
 }
@@ -54,12 +72,7 @@ const REQ_OLMA_APPROVAL: StageRequirement = {
   id: 'olma_approved',
   label: 'אישור אלמ"ה (מעל 5M)',
   description: 'אישור מנהל הרכש דרך מערכת אלמ"ה',
-  check: d =>
-    !d.tender?.requires_olma
-    || d.auditLog.some(a => a.entity_type === 'approval_request'
-      && a.action === 'decided'
-      && (a.after_state as { decision?: string } | null)?.decision === 'approved'
-      && d.tender !== null), // simplification — בעתיד נצא לטבלת approvals
+  check: d => !d.tender?.requires_olma || hasApprovedRequest(d, 'olma_approval'),
   action: 'create_olma_approval',
   blocker: true,
 }
@@ -68,7 +81,7 @@ const REQ_COMMITTEE_OUTBOUND: StageRequirement = {
   id: 'committee_outbound_approved',
   label: 'אישור ועדת מכרזים — יציאה לתיחור',
   description: 'פרוטוקול חתום של ועדת מכרזים המאשר יציאה לתיחור (G3=approved)',
-  check: d => d.protocols.some(p => p.protocol_type === 'outbound_request' && p.decision === 'approved'),
+  check: d => hasApprovedProtocol(d, 'outbound_request'),
   action: 'create_committee_outbound_protocol',
   blocker: true,
 }
@@ -86,11 +99,171 @@ const REQ_PROFESSIONAL_REVIEW: StageRequirement = {
   id: 'professional_review_approved',
   label: 'אישור גורם מקצועי במינהל הרכש',
   description: 'בדיקה ואישור הפרויקט תוך SLA של 3 ימי עבודה',
-  check: d => d.auditLog.some(a =>
-    a.entity_type === 'approval_request'
-    && a.action === 'decided'
-    && (a.after_state as { decision?: string } | null)?.decision === 'approved'),
+  check: d => hasApprovedRequest(d, 'professional_review'),
   action: 'create_professional_review',
+  blocker: true,
+}
+
+// S5
+const REQ_DISTRIBUTION: StageRequirement = {
+  id: 'vendors_invited',
+  label: 'הפצת הפניה לספקים',
+  description: 'בחר לפחות 3 ספקים והפץ אליהם את הפניה',
+  check: d => d.proposals.length >= 3 || d.proposals.some(p => p.status !== 'draft'),
+  action: 'distribute_to_vendors',
+  blocker: true,
+}
+
+const REQ_QA_CLOSED: StageRequirement = {
+  id: 'qa_closed',
+  label: 'תקופת הגשת ההצעות נסגרה',
+  description: 'יש לסגור את תיבת ההצעות לפני מעבר לשלב הבחירה',
+  check: d => d.proposals.some(p => p.status === 'submitted' || p.status === 'qualified' || p.status === 'winner'),
+  action: 'register_proposal',
+  blocker: true,
+}
+
+// S6
+const REQ_PROPOSALS_REGISTERED: StageRequirement = {
+  id: 'proposals_registered',
+  label: 'הצעות נרשמו במערכת',
+  description: 'יש לרשום לפחות הצעה אחת',
+  check: d => d.proposals.length > 0 && d.proposals.some(p => p.price != null),
+  action: 'register_proposal',
+  blocker: true,
+}
+
+const REQ_WINNER_SELECTED: StageRequirement = {
+  id: 'winner_selected',
+  label: 'בחירת ספק מועדף',
+  description: 'יש לסמן ספק כ-"winner" לפני אישור הועדה',
+  check: d => d.proposals.some(p => p.status === 'winner'),
+  action: 'select_winner',
+  blocker: true,
+}
+
+// S7
+const REQ_COMMITTEE_WINNER: StageRequirement = {
+  id: 'committee_winner_approved',
+  label: 'אישור ועדת מכרזים — זכיה',
+  description: 'פרוטוקול חתום של ועדת מכרזים המאשר את הזוכה (G8=approved)',
+  check: d => hasApprovedProtocol(d, 'winner_approval'),
+  action: 'create_committee_winner_protocol',
+  blocker: true,
+}
+
+// S8
+const REQ_CONTRACT_DRAFTED: StageRequirement = {
+  id: 'contract_drafted',
+  label: 'טיוטת הסכם נוצרה',
+  description: 'בחירת תבנית הסכם וקישור לספק זוכה',
+  check: d => d.contracts.length > 0,
+  action: 'draft_contract',
+  blocker: true,
+}
+
+const REQ_VENDOR_SIGNED: StageRequirement = {
+  id: 'vendor_signed',
+  label: 'הספק חתם על ההסכם',
+  description: 'הסכם הוחזר חתום מהספק',
+  check: d => d.contracts.some(c =>
+    c.signature_status === 'vendor_signed'
+    || c.signature_status === 'pending_internal_review'
+    || c.signature_status === 'pending_signatory'
+    || c.signature_status === 'fully_signed'),
+  action: 'sign_contract_internal',
+  blocker: true,
+}
+
+const REQ_GUARANTEE: StageRequirement = {
+  id: 'guarantee_verified',
+  label: 'ערבות אומתה',
+  description: 'נדרשת רק במכרזים מעל 1M (G9)',
+  check: d => {
+    const needsGuarantee = (d.tender?.estimated_amount ?? 0) > 1000000
+    if (!needsGuarantee) return true
+    return d.guarantees.some(g => g.status === 'verified')
+  },
+  action: 'verify_guarantee',
+  blocker: true,
+}
+
+const REQ_INSURANCE: StageRequirement = {
+  id: 'insurance_verified',
+  label: 'ביטוח אומת',
+  description: 'נדרש במרבית התבניות',
+  check: d => {
+    const needsInsurance = (d.tender?.estimated_amount ?? 0) > 1000000
+    if (!needsInsurance) return true
+    return d.insurance.some(i => i.status === 'verified')
+  },
+  action: 'verify_insurance',
+  blocker: true,
+}
+
+const REQ_SIGNATORY: StageRequirement = {
+  id: 'signatory_signed',
+  label: 'מורשי החתימה חתמו',
+  description: 'חתימת המזמין — שלב 8.5 באפיון. סוף שלב ההתקשרות.',
+  check: d => d.contracts.some(c => c.signature_status === 'fully_signed'),
+  action: 'sign_contract_internal',
+  blocker: true,
+}
+
+// S9
+const REQ_PO: StageRequirement = {
+  id: 'po_issued',
+  label: 'הזמנת רכש (PO) הוקמה',
+  description: 'הקמה ב-ERP ושליחה לפורטל הספקים',
+  check: d => d.purchaseOrders.some(po => po.status === 'sent_to_vendor' || po.status === 'acknowledged'),
+  action: 'create_purchase_order',
+  blocker: true,
+}
+
+// S10
+const REQ_MILESTONE_DEFINED: StageRequirement = {
+  id: 'milestone1_defined',
+  label: 'אבן דרך 1 הוגדרה',
+  description: 'הגדרת אבן הדרך הראשונה לביצוע',
+  check: d => d.milestones.length >= 1,
+  action: 'create_milestone',
+  blocker: true,
+}
+
+const REQ_MILESTONE1_ACCEPTED: StageRequirement = {
+  id: 'milestone1_accepted',
+  label: 'אבן דרך 1 התקבלה',
+  description: 'תוצרים אושרו ע"י המנהל המקצועי + חשבונית אושרה',
+  check: d => {
+    const m1 = d.milestones.find(m => m.sequence_no === 1)
+    if (!m1) return false
+    return m1.status === 'accepted' || m1.status === 'partially_accepted'
+  },
+  action: 'approve_milestone',
+  blocker: true,
+}
+
+// S11
+const REQ_MILESTONE2_ACCEPTED: StageRequirement = {
+  id: 'milestone2_accepted',
+  label: 'אבן דרך 2 התקבלה',
+  description: 'אבן הדרך השנייה התקבלה',
+  check: d => {
+    const m2 = d.milestones.find(m => m.sequence_no === 2)
+    if (!m2) return true  // אם אין m2 — לא חוסם
+    return m2.status === 'accepted' || m2.status === 'partially_accepted'
+  },
+  action: 'approve_milestone',
+  blocker: true,
+}
+
+// S12
+const REQ_VENDOR_EVALUATION: StageRequirement = {
+  id: 'vendor_evaluated',
+  label: 'הערכת ספק (חובה)',
+  description: 'סיכון #11: לא ניתן לסגור הליך ללא הערכת ספק',
+  check: d => d.vendorEvaluations.length > 0,
+  action: 'evaluate_vendor',
   blocker: true,
 }
 
@@ -98,11 +271,11 @@ export const STAGE_REQUIREMENTS: Partial<Record<TenderStage, StageRequirementsDe
   S0_preconditions: {
     stage: 'S0_preconditions',
     nextStage: 'S1_initiation_budget',
-    requirements: [],  // תנאי הסף נבדקים בעת פתיחת ההליך — מעבר אוטומטי ל-S1
+    requirements: [],
   },
   S1_initiation_budget: {
     stage: 'S1_initiation_budget',
-    nextStage: 'S2_olma_approval', // יוכרע ע"י Gateway G1 — אם requires_olma=false נדלג ל-S3
+    nextStage: 'S2_olma_approval',
     requirements: [REQ_BUDGET_APPROVED, REQ_TENDER_NUMBER],
   },
   S2_olma_approval: {
@@ -119,6 +292,46 @@ export const STAGE_REQUIREMENTS: Partial<Record<TenderStage, StageRequirementsDe
     stage: 'S4_system_input_review',
     nextStage: 'S5_distribution_response',
     requirements: [REQ_TENDER_NUMBER_EXTERNAL, REQ_PROFESSIONAL_REVIEW],
+  },
+  S5_distribution_response: {
+    stage: 'S5_distribution_response',
+    nextStage: 'S6_proposal_evaluation',
+    requirements: [REQ_DISTRIBUTION, REQ_QA_CLOSED],
+  },
+  S6_proposal_evaluation: {
+    stage: 'S6_proposal_evaluation',
+    nextStage: 'S7_committee_winner',
+    requirements: [REQ_PROPOSALS_REGISTERED, REQ_WINNER_SELECTED],
+  },
+  S7_committee_winner: {
+    stage: 'S7_committee_winner',
+    nextStage: 'S8_contract',
+    requirements: [REQ_COMMITTEE_WINNER],
+  },
+  S8_contract: {
+    stage: 'S8_contract',
+    nextStage: 'S9_purchase_order',
+    requirements: [REQ_CONTRACT_DRAFTED, REQ_VENDOR_SIGNED, REQ_GUARANTEE, REQ_INSURANCE, REQ_SIGNATORY],
+  },
+  S9_purchase_order: {
+    stage: 'S9_purchase_order',
+    nextStage: 'S10_execution_m1',
+    requirements: [REQ_PO],
+  },
+  S10_execution_m1: {
+    stage: 'S10_execution_m1',
+    nextStage: 'S11_execution_m2',
+    requirements: [REQ_MILESTONE_DEFINED, REQ_MILESTONE1_ACCEPTED],
+  },
+  S11_execution_m2: {
+    stage: 'S11_execution_m2',
+    nextStage: 'S12_closure_evaluation',
+    requirements: [REQ_MILESTONE2_ACCEPTED],
+  },
+  S12_closure_evaluation: {
+    stage: 'S12_closure_evaluation',
+    nextStage: 'closed',
+    requirements: [REQ_VENDOR_EVALUATION],
   },
 }
 
@@ -141,7 +354,6 @@ export function evaluateStageRequirements(detail: TenderDetailData): StageRequir
 
   const def = STAGE_REQUIREMENTS[tender.current_stage]
   if (!def) {
-    // שלב ללא requirements מוגדרים (S0, S5-S12, terminal)
     return {
       stage: tender.current_stage,
       nextStage: null,

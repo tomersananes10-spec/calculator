@@ -14,7 +14,8 @@
 }
 .btn:hover { border-color: var(--primary); color: var(--primary); }
 .btnPrimary { background: var(--primary); color: #fff; border-color: var(--primary); }
-.btnPrimary:hover { color: #fff; opacity: 0.9; }
+.btnPrimary:hover { color: #fff; opacity: 0.9; background: var(--primary); }
+.btn.btnPrimary:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
 
 .kpiRow {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;

@@ -8,8 +8,12 @@ import { StageMap } from '../modules/tenders/components/StageMap'
 import { StageRequirementsTab } from '../modules/tenders/components/StageRequirementsTab'
 import { GateValidationModal } from '../modules/tenders/components/GateValidationModal'
 import { ApprovalRequestModal } from '../modules/tenders/components/modals/ApprovalRequestModal'
+import { ApprovalDecisionModal } from '../modules/tenders/components/modals/ApprovalDecisionModal'
 import { TenderNumberModal } from '../modules/tenders/components/modals/TenderNumberModal'
 import { CommitteeProtocolModal } from '../modules/tenders/components/modals/CommitteeProtocolModal'
+import { VendorPickerModal, ProposalModal, WinnerSelectionModal } from '../modules/tenders/components/modals/StageActionsS5_S6'
+import { ContractDraftModal, GuaranteeModal, InsuranceModal, SignatoryModal } from '../modules/tenders/components/modals/StageActionsS8'
+import { PurchaseOrderModal, MilestoneModal, VendorEvaluationModal } from '../modules/tenders/components/modals/StageActionsS9_S12'
 import type { AmountBand } from '../modules/tenders/types'
 import styles from './TenderDetailPage.module.css'
 
@@ -43,7 +47,9 @@ export function TenderDetailPage() {
   const [tab, setTab] = useState<Tab>('requirements')
   const [activeAction, setActiveAction] = useState<ActionId | null>(null)
   const detail = useTender(id)
-  const { tender, budget, documents, proposals, contracts, milestones, protocols, personas, auditLog, loading, error, refresh } = detail
+  const { tender, budget, documents, proposals, contracts, milestones, protocols, personas, auditLog, approvalRequests, vendors, loading, error, refresh } = detail
+  const [decisionModalOpen, setDecisionModalOpen] = useState(false)
+  const pendingApprovals = approvalRequests.filter(a => a.status === 'pending' || a.status === 'in_review')
 
   const requirements = useMemo(() => evaluateStageRequirements(detail), [detail])
 
@@ -80,6 +86,14 @@ export function TenderDetailPage() {
           </div>
         </div>
         <div className={styles.actionRow}>
+          {pendingApprovals.length > 0 && (
+            <button
+              className={`${styles.btn} ${styles.btnPrimary}`}
+              onClick={() => setDecisionModalOpen(true)}
+            >
+              📋 {pendingApprovals.length} ממתינות לאישור
+            </button>
+          )}
           <button className={styles.btn} onClick={() => navigate('/tenders')}>← לרשימה</button>
         </div>
       </div>
@@ -344,6 +358,85 @@ export function TenderDetailPage() {
         tender={tender}
         requirements={requirements}
         onAdvanced={onActionDone}
+      />
+      <ApprovalDecisionModal
+        open={decisionModalOpen}
+        onClose={() => setDecisionModalOpen(false)}
+        approvals={approvalRequests}
+        onSubmitted={() => { setDecisionModalOpen(false); void refresh() }}
+      />
+      <VendorPickerModal
+        open={activeAction === 'distribute_to_vendors'}
+        onClose={closeAction}
+        tenderId={tender.id}
+        vendors={vendors}
+        existingProposals={proposals}
+        onSubmitted={onActionDone}
+      />
+      <ProposalModal
+        open={activeAction === 'register_proposal'}
+        onClose={closeAction}
+        proposals={proposals}
+        vendors={vendors}
+        selectionType={tender.selection_type}
+        onSubmitted={onActionDone}
+      />
+      <WinnerSelectionModal
+        open={activeAction === 'select_winner'}
+        onClose={closeAction}
+        proposals={proposals}
+        vendors={vendors}
+        selectionType={tender.selection_type}
+        onSubmitted={onActionDone}
+      />
+      <ContractDraftModal
+        open={activeAction === 'draft_contract'}
+        onClose={closeAction}
+        tenderId={tender.id}
+        estimatedAmount={tender.estimated_amount}
+        proposals={proposals}
+        vendors={vendors}
+        onSubmitted={onActionDone}
+      />
+      <GuaranteeModal
+        open={activeAction === 'verify_guarantee'}
+        onClose={closeAction}
+        contracts={contracts}
+        onSubmitted={onActionDone}
+      />
+      <InsuranceModal
+        open={activeAction === 'verify_insurance'}
+        onClose={closeAction}
+        contracts={contracts}
+        onSubmitted={onActionDone}
+      />
+      <SignatoryModal
+        open={activeAction === 'sign_contract_internal'}
+        onClose={closeAction}
+        contracts={contracts}
+        onSubmitted={onActionDone}
+      />
+      <PurchaseOrderModal
+        open={activeAction === 'create_purchase_order'}
+        onClose={closeAction}
+        tenderId={tender.id}
+        contracts={contracts}
+        onSubmitted={onActionDone}
+      />
+      <MilestoneModal
+        open={activeAction === 'create_milestone' || activeAction === 'approve_milestone'}
+        onClose={closeAction}
+        tenderId={tender.id}
+        milestones={milestones}
+        onSubmitted={onActionDone}
+      />
+      <VendorEvaluationModal
+        open={activeAction === 'evaluate_vendor'}
+        onClose={closeAction}
+        tenderId={tender.id}
+        proposals={proposals}
+        vendors={vendors}
+        onSubmitted={onActionDone}
       />
     </div>
   )
