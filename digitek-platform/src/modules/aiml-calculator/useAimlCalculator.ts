@@ -30,7 +30,7 @@ function loadFromStorage(): AimlState {
     return {
       project: { ...base.project, ...(saved.project || {}) },
       entries: { ...base.entries, ...(saved.entries || {}) },
-      currentStep: saved.currentStep ?? base.currentStep,
+      currentStep: 1,
       period: (saved.period as AimlPeriod) ?? base.period,
       matchingOn: saved.matchingOn ?? base.matchingOn,
       matchingPct: saved.matchingPct ?? base.matchingPct,
