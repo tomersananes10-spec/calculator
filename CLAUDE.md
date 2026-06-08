@@ -249,6 +249,7 @@ CLAUDE_CODE_TOMER/
 | 05.06 | **Tenders — נמעני מייל לבקשת אישור**: migration 016 (`recipient_email` + `subject` + user_id nullable + check constraint) + `enqueueNotification` קיבל `recipientEmail`/`subject` לנמענים חיצוניים. שלב 2 ב-`ApprovalRequestModal` שוכתב — chip-input ריבוי מיילים (Enter/פסיק/רווח/הדבקה), שדה נושא, שדה תיאור. לכל נמען נכנסת שורה נפרדת לתור. |
 | 05.06 | **Tenders — Gmail SMTP dispatcher + תיקוני RLS**: migration 017 (INSERT policy על `tender_notifications_queue` — לפני זה INSERT נדחה בשקט, ולכן אפס מיילים נכנסו לתור), migration 018 (סטטוס `processing` בנוסף ל-pending/sent/failed). `/api/notifications/dispatch.ts` שוכתב לדיספאצ' אמיתי דרך `nodemailer` + Gmail SMTP: claim ל-`processing`, שליחה, סימון `sent`/`failed`, גוף HTML RTL בעברית. `package.json` חדש בשורש עם `nodemailer` + types. דורש env vars ב-Vercel: `GMAIL_USER` + `GMAIL_APP_PASSWORD` (App Password של 16 תווים מ-Google → Security → 2FA → App Passwords, **לא** הסיסמה הרגילה). |
 | 08.06 | **fix(aiml-calc): רענון מחזיר לשלב 1**. ה-`loadFromStorage` במחשבון AI/ML שמר את `currentStep` ב-localStorage ולכן רענון במסך התוצאות נשאר תקוע על שלב 4. עכשיו `currentStep` תמיד מאופס ל-1 על mount; נתוני הטופס עדיין נשמרים (שלא תאבד עבודה ברענון בטעות), וטעינת חישוב שמור דרך "החישובים שלי" עדיין קופצת לשלב 4 דרך action `LOAD`. |
+| 08.06 | **fix(dashboard): הסרת status bar**. נמחק ה-bar העליון בדף הבית שהציג `SYSTEM · OPERATIONAL`, `DB · digitek-dev`, `SYNC · HH:MM:SS`, תאריך ושם משתמש. גם ה-state `now` הוסר. שאר ה-Dashboard ללא שינוי. |
 
 ---
 
