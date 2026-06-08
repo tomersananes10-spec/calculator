@@ -76,7 +76,6 @@ export function Dashboard() {
   const { briefs } = useBriefs()
 
   const [overview, setOverview] = useState<TendersOverview>(EMPTY)
-  const [now] = useState(() => new Date())
 
   useEffect(() => {
     async function load() {
@@ -188,20 +187,6 @@ export function Dashboard() {
 
   return (
     <div className={styles.page}>
-      {/* ── Status bar ── */}
-      <div className={styles.statusbar}>
-        <div className={styles.statusLeft}>
-          <span className={styles.pill}><span className={styles.okDot}></span> SYSTEM · OPERATIONAL</span>
-          <span className={styles.pill}>DB · digitek-dev</span>
-          <span className={styles.pill}>SYNC · {now.toLocaleTimeString('en-GB', { hour12: false })}</span>
-        </div>
-        <div className={styles.statusRight}>
-          <span>{now.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}</span>
-          <span>·</span>
-          <span>{fullName || user?.email}</span>
-        </div>
-      </div>
-
       {/* ── Header ── */}
       <div className={styles.header}>
         <div>
