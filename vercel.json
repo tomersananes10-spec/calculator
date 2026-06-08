@@ -3,6 +3,6 @@
   "outputDirectory": "digitek-platform/dist",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?!.*\\.[a-zA-Z0-9]+$).*)", "destination": "/index.html" }
   ]
 }
