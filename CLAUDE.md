@@ -253,6 +253,7 @@ CLAUDE_CODE_TOMER/
 | 09.06 | **fix(sidebar): badge בריפים מחובר ל-DB**. ה-badge ליד "בריפים" היה hardcoded על 24. עכשיו שאילתת `count` ל-`briefs` בעת mount (head:true, בלי משיכת רשומות), עם מבנה גנרי `badgeKey` שמאפשר להוסיף badges נוספים בעתיד. ה-badge מוצג רק אם count > 0. |
 | 09.06 | **feat(sidebar): badges לכל המודולים, כולל 0**. הורחב המנגנון לכל פריטי הניווט: `calculator` ו-`tenders` נשלפים חיים מ-Supabase (`calculations`, `tenders`), `layer5` סטטי מתוך `roved5Services.json` (327), `suppliers` סטטי (6 — רשימה hardcoded ב-SuppliersPage). ה-badge מוצג גם כאשר count=0; `null` נחשב "עדיין נטען" ומוסתר עד שהשאילתה חוזרת. |
 | 09.06 | **fix(sidebar): הסרת badges מ-layer5 ו-suppliers**. שני המודולים הללו מציגים קאונט מקטלוג סטטי (327 שירותים ברובד 5, 6 ספקים) ולא state אישי של המשתמש. ה-badges נשארו רק היכן שיש עבודה אישית: בריפים, חישובי תכ"ם/AI-ML, הליכי מכרזים. |
+| 09.06 | **fix(sidebar): סדר חדש + שם ספקים**. סדר התפריט שונה ל-בית → מחשבון → בריפים → מורשי חתימה → רובד 5 → ספקים זוכים. הפריט "ספקים זוכים - LIBA" שונה ל-"ספקים זוכים דיגיטק". |
 
 ---
 
