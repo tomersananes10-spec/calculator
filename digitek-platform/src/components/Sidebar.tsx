@@ -15,11 +15,11 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/',           label: 'בית',        icon: '🏠' },
-  { href: '/briefs',     label: 'בריפים',     icon: '📋', badgeKey: 'briefs' },
   { href: '/calculator', label: 'מחשבון',     icon: '🧮', badgeKey: 'calculator' },
-  { href: '/layer5',     label: 'רובד 5',      icon: '⚖️' },
+  { href: '/briefs',     label: 'בריפים',     icon: '📋', badgeKey: 'briefs' },
   { href: '/tenders',    label: 'מורשי חתימה', icon: '✅', badgeKey: 'tenders' },
-  { href: '/suppliers',  label: 'ספקים זוכים - LIBA', icon: '🏢' },
+  { href: '/layer5',     label: 'רובד 5',      icon: '⚖️' },
+  { href: '/suppliers',  label: 'ספקים זוכים דיגיטק', icon: '🏢' },
   // { href: '/projects',   label: 'פרויקטים',   icon: '📊' },
 ]
 
