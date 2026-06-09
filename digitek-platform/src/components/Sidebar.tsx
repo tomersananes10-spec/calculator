@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
-import roved5Services from '../data/roved5Services.json'
 import styles from './Sidebar.module.css'
 
-type BadgeKey = 'briefs' | 'calculator' | 'layer5' | 'tenders' | 'suppliers'
+type BadgeKey = 'briefs' | 'calculator' | 'tenders'
 
 interface NavItem {
   href: string
@@ -18,15 +17,11 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/',           label: 'בית',        icon: '🏠' },
   { href: '/briefs',     label: 'בריפים',     icon: '📋', badgeKey: 'briefs' },
   { href: '/calculator', label: 'מחשבון',     icon: '🧮', badgeKey: 'calculator' },
-  { href: '/layer5',     label: 'רובד 5',      icon: '⚖️', badgeKey: 'layer5' },
+  { href: '/layer5',     label: 'רובד 5',      icon: '⚖️' },
   { href: '/tenders',    label: 'מורשי חתימה', icon: '✅', badgeKey: 'tenders' },
-  { href: '/suppliers',  label: 'ספקים זוכים - LIBA', icon: '🏢', badgeKey: 'suppliers' },
+  { href: '/suppliers',  label: 'ספקים זוכים - LIBA', icon: '🏢' },
   // { href: '/projects',   label: 'פרויקטים',   icon: '📊' },
 ]
-
-// Static counts for modules that aren't DB-backed
-const LAYER5_COUNT = (roved5Services as unknown[]).length
-const SUPPLIERS_COUNT = 6
 
 interface Props {
   isOpen: boolean
@@ -66,8 +61,6 @@ export function Sidebar({ isOpen, onClose }: Props) {
     briefs: briefsCount,
     calculator: calcCount,
     tenders: tendersCount,
-    layer5: LAYER5_COUNT,
-    suppliers: SUPPLIERS_COUNT,
   }
 
   return (
