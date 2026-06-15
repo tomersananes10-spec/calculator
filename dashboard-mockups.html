@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>LIBA — Dashboard Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #3b82f6;
+    --primary-dark: #1e40af;
+    --primary-bg: #eff6ff;
+    --primary-light: #93c5fd;
+    --navy: #0f172a;
+    --slate: #64748b;
+    --text: #1e293b;
+    --text2: #475569;
+    --text3: #94a3b8;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --border2: #cbd5e1;
+    --green: #10b981;
+    --green-bg: #d1fae5;
+    --red: #ef4444;
+    --red-bg: #fee2e2;
+    --amber: #f59e0b;
+    --amber-bg: #fef3c7;
+    --violet: #8b5cf6;
+    --violet-bg: #ede9fe;
+    --teal: #14b8a6;
+    --teal-bg: #ccfbf1;
+    --rose: #f43f5e;
+    --rose-bg: #ffe4e6;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); padding: 24px; line-height: 1.5; }
+
+  .tabs { display: flex; gap: 8px; max-width: 1200px; margin: 0 auto 24px; }
+  .tab { padding: 10px 20px; border-radius: 10px; cursor: pointer; background: var(--surface); border: 1px solid var(--border); font-family: inherit; font-size: 14px; font-weight: 500; color: var(--text2); }
+  .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .tab small { opacity: .8; font-weight: 400; margin-right: 6px; }
+
+  .mockup { display: none; max-width: 1200px; margin: 0 auto; }
+  .mockup.active { display: block; }
+
+  .mockup-label { background: var(--navy); color: white; padding: 16px 20px; border-radius: 12px 12px 0 0; }
+  .mockup-label h2 { font-size: 18px; font-weight: 700; }
+  .mockup-label p { font-size: 13px; opacity: .7; margin-top: 4px; }
+
+  .frame { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; padding: 32px; margin-bottom: 40px; }
+
+  /* ===== shared header ===== */
+  .head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .greeting { font-size: 28px; font-weight: 700; color: var(--navy); }
+  .greeting .dot { color: var(--primary); }
+  .sub { color: var(--text3); font-size: 14px; margin-top: 6px; }
+  .actions { display: flex; gap: 8px; }
+  .btn { padding: 9px 16px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text2); display: inline-flex; align-items: center; gap: 6px; }
+  .btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* ====== MOCKUP A: "תיק העבודה שלי" ====== */
+  .a-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+  .a-section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .a-section h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .a-section .h-sub { font-size: 12px; color: var(--text3); margin-bottom: 16px; }
+  .a-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .a-card { padding: 18px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; transition: all .15s; }
+  .a-card:hover { border-color: var(--primary-light); background: var(--primary-bg); }
+  .a-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .a-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+  .a-icon.calc { background: var(--amber-bg); color: var(--amber); }
+  .a-icon.brief { background: var(--primary-bg); color: var(--primary); }
+  .a-icon.tender { background: var(--green-bg); color: var(--green); }
+  .a-icon.layer5 { background: var(--violet-bg); color: var(--violet); }
+  .a-card .num { font-size: 30px; font-weight: 700; color: var(--navy); line-height: 1; }
+  .a-card .lbl { font-size: 12px; color: var(--text3); font-weight: 500; margin-top: 4px; }
+  .a-card .meta { font-size: 12px; color: var(--text2); margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
+
+  .a-feed { display: flex; flex-direction: column; gap: 12px; }
+  .a-feed-item { display: flex; gap: 12px; padding: 12px; border-radius: 10px; cursor: pointer; transition: background .15s; align-items: flex-start; }
+  .a-feed-item:hover { background: var(--primary-bg); }
+  .a-feed-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-top: 7px; flex-shrink: 0; }
+  .a-feed-dot.brief { background: var(--primary); }
+  .a-feed-dot.calc { background: var(--amber); }
+  .a-feed-dot.tender { background: var(--green); }
+  .a-feed-content { flex: 1; min-width: 0; }
+  .a-feed-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .a-feed-meta { font-size: 12px; color: var(--text3); }
+  .a-feed-time { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+
+  /* ====== MOCKUP B: "מה הלאה" ====== */
+  .b-hero { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 32px; border-radius: 14px; margin-bottom: 24px; }
+  .b-hero h2 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .b-hero p { font-size: 14px; opacity: .85; margin-bottom: 20px; }
+  .b-next { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .b-next-card { background: rgba(255,255,255,.12); backdrop-filter: blur(8px); padding: 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,.15); cursor: pointer; }
+  .b-next-card:hover { background: rgba(255,255,255,.18); }
+  .b-next-num { font-size: 26px; font-weight: 700; line-height: 1; }
+  .b-next-label { font-size: 13px; opacity: .85; margin-top: 4px; }
+  .b-next-action { font-size: 12px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.18); display: flex; justify-content: space-between; align-items: center; }
+  .b-next-action span { opacity: .9; }
+  .b-next-action::after { content: '←'; }
+
+  .b-tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .b-tool { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; cursor: pointer; }
+  .b-tool:hover { border-color: var(--primary); }
+  .b-tool-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .b-tool-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: var(--primary-bg); color: var(--primary); }
+  .b-tool-name { font-size: 14px; font-weight: 600; color: var(--navy); }
+  .b-tool-desc { font-size: 12px; color: var(--text3); line-height: 1.5; }
+  .b-tool .b-tool-count { font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 8px; }
+
+  .b-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .b-recent { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .b-recent h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
+
+  /* ====== MOCKUP C: "מסע הרכש" ====== */
+  .c-journey { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; margin-bottom: 20px; }
+  .c-journey h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .c-journey-sub { font-size: 12px; color: var(--text3); margin-bottom: 24px; }
+  .c-pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; position: relative; }
+  .c-stage { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 18px; position: relative; cursor: pointer; }
+  .c-stage:hover { border-color: var(--primary); background: var(--primary-bg); }
+  .c-stage::after { content: '←'; position: absolute; left: -14px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 18px; font-weight: 700; }
+  .c-stage:last-child::after { display: none; }
+  .c-stage-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-bottom: 10px; }
+  .c-stage-icon.s1 { background: var(--primary-bg); color: var(--primary); }
+  .c-stage-icon.s2 { background: var(--amber-bg); color: var(--amber); }
+  .c-stage-icon.s3 { background: var(--green-bg); color: var(--green); }
+  .c-stage-icon.s4 { background: var(--violet-bg); color: var(--violet); }
+  .c-stage-name { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .c-stage-count { font-size: 28px; font-weight: 700; color: var(--navy); margin: 10px 0 4px; line-height: 1; }
+  .c-stage-meta { font-size: 11px; color: var(--text3); }
+
+  .c-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .c-block { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .c-block h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .c-block-sub { font-size: 12px; color: var(--text3); margin-bottom: 16px; }
+  .c-tools-list { display: flex; flex-direction: column; gap: 10px; }
+  .c-tool-row { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; cursor: pointer; transition: background .15s; }
+  .c-tool-row:hover { background: var(--bg); }
+  .c-tool-row-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; background: var(--primary-bg); color: var(--primary); flex-shrink: 0; }
+  .c-tool-row-name { font-size: 14px; font-weight: 600; color: var(--navy); }
+  .c-tool-row-desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .c-tool-row-count { font-size: 13px; color: var(--text2); font-weight: 600; padding: 4px 10px; background: var(--primary-bg); border-radius: 999px; }
+
+  .c-feed-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .c-feed-item:last-child { border: none; }
+  .c-tag { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; flex-shrink: 0; height: fit-content; }
+  .c-tag.brief { background: var(--primary-bg); color: var(--primary-dark); }
+  .c-tag.calc { background: var(--amber-bg); color: #b45309; }
+  .c-tag.tender { background: var(--green-bg); color: #047857; }
+  .c-feed-text { flex: 1; min-width: 0; }
+  .c-feed-text strong { font-size: 14px; color: var(--text); font-weight: 500; }
+  .c-feed-text div { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .c-feed-time { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+
+  /* notes */
+  .notes { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 16px 20px; margin-top: 16px; font-size: 13px; color: #92400e; }
+  .notes strong { color: #78350f; }
+  .notes ul { margin: 8px 0 0 18px; }
+  .notes li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab active" data-tab="A"><small>A</small> תיק העבודה שלי</button>
+  <button class="tab" data-tab="B"><small>B</small> מה הלאה?</button>
+  <button class="tab" data-tab="C"><small>C</small> מסע הרכש</button>
+</div>
+
+<!-- ============== MOCKUP A ============== -->
+<div class="mockup active" id="A">
+  <div class="mockup-label">
+    <h2>מוקאפ A — "תיק העבודה שלי"</h2>
+    <p>פוקוס: מה אני עובד עליו כרגע. 4 קופסאות לפי מודול עם counts אמיתיים + feed פעילות. אוניברסלי — כל פרסונה רואה את העבודה שלה.</p>
+  </div>
+  <div class="frame">
+
+    <div class="head">
+      <div>
+        <h1 class="greeting">בוקר טוב, Tomer<span class="dot">.</span></h1>
+        <div class="sub">יום שני, 9 ביוני 2026 · משרד התקשורת</div>
+      </div>
+      <div class="actions">
+        <button class="btn">🔍 חיפוש</button>
+        <button class="btn">📋 בריף חדש</button>
+        <button class="btn">🧮 חישוב חדש</button>
+        <button class="btn primary">+ הליך חדש</button>
+      </div>
+    </div>
+
+    <div class="a-grid">
+
+      <div class="a-section">
+        <h3>העבודה הפעילה שלי</h3>
+        <div class="h-sub">מה פתוח אצלך כרגע — לפי מודול</div>
+        <div class="a-cards">
+
+          <div class="a-card">
+            <div class="a-card-head">
+              <div class="a-icon calc">🧮</div>
+              <div>
+                <div class="num">8</div>
+                <div class="lbl">חישובים שמורים</div>
+              </div>
+            </div>
+            <div class="meta">3 חישובי תכ"ם · 5 חישובי AI/ML</div>
+          </div>
+
+          <div class="a-card">
+            <div class="a-card-head">
+              <div class="a-icon brief">📋</div>
+              <div>
+                <div class="num">11</div>
+                <div class="lbl">בריפים פעילים</div>
+              </div>
+            </div>
+            <div class="meta">9 בטיוטה · 2 הוגשו השבוע</div>
+          </div>
+
+          <div class="a-card">
+            <div class="a-card-head">
+              <div class="a-icon tender">✅</div>
+              <div>
+                <div class="num">1</div>
+                <div class="lbl">הליך פעיל</div>
+              </div>
+            </div>
+            <div class="meta">S1 — ייזום ותקציב</div>
+          </div>
+
+          <div class="a-card">
+            <div class="a-card-head">
+              <div class="a-icon layer5">⚖️</div>
+              <div>
+                <div class="num">327</div>
+                <div class="lbl">שירותים ברובד 5</div>
+              </div>
+            </div>
+            <div class="meta">AWS · GCP · Azure</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="a-section">
+        <h3>פעילות אחרונה</h3>
+        <div class="h-sub">העדכונים האחרונים שלך</div>
+        <div class="a-feed">
+          <div class="a-feed-item">
+            <div class="a-feed-dot brief"></div>
+            <div class="a-feed-content">
+              <div class="a-feed-title">בריף "מאגר מסמכים דיגיטלי"</div>
+              <div class="a-feed-meta">טיוטה · עודכן</div>
+            </div>
+            <div class="a-feed-time">לפני שעה</div>
+          </div>
+          <div class="a-feed-item">
+            <div class="a-feed-dot brief"></div>
+            <div class="a-feed-content">
+              <div class="a-feed-title">בריף "תשתית BI חדשה"</div>
+              <div class="a-feed-meta">טיוטה</div>
+            </div>
+            <div class="a-feed-time">לפני 23 שעות</div>
+          </div>
+          <div class="a-feed-item">
+            <div class="a-feed-dot calc"></div>
+            <div class="a-feed-content">
+              <div class="a-feed-title">חישוב "DWH משרד התקשורת"</div>
+              <div class="a-feed-meta">תקשורת · 7.8M ₪</div>
+            </div>
+            <div class="a-feed-time">לפני 23 שעות</div>
+          </div>
+          <div class="a-feed-item">
+            <div class="a-feed-dot tender"></div>
+            <div class="a-feed-content">
+              <div class="a-feed-title">הליך חדש נפתח</div>
+              <div class="a-feed-meta">שלב S1 — ייזום ותקציב</div>
+            </div>
+            <div class="a-feed-time">לפני 3 ימים</div>
+          </div>
+          <div class="a-feed-item">
+            <div class="a-feed-dot calc"></div>
+            <div class="a-feed-content">
+              <div class="a-feed-title">חישוב "אבטחת מידע 2026"</div>
+              <div class="a-feed-meta">משטרה · 3.2M ₪</div>
+            </div>
+            <div class="a-feed-time">לפני 4 ימים</div>
+          </div>
+          <div class="a-feed-item">
+            <div class="a-feed-dot brief"></div>
+            <div class="a-feed-content">
+              <div class="a-feed-title">בריף "פלטפורמת ניהול ידע"</div>
+              <div class="a-feed-meta">הוגש לאישור</div>
+            </div>
+            <div class="a-feed-time">לפני שבוע</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="notes">
+      <strong>מה הוסר/הוחלף לעומת הקיים:</strong>
+      <ul>
+        <li>אין "ערך תיק", "מצרפי", "Lead Time" — מטריקות פיננסיות שלא רלוונטיות לפרסונת היומיום</li>
+        <li>אין sparkline של "תזרים 13 שבועות" — לא נותן החלטה</li>
+        <li>"מודולים" + counts אישיים החליפו את 4 ה-KPIs המוזרים</li>
+        <li>ה-feed הקיים נשמר — זה דווקא עובד</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============== MOCKUP B ============== -->
+<div class="mockup" id="B">
+  <div class="mockup-label">
+    <h2>מוקאפ B — "מה הלאה?"</h2>
+    <p>פוקוס: התחל את המשפט. Hero גדול עם 3 הזמנות לפעולה אוניברסליות + grid של הכלים + פעילות אחרונה. הדשבורד הוא launchpad, לא דוח.</p>
+  </div>
+  <div class="frame">
+
+    <div class="head">
+      <div>
+        <h1 class="greeting">שלום, Tomer<span class="dot">.</span></h1>
+        <div class="sub">9 ביוני 2026 · מה תרצה להתחיל היום?</div>
+      </div>
+      <div class="actions">
+        <button class="btn">🔍 חיפוש</button>
+        <button class="btn primary">+ פעולה חדשה</button>
+      </div>
+    </div>
+
+    <div class="b-hero">
+      <h2>המשך מאיפה שעצרת</h2>
+      <p>3 פריטים שעבדת עליהם לאחרונה — לחץ כדי לחזור</p>
+      <div class="b-next">
+        <div class="b-next-card">
+          <div class="b-next-num">11</div>
+          <div class="b-next-label">בריפים פתוחים</div>
+          <div class="b-next-action"><span>המשך לערוך</span></div>
+        </div>
+        <div class="b-next-card">
+          <div class="b-next-num">8</div>
+          <div class="b-next-label">חישובים שמורים</div>
+          <div class="b-next-action"><span>פתח אחרון</span></div>
+        </div>
+        <div class="b-next-card">
+          <div class="b-next-num">1</div>
+          <div class="b-next-label">הליך פעיל · S1</div>
+          <div class="b-next-action"><span>קדם לשלב הבא</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="b-tools">
+      <div class="b-tool">
+        <div class="b-tool-head">
+          <div class="b-tool-icon" style="background: var(--amber-bg); color: var(--amber);">🧮</div>
+          <div class="b-tool-name">מחשבון</div>
+        </div>
+        <div class="b-tool-desc">מחשב תכ"ם ו-AI/ML לפי טבלאות ממשלתיות</div>
+        <div class="b-tool-count">8 חישובים שלך</div>
+      </div>
+      <div class="b-tool">
+        <div class="b-tool-head">
+          <div class="b-tool-icon">📋</div>
+          <div class="b-tool-name">בריפים</div>
+        </div>
+        <div class="b-tool-desc">מחולל מסמכי דרישה ב-10 שלבים</div>
+        <div class="b-tool-count">11 בריפים שלך</div>
+      </div>
+      <div class="b-tool">
+        <div class="b-tool-head">
+          <div class="b-tool-icon" style="background: var(--green-bg); color: var(--green);">✅</div>
+          <div class="b-tool-name">מורשי חתימה</div>
+        </div>
+        <div class="b-tool-desc">ניהול הליכי מכרזים בכל 12 השלבים</div>
+        <div class="b-tool-count">1 הליך פעיל</div>
+      </div>
+      <div class="b-tool">
+        <div class="b-tool-head">
+          <div class="b-tool-icon" style="background: var(--violet-bg); color: var(--violet);">⚖️</div>
+          <div class="b-tool-name">רובד 5</div>
+        </div>
+        <div class="b-tool-desc">קטלוג שירותי ענן מאושרים</div>
+        <div class="b-tool-count">327 שירותים</div>
+      </div>
+    </div>
+
+    <div class="b-bottom">
+      <div class="b-recent">
+        <h3>פעילות אחרונה</h3>
+        <div class="a-feed">
+          <div class="a-feed-item">
+            <div class="a-feed-dot brief"></div>
+            <div class="a-feed-content">
+              <div class="a-feed-title">בריף "מאגר מסמכים דיגיטלי"</div>
+              <div class="a-feed-meta">טיוטה · עודכן</div>
+            </div>
+            <div class="a-feed-time">לפני שעה</div>
+          </div>
+          <div class="a-feed-item">
+            <div class="a-feed-dot calc"></div>
+            <div class="a-feed-content">
+              <div class="a-feed-title">חישוב "DWH משרד התקשורת"</div>
+              <div class="a-feed-meta">7.8M ₪</div>
+            </div>
+            <div class="a-feed-time">לפני 23 שעות</div>
+          </div>
+          <div class="a-feed-item">
+            <div class="a-feed-dot tender"></div>
+            <div class="a-feed-content">
+              <div class="a-feed-title">הליך חדש נפתח · S1</div>
+              <div class="a-feed-meta">ייזום ותקציב</div>
+            </div>
+            <div class="a-feed-time">לפני 3 ימים</div>
+          </div>
+          <div class="a-feed-item">
+            <div class="a-feed-dot calc"></div>
+            <div class="a-feed-content">
+              <div class="a-feed-title">חישוב "אבטחת מידע 2026"</div>
+              <div class="a-feed-meta">3.2M ₪</div>
+            </div>
+            <div class="a-feed-time">לפני 4 ימים</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="b-recent">
+        <h3>סטטיסטיקות החודש</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px;">
+          <div style="padding: 16px; background: var(--bg); border-radius: 10px;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--green);">7</div>
+            <div style="font-size: 12px; color: var(--text3); margin-top: 4px;">בריפים סוימו</div>
+          </div>
+          <div style="padding: 16px; background: var(--bg); border-radius: 10px;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--primary);">12</div>
+            <div style="font-size: 12px; color: var(--text3); margin-top: 4px;">חישובים בוצעו</div>
+          </div>
+          <div style="padding: 16px; background: var(--bg); border-radius: 10px;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--amber);">2</div>
+            <div style="font-size: 12px; color: var(--text3); margin-top: 4px;">הליכים נפתחו</div>
+          </div>
+          <div style="padding: 16px; background: var(--bg); border-radius: 10px;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--violet);">38</div>
+            <div style="font-size: 12px; color: var(--text3); margin-top: 4px;">פעולות כלל-מערכת</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <strong>הרעיון:</strong> הדף הזה ענני (מתחיל פעולה), לא משקף (מציג מטריקות). ה-hero למעלה הוא call-to-action: 3 דברים שכבר עבדת עליהם — חזור אליהם. למטה: גישה למודולים + הישגים החודש כעידוד.
+    </div>
+
+  </div>
+</div>
+
+<!-- ============== MOCKUP C ============== -->
+<div class="mockup" id="C">
+  <div class="mockup-label">
+    <h2>מוקאפ C — "מסע הרכש"</h2>
+    <p>פוקוס: ויזואליזציה של תהליך הרכש מקצה-לקצה. רעיון → בריף → חישוב → הליך. כל שלב מראה כמה פריטים יושבים בו כרגע. אינטואיטיבי לפרסונות חדשות.</p>
+  </div>
+  <div class="frame">
+
+    <div class="head">
+      <div>
+        <h1 class="greeting">היי Tomer<span class="dot">.</span></h1>
+        <div class="sub">תהליך הרכש שלך · מקצה לקצה</div>
+      </div>
+      <div class="actions">
+        <button class="btn">🔍 חיפוש</button>
+        <button class="btn primary">+ התחל חדש</button>
+      </div>
+    </div>
+
+    <div class="c-journey">
+      <h3>המסע שלך — איפה הכל יושב כרגע</h3>
+      <div class="c-journey-sub">מתחילים מרעיון, ממשיכים בבריף, מחשבים תקציב, מקדמים להליך</div>
+
+      <div class="c-pipeline">
+
+        <div class="c-stage">
+          <div class="c-stage-icon s1">📋</div>
+          <div class="c-stage-name">שלב 1 · בריף</div>
+          <div class="c-stage-count">11</div>
+          <div class="c-stage-meta">9 בטיוטה · 2 הוגשו</div>
+        </div>
+
+        <div class="c-stage">
+          <div class="c-stage-icon s2">🧮</div>
+          <div class="c-stage-name">שלב 2 · חישוב תקציב</div>
+          <div class="c-stage-count">8</div>
+          <div class="c-stage-meta">3 תכ"ם · 5 AI/ML</div>
+        </div>
+
+        <div class="c-stage">
+          <div class="c-stage-icon s3">✅</div>
+          <div class="c-stage-name">שלב 3 · הליך פעיל</div>
+          <div class="c-stage-count">1</div>
+          <div class="c-stage-meta">S1 ייזום ותקציב</div>
+        </div>
+
+        <div class="c-stage">
+          <div class="c-stage-icon s4">🎯</div>
+          <div class="c-stage-name">שלב 4 · סגירה</div>
+          <div class="c-stage-count">0</div>
+          <div class="c-stage-meta">אין הליכים סגורים</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="c-bottom">
+
+      <div class="c-block">
+        <h3>כלים זמינים</h3>
+        <div class="c-block-sub">קיצור דרך למודולים</div>
+        <div class="c-tools-list">
+          <div class="c-tool-row">
+            <div class="c-tool-row-icon" style="background: var(--amber-bg); color: var(--amber);">🧮</div>
+            <div style="flex: 1;">
+              <div class="c-tool-row-name">מחשבון</div>
+              <div class="c-tool-row-desc">תכ"ם + AI/ML</div>
+            </div>
+            <div class="c-tool-row-count">8 פעילים</div>
+          </div>
+          <div class="c-tool-row">
+            <div class="c-tool-row-icon">📋</div>
+            <div style="flex: 1;">
+              <div class="c-tool-row-name">בריפים</div>
+              <div class="c-tool-row-desc">מסמכי דרישה</div>
+            </div>
+            <div class="c-tool-row-count">11 פעילים</div>
+          </div>
+          <div class="c-tool-row">
+            <div class="c-tool-row-icon" style="background: var(--green-bg); color: var(--green);">✅</div>
+            <div style="flex: 1;">
+              <div class="c-tool-row-name">מורשי חתימה</div>
+              <div class="c-tool-row-desc">הליכי מכרז</div>
+            </div>
+            <div class="c-tool-row-count">1 פעיל</div>
+          </div>
+          <div class="c-tool-row">
+            <div class="c-tool-row-icon" style="background: var(--violet-bg); color: var(--violet);">⚖️</div>
+            <div style="flex: 1;">
+              <div class="c-tool-row-name">רובד 5</div>
+              <div class="c-tool-row-desc">קטלוג שירותים</div>
+            </div>
+            <div class="c-tool-row-count">327</div>
+          </div>
+          <div class="c-tool-row">
+            <div class="c-tool-row-icon" style="background: var(--rose-bg); color: var(--rose);">🏢</div>
+            <div style="flex: 1;">
+              <div class="c-tool-row-name">ספקים זוכים דיגיטק</div>
+              <div class="c-tool-row-desc">קטלוג ספקים</div>
+            </div>
+            <div class="c-tool-row-count">6</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="c-block">
+        <h3>פעילות אחרונה</h3>
+        <div class="c-block-sub">7 פעולות אחרונות שלך</div>
+
+        <div class="c-feed-item">
+          <span class="c-tag brief">בריף</span>
+          <div class="c-feed-text">
+            <strong>מאגר מסמכים דיגיטלי</strong>
+            <div>טיוטה · עודכן</div>
+          </div>
+          <div class="c-feed-time">1h</div>
+        </div>
+
+        <div class="c-feed-item">
+          <span class="c-tag brief">בריף</span>
+          <div class="c-feed-text">
+            <strong>תשתית BI חדשה</strong>
+            <div>טיוטה</div>
+          </div>
+          <div class="c-feed-time">23h</div>
+        </div>
+
+        <div class="c-feed-item">
+          <span class="c-tag calc">חישוב</span>
+          <div class="c-feed-text">
+            <strong>DWH משרד התקשורת</strong>
+            <div>תקשורת · 7.8M ₪</div>
+          </div>
+          <div class="c-feed-time">23h</div>
+        </div>
+
+        <div class="c-feed-item">
+          <span class="c-tag tender">הליך</span>
+          <div class="c-feed-text">
+            <strong>פלטפורמת ניהול ידע</strong>
+            <div>S1 — ייזום ותקציב</div>
+          </div>
+          <div class="c-feed-time">3d</div>
+        </div>
+
+        <div class="c-feed-item">
+          <span class="c-tag calc">חישוב</span>
+          <div class="c-feed-text">
+            <strong>אבטחת מידע 2026</strong>
+            <div>משטרה · 3.2M ₪</div>
+          </div>
+          <div class="c-feed-time">4d</div>
+        </div>
+
+        <div class="c-feed-item">
+          <span class="c-tag brief">בריף</span>
+          <div class="c-feed-text">
+            <strong>פלטפורמת CRM פנים-ארגונית</strong>
+            <div>הוגש לאישור</div>
+          </div>
+          <div class="c-feed-time">1w</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="notes">
+      <strong>הרעיון:</strong> מסע הרכש הוא 4 שלבים: רעיון → בריף → חישוב → הליך מכרז. הוויזואליזציה מראה לכל פרסונה בדיוק איפה הדברים שלה יושבים בתהליך. מנמ"ר יראה 11 בריפים בשלב 1; אסטרטגיה יראה 8 חישובים בשלב 2; וכו'. בלי "ערך תיק" או "Lead Time" — רק "כמה דברים יש לי בכל שלב".
+    </div>
+
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.mockup').forEach(m => m.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

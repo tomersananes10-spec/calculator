@@ -1,23 +1,26 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { supabase } from '../lib/supabase'
 import styles from './Sidebar.module.css'
+
+type BadgeKey = 'briefs' | 'calculator' | 'tenders'
 
 interface NavItem {
   href: string
   label: string
   icon: string
-  badge?: number
+  badgeKey?: BadgeKey
 }
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/',           label: 'בית',        icon: '🏠' },
-  { href: '/briefs',     label: 'בריפים',     icon: '📋', badge: 24 },
-  { href: '/calculator', label: 'מחשבון תכ"ם', icon: '🧮' },
+  { href: '/calculator', label: 'מחשבון',     icon: '🧮', badgeKey: 'calculator' },
+  { href: '/briefs',     label: 'בריפים',     icon: '📋', badgeKey: 'briefs' },
+  { href: '/tenders',    label: 'מורשי חתימה', icon: '✅', badgeKey: 'tenders' },
   { href: '/layer5',     label: 'רובד 5',      icon: '⚖️' },
-  { href: '/approvals',  label: 'מורשי חתימה', icon: '✅', badge: 5 },
-  { href: '/suppliers',  label: 'ספקים זוכים - LIBA', icon: '🏢' },
+  { href: '/suppliers',  label: 'ספקים זוכים דיגיטק', icon: '🏢' },
   // { href: '/projects',   label: 'פרויקטים',   icon: '📊' },
-  { href: '/test',       label: 'בדיקה',      icon: '🧪' },
 ]
 
 interface Props {
@@ -30,6 +33,35 @@ export function Sidebar({ isOpen, onClose }: Props) {
   const fullName = user?.user_metadata?.full_name ?? user?.email ?? 'משתמש'
   const avatarUrl = user?.user_metadata?.avatar_url
   const initial = fullName[0]?.toUpperCase() ?? '?'
+
+  const [briefsCount, setBriefsCount] = useState<number | null>(null)
+  const [calcCount, setCalcCount] = useState<number | null>(null)
+  const [tendersCount, setTendersCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+
+    const fetchCount = async (table: string, setter: (n: number) => void) => {
+      const { count, error } = await supabase
+        .from(table)
+        .select('*', { count: 'exact', head: true })
+      if (!cancelled && !error) setter(count ?? 0)
+      else if (!cancelled) setter(0)
+    }
+
+    fetchCount('briefs', setBriefsCount)
+    fetchCount('calculations', setCalcCount)
+    fetchCount('tenders', setTendersCount)
+
+    return () => { cancelled = true }
+  }, [user])
+
+  const badges: Record<BadgeKey, number | null> = {
+    briefs: briefsCount,
+    calculator: calcCount,
+    tenders: tendersCount,
+  }
 
   return (
     <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
@@ -48,23 +80,26 @@ export function Sidebar({ isOpen, onClose }: Props) {
 
       {/* Navigation */}
       <nav className={styles.nav}>
-        {NAV_ITEMS.map(item => (
-          <NavLink
-            key={item.href}
-            to={item.href}
-            end={item.href === '/'}
-            className={({ isActive }) =>
-              `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
-            }
-            onClick={onClose}
-          >
-            <span className={styles.navIcon}>{item.icon}</span>
-            <span className={styles.navLabel}>{item.label}</span>
-            {item.badge !== undefined && (
-              <span className={styles.navBadge}>{item.badge}</span>
-            )}
-          </NavLink>
-        ))}
+        {NAV_ITEMS.map(item => {
+          const badge = item.badgeKey ? badges[item.badgeKey] : null
+          return (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              end={item.href === '/'}
+              className={({ isActive }) =>
+                `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
+              }
+              onClick={onClose}
+            >
+              <span className={styles.navIcon}>{item.icon}</span>
+              <span className={styles.navLabel}>{item.label}</span>
+              {badge !== null && (
+                <span className={styles.navBadge}>{badge}</span>
+              )}
+            </NavLink>
+          )
+        })}
       </nav>
 
       {/* Admin link — only for admins */}

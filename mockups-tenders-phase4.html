@@ -1,0 +1,1113 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>מוקאפים — פאזה 4 (מורשי חתימה)</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-light: #60a5fa;
+  --primary-bg: #dbeafe;
+  --primary-dark: #1e40af;
+  --green: #16a34a; --green-bg: #dcfce7;
+  --red: #dc2626; --red-bg: #fee2e2;
+  --amber: #d97706; --amber-bg: #fef3c7;
+  --text: #0f172a; --text2: #475569; --text3: #94a3b8;
+  --bg: #f8fafc; --surface: #fff;
+  --border: #e2e8f0; --border2: #cbd5e1;
+  --radius: 12px;
+  --shadow: 0 2px 8px rgba(15,23,42,.06);
+  --shadow-lg: 0 8px 24px rgba(15,23,42,.10);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: 'Heebo', sans-serif; background: #eef2f7; color: var(--text); }
+body { padding: 24px; }
+.page { max-width: 1500px; margin: 0 auto; }
+
+/* Top variant tabs */
+.headerBar {
+  background: var(--surface); border-radius: 16px; padding: 20px 28px;
+  box-shadow: var(--shadow); margin-bottom: 20px;
+}
+h1 { margin: 0 0 6px; font-size: 22px; }
+.headerSub { color: var(--text3); font-size: 13px; margin-bottom: 18px; }
+.variantTabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.variantTab {
+  padding: 12px 20px; border-radius: 12px; border: 2px solid var(--border);
+  background: var(--bg); cursor: pointer; font-family: inherit;
+  font-size: 14px; font-weight: 600; color: var(--text2);
+  transition: all 0.15s;
+}
+.variantTab:hover { border-color: var(--primary-light); }
+.variantTab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.variantTab small { display: block; font-weight: 400; font-size: 11px; opacity: 0.7; margin-top: 2px; }
+
+/* 2-column layout: mockup screens on right, info panel on left */
+.workspace { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+@media (max-width: 1100px) { .workspace { grid-template-columns: 1fr; } }
+
+.infoPanel {
+  background: var(--surface); border-radius: 16px; padding: 20px;
+  box-shadow: var(--shadow); position: sticky; top: 20px;
+}
+.infoTitle { font-size: 16px; font-weight: 800; margin: 0 0 6px; color: var(--primary); }
+.infoApproach { font-size: 12px; color: var(--text3); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.infoBlock { margin-bottom: 14px; }
+.infoLabel { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.infoText { font-size: 13.5px; color: var(--text); line-height: 1.5; }
+.userBadge {
+  display: inline-block; background: var(--primary-bg); color: var(--primary);
+  padding: 3px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+}
+.stageBadge { background: var(--amber-bg); color: var(--amber); }
+.pros { background: var(--green-bg); color: var(--green); }
+.cons { background: var(--red-bg); color: var(--red); }
+.tagList { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.tagList span {
+  font-size: 11px; padding: 2px 8px; border-radius: 6px;
+}
+
+/* Mockup viewport */
+.viewport {
+  background: var(--surface); border-radius: 16px; box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.screenTabs {
+  display: flex; gap: 4px; padding: 12px 20px 0;
+  border-bottom: 1px solid var(--border); background: var(--bg);
+}
+.screenTab {
+  padding: 10px 16px; border: none; background: transparent;
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  color: var(--text3); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.screenTab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.screen { display: none; padding: 24px; min-height: 600px; }
+.screen.active { display: block; }
+
+/* ───── Common LIBA-like layout pieces ───── */
+.sidebar { background: #fff; padding: 16px 12px; border-radius: 10px; }
+.appShell { display: grid; grid-template-columns: 200px 1fr; gap: 16px; background: #f8fafc; padding: 14px; border-radius: 10px; min-height: 540px; }
+.brand { font-weight: 800; color: var(--primary); margin-bottom: 18px; }
+.navItem { padding: 8px 10px; border-radius: 8px; font-size: 13px; color: var(--text2); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.navItem.active { background: var(--primary-bg); color: var(--primary); font-weight: 700; }
+
+.content { background: #fff; border-radius: 10px; padding: 18px; }
+.crumb { font-size: 12px; color: var(--text3); margin-bottom: 10px; }
+.h { font-size: 18px; font-weight: 800; margin: 0 0 4px; }
+.sub { font-size: 12.5px; color: var(--text3); margin-bottom: 14px; }
+
+.kpiRow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.kpi { background: var(--bg); border-radius: 10px; padding: 10px 12px; }
+.kpiV { font-size: 17px; font-weight: 800; }
+.kpiL { font-size: 11px; color: var(--text3); }
+
+.tabsBar { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin-bottom: 14px; }
+.tb { padding: 8px 14px; font-size: 12px; font-weight: 600; color: var(--text3); border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.tb.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tabCount { display: inline-block; background: var(--bg); border-radius: 8px; padding: 1px 6px; font-size: 10px; margin-right: 4px; }
+.tb.active .tabCount { background: var(--primary-bg); color: var(--primary); }
+
+.sectionTitle { font-size: 13px; font-weight: 700; margin: 8px 0; }
+.row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
+.pill { font-size: 11px; padding: 3px 9px; border-radius: 10px; font-weight: 600; }
+.p_blue { background: var(--primary-bg); color: var(--primary); }
+.p_green { background: var(--green-bg); color: var(--green); }
+.p_amber { background: var(--amber-bg); color: var(--amber); }
+.p_red { background: var(--red-bg); color: var(--red); }
+.p_gray { background: #f1f5f9; color: var(--text3); }
+
+.btn { background: var(--primary); color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 12.5px; cursor: pointer; font-family: inherit; }
+.btnSec { background: var(--surface); border: 1.5px solid var(--border2); color: var(--text2); }
+.btnGhost { background: transparent; color: var(--text3); }
+
+/* ───── A: Inline modal actions ───── */
+.actionBar {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--primary-bg); padding: 8px 14px; border-radius: 8px; margin-bottom: 12px;
+  border-right: 4px solid var(--primary);
+}
+.actionBarText { font-size: 12.5px; color: var(--primary-dark); }
+.actionBarText strong { font-weight: 700; }
+.modal {
+  position: absolute; inset: 0; background: rgba(15,23,42,0.6);
+  display: flex; align-items: center; justify-content: center; padding: 30px;
+  border-radius: 10px;
+}
+.modalContent {
+  background: #fff; border-radius: 14px; padding: 22px; width: 520px;
+  max-height: 90%; overflow: auto; box-shadow: var(--shadow-lg);
+}
+.modalHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.modalTitle { font-size: 16px; font-weight: 800; }
+.modalClose { font-size: 20px; cursor: pointer; color: var(--text3); }
+.stepDots { display: flex; gap: 6px; margin-bottom: 16px; }
+.stepDots div { flex: 1; height: 5px; background: var(--border); border-radius: 3px; }
+.stepDots div.act { background: var(--primary); }
+.stepDots div.done { background: var(--green); }
+.label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+.input, .select { width: 100%; padding: 8px 10px; border: 1.5px solid var(--border2); border-radius: 8px; font-family: inherit; font-size: 13px; }
+.formGroup { margin-bottom: 12px; }
+.modalFoot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+
+/* ───── B: Action center ───── */
+.personaSwitcher {
+  background: linear-gradient(135deg, #2563eb, #1e40af); color: #fff;
+  border-radius: 12px; padding: 14px 18px; margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.personaSwitcher h3 { margin: 0 0 2px; font-size: 15px; }
+.personaSwitcher .pSub { font-size: 12px; opacity: 0.85; }
+.personaSwitcher select {
+  background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px; padding: 6px 10px; font-family: inherit; font-size: 12.5px;
+}
+.queueGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.queueCard {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 12px; cursor: pointer;
+}
+.queueCard:hover { border-color: var(--primary); }
+.queueCount { font-size: 22px; font-weight: 800; color: var(--primary); line-height: 1; }
+.queueLabel { font-size: 12px; color: var(--text2); margin-top: 4px; }
+.queueSub { font-size: 10.5px; color: var(--text3); margin-top: 2px; }
+.queueCardHot { border-color: var(--red); background: #fff7f7; }
+.queueCardHot .queueCount { color: var(--red); }
+
+.queueItem {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+}
+.queueItemBody { flex: 1; min-width: 0; }
+.queueItemTitle { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+.queueItemMeta { font-size: 11.5px; color: var(--text3); }
+.slaIndicator {
+  font-size: 11px; padding: 3px 8px; border-radius: 8px;
+  background: var(--amber-bg); color: var(--amber); font-weight: 600;
+}
+.slaIndicator.red { background: var(--red-bg); color: var(--red); }
+.slaIndicator.green { background: var(--green-bg); color: var(--green); }
+
+.fullScreenWizard {
+  background: var(--bg); border-radius: 10px; padding: 20px;
+}
+.wizHead { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.wizPersona {
+  background: var(--primary-bg); color: var(--primary);
+  padding: 4px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 600;
+}
+.wizSteps {
+  display: flex; gap: 6px; margin-bottom: 18px;
+}
+.wizStep {
+  flex: 1; padding: 8px 10px; background: #fff;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 12px; color: var(--text3); text-align: center;
+}
+.wizStep.act { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); font-weight: 700; }
+.wizStep.done { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+
+.compareTable {
+  background: #fff; border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden;
+  margin-bottom: 12px;
+}
+.compareTable table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.compareTable th { padding: 9px; background: var(--bg); text-align: right; font-size: 11px; font-weight: 700; color: var(--text3); }
+.compareTable td { padding: 10px 9px; border-top: 1px solid var(--border); }
+.scoreBar { display: inline-block; width: 80px; height: 6px; background: var(--border); border-radius: 3px; vertical-align: middle; margin-left: 6px; }
+.scoreFill { height: 100%; background: var(--primary); border-radius: 3px; }
+
+/* ───── C: Stage-Driven Workflow Bar ───── */
+.workflowBar {
+  background: linear-gradient(180deg, #fff, var(--bg));
+  border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 14px 18px; margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.workflowLeft { flex: 1; }
+.workflowStage { font-size: 11.5px; color: var(--text3); margin-bottom: 4px; font-weight: 600; }
+.workflowAction { font-size: 14.5px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.workflowMeta { font-size: 12px; color: var(--text2); }
+.workflowMeta strong { color: var(--primary); }
+.workflowRight { flex-shrink: 0; }
+.workflowProgress {
+  height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 8px 0 12px;
+}
+.workflowProgressFill { height: 100%; background: linear-gradient(90deg, var(--green), var(--primary)); }
+
+.stageMap {
+  background: #fff; border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 14px; margin-bottom: 14px;
+}
+.stageMapTitle { font-size: 12.5px; font-weight: 700; margin-bottom: 10px; }
+.stageMapList { display: flex; flex-direction: column; gap: 6px; }
+.stageMapItem {
+  display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 7px;
+  font-size: 12px;
+}
+.stageMapItem.done { background: var(--green-bg); color: var(--green); }
+.stageMapItem.curr { background: var(--primary-bg); color: var(--primary); font-weight: 700; }
+.stageMapItem.fut { background: var(--bg); color: var(--text3); }
+.stageMapItem.skip { background: var(--bg); color: var(--text3); text-decoration: line-through; opacity: 0.6; }
+.stageDot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+.requirements {
+  background: #fff; border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 14px; margin-bottom: 14px;
+}
+.reqItem { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 12.5px; }
+.reqCheck { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; }
+.reqCheck.ok { background: var(--green); color: #fff; }
+.reqCheck.todo { background: var(--border); color: var(--text3); border: 1.5px solid var(--border2); }
+.reqText.todo { color: var(--text2); }
+.reqText.ok { color: var(--green); text-decoration: line-through; }
+
+/* helper */
+.flex { display: flex; gap: 8px; align-items: center; }
+.spacer { flex: 1; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="headerBar">
+  <h1>מוקאפים — פאזה 4 של מורשי חתימה</h1>
+  <div class="headerSub">3 כיוונים שונים ל-UX של ביצוע פעולות בתוך תיק ההליך. בחר אחד — או מזג רעיונות בין השלושה.</div>
+  <div class="variantTabs">
+    <button class="variantTab active" data-variant="A">
+      מוקאפ A — Inline Modal Actions
+      <small>פעולות בתוך תיק ההליך · 3 מסכים</small>
+    </button>
+    <button class="variantTab" data-variant="B">
+      מוקאפ B — Action Center פר פרסונה
+      <small>"מה עליי לעשות עכשיו" · 4 מסכים</small>
+    </button>
+    <button class="variantTab" data-variant="C">
+      מוקאפ C — Stage-Driven Workflow Bar
+      <small>מובל לפי FSM · 3 מסכים</small>
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════ VARIANT A ════════════════════════ -->
+<div class="workspace" data-variant-pane="A">
+  <aside class="infoPanel">
+    <h2 class="infoTitle">מוקאפ A — Inline Modal Actions</h2>
+    <div class="infoApproach">כל פעולה (יצירת אישור, רישום הצעה, הערכת ספק) מתבצעת ב-modal צף מתוך תיק ההליך. המשתמש לא יוצא מההקשר של ה-tender.</div>
+
+    <div class="infoBlock" data-screen-info="A1">
+      <div class="infoLabel">מה רואים</div>
+      <div class="infoText">תיק הליך 360 בטאב "ועדות". שורת פעולה כחולה בראש מציעה פעולה הבאה: "צור בקשת אישור ועדה ליציאה לתיחור". לחיצה פותחת modal צף.</div>
+      <div class="infoLabel" style="margin-top:8px">שלב בתהליך</div>
+      <span class="userBadge stageBadge">S3 — ועדת מכרזים יציאה</span>
+      <div class="infoLabel" style="margin-top:8px">משתמש פונה</div>
+      <span class="userBadge">מנהל הליך (משרד מזמין)</span>
+    </div>
+
+    <div class="infoBlock" data-screen-info="A2" style="display:none">
+      <div class="infoLabel">מה רואים</div>
+      <div class="infoText">Modal צף — Wizard 3 שלבים: בחירת סוג בקשה → נמען (תפקיד או משתמש ספציפי) → SLA + הערות. מתחת לתיק שמשתקף.</div>
+      <div class="infoLabel" style="margin-top:8px">שלב בתהליך</div>
+      <span class="userBadge stageBadge">יצירת approval_request</span>
+      <div class="infoLabel" style="margin-top:8px">משתמש פונה</div>
+      <span class="userBadge">מנהל הליך</span>
+    </div>
+
+    <div class="infoBlock" data-screen-info="A3" style="display:none">
+      <div class="infoLabel">מה רואים</div>
+      <div class="infoText">טאב "ספקים" — Modal לרישום הצעה חדשה. 3 שלבים: בחירת ספק (search) → הזנת מחיר → ניקוד איכות עם sliders. אפשר להזין מספר הצעות ברצף.</div>
+      <div class="infoLabel" style="margin-top:8px">שלב בתהליך</div>
+      <span class="userBadge stageBadge">S6 — בדיקת הצעות</span>
+      <div class="infoLabel" style="margin-top:8px">משתמש פונה</div>
+      <span class="userBadge">חבר ועדת משנה</span>
+    </div>
+
+    <div class="infoBlock">
+      <div class="infoLabel">יתרונות</div>
+      <div class="tagList">
+        <span class="pros">ההקשר נשמר</span>
+        <span class="pros">קצר ויעיל</span>
+        <span class="pros">מתאים לפעולות תכופות</span>
+      </div>
+      <div class="infoLabel" style="margin-top:8px">חסרונות</div>
+      <div class="tagList">
+        <span class="cons">דורש למצוא את ה-Tab הנכון</span>
+        <span class="cons">אם יש הרבה Tabs - גדוש</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="viewport">
+    <div class="screenTabs">
+      <button class="screenTab active" data-screen="A1">מסך 1 · תיק עם actionBar</button>
+      <button class="screenTab" data-screen="A2">מסך 2 · Modal — בקשת אישור (Wizard)</button>
+      <button class="screenTab" data-screen="A3">מסך 3 · Modal — רישום הצעה (Wizard)</button>
+    </div>
+
+    <!-- A1 -->
+    <div class="screen active" id="A1">
+      <div class="appShell">
+        <aside class="sidebar">
+          <div class="brand">🏛️ LIBA</div>
+          <div class="navItem">🏠 בית</div>
+          <div class="navItem">📋 בריפים</div>
+          <div class="navItem">🧮 מחשבון</div>
+          <div class="navItem active">✅ מורשי חתימה</div>
+          <div class="navItem">⚖️ רובד 5</div>
+        </aside>
+        <div class="content">
+          <div class="crumb">מורשי חתימה › DGTK-2026-0042</div>
+          <div class="h">מערכת BI ממשרדית</div>
+          <div class="sub">משרד מערך הדיגיטל · ₪ 850,000 · S3 ועדת מכרזים — יציאה</div>
+          <div class="kpiRow">
+            <div class="kpi"><div class="kpiV">S3</div><div class="kpiL">שלב נוכחי</div></div>
+            <div class="kpi"><div class="kpiV">₪850K</div><div class="kpiL">סכום</div></div>
+            <div class="kpi"><div class="kpiV">12.8</div><div class="kpiL">Go-Live מתוכנן</div></div>
+            <div class="kpi"><div class="kpiV">21 ימים</div><div class="kpiL">בשלב הזה</div></div>
+          </div>
+          <div class="tabsBar">
+            <div class="tb">סקירה</div>
+            <div class="tb"><span class="tabCount">3</span> מסמכים</div>
+            <div class="tb active"><span class="tabCount">1</span> ועדות</div>
+            <div class="tb"><span class="tabCount">0</span> ספקים</div>
+            <div class="tb">אבני דרך</div>
+            <div class="tb">תיעוד</div>
+          </div>
+
+          <div class="actionBar">
+            <div class="actionBarText">📌 <strong>פעולה הבאה:</strong> צור בקשת אישור ועדת מכרזים ליציאה לתיחור</div>
+            <button class="btn">+ צור בקשה</button>
+          </div>
+
+          <div class="sectionTitle">פרוטוקולים</div>
+          <div class="row">
+            <div>
+              <div style="font-weight:600">בקשה ליציאה לתיחור</div>
+              <div style="font-size:11px;color:var(--text3)">טיוטה · עודכן לפני 2 שעות</div>
+            </div>
+            <span class="pill p_amber">טיוטה</span>
+          </div>
+          <div class="sectionTitle">סלוט ועדה הבא</div>
+          <div class="row">
+            <div>
+              <div style="font-weight:600">ועדת מכרזים — חודש יוני</div>
+              <div style="font-size:11px;color:var(--text3)">15.6.2026 · 4 פריטים באג'נדה</div>
+            </div>
+            <button class="btn btnSec">שיבוץ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- A2 -->
+    <div class="screen" id="A2">
+      <div class="appShell" style="position:relative">
+        <aside class="sidebar">
+          <div class="brand">🏛️ LIBA</div>
+          <div class="navItem">🏠 בית</div>
+          <div class="navItem active">✅ מורשי חתימה</div>
+          <div class="navItem">⚖️ רובד 5</div>
+        </aside>
+        <div class="content" style="filter:blur(0.5px); opacity:0.7">
+          <div class="crumb">מורשי חתימה › DGTK-2026-0042</div>
+          <div class="h">מערכת BI ממשרדית</div>
+          <div class="sub">S3 ועדת מכרזים — יציאה</div>
+          <div class="tabsBar">
+            <div class="tb">סקירה</div>
+            <div class="tb active">ועדות</div>
+            <div class="tb">ספקים</div>
+          </div>
+          <div class="actionBar"><div class="actionBarText">📌 צור בקשת אישור...</div></div>
+        </div>
+
+        <div class="modal">
+          <div class="modalContent">
+            <div class="modalHeader">
+              <div class="modalTitle">בקשת אישור חדשה</div>
+              <div class="modalClose">✕</div>
+            </div>
+            <div class="stepDots"><div class="done"></div><div class="act"></div><div></div></div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:14px">שלב 2 מתוך 3 · בחירת נמען</div>
+
+            <div class="formGroup">
+              <label class="label">תפקיד נמען</label>
+              <select class="select">
+                <option>חבר ועדת מכרזים</option>
+                <option>תקציבן המערך</option>
+                <option>גורם מקצועי</option>
+              </select>
+            </div>
+
+            <div class="formGroup">
+              <label class="label">משתמש ספציפי (אופציונלי)</label>
+              <select class="select">
+                <option>— בחר אוטומטית מבין חברי הועדה —</option>
+                <option>אבי לוי (יו"ר)</option>
+                <option>דנה כהן</option>
+              </select>
+            </div>
+
+            <div class="formGroup">
+              <label class="label">SLA — ימי עבודה</label>
+              <input class="input" type="number" value="14" />
+              <div style="font-size:11px;color:var(--text3);margin-top:3px">ברירת מחדל לועדה: 14 ימים. יישלח אסקלציה אחרי 21 ימים.</div>
+            </div>
+
+            <div class="modalFoot">
+              <button class="btn btnSec">חזור</button>
+              <button class="btn">המשך לסיכום</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- A3 -->
+    <div class="screen" id="A3">
+      <div class="appShell" style="position:relative">
+        <aside class="sidebar">
+          <div class="brand">🏛️ LIBA</div>
+          <div class="navItem">🏠 בית</div>
+          <div class="navItem active">✅ מורשי חתימה</div>
+        </aside>
+        <div class="content" style="filter:blur(0.5px); opacity:0.7">
+          <div class="crumb">מורשי חתימה › DGTK-2026-0042 › ספקים</div>
+          <div class="h">מערכת BI ממשרדית</div>
+          <div class="tabsBar">
+            <div class="tb">סקירה</div>
+            <div class="tb active"><span class="tabCount">2</span> ספקים</div>
+          </div>
+        </div>
+
+        <div class="modal">
+          <div class="modalContent">
+            <div class="modalHeader">
+              <div class="modalTitle">רישום הצעה ספק</div>
+              <div class="modalClose">✕</div>
+            </div>
+            <div class="stepDots"><div class="done"></div><div class="done"></div><div class="act"></div></div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:14px">שלב 3 מתוך 3 · ניקוד איכות</div>
+
+            <div style="background:var(--bg);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:12px">
+              <strong>ספק:</strong> טכנודאטה בע"מ · <strong>מחיר:</strong> ₪820,000
+            </div>
+
+            <div class="formGroup">
+              <label class="label">איכות (0-100)</label>
+              <input class="input" type="range" min="0" max="100" value="78" />
+              <div style="font-size:12px;font-weight:700;color:var(--primary)">78</div>
+            </div>
+            <div class="formGroup">
+              <label class="label">ניסיון (0-100)</label>
+              <input class="input" type="range" min="0" max="100" value="85" />
+              <div style="font-size:12px;font-weight:700;color:var(--primary)">85</div>
+            </div>
+            <div class="formGroup">
+              <label class="label">המלצות (0-100)</label>
+              <input class="input" type="range" min="0" max="100" value="70" />
+              <div style="font-size:12px;font-weight:700;color:var(--primary)">70</div>
+            </div>
+
+            <div style="background:var(--primary-bg);padding:10px 14px;border-radius:8px;font-size:12.5px">
+              <strong>ציון משוקלל:</strong> 77.6 · <strong>דירוג נוכחי:</strong> #2 (מתוך 2)
+            </div>
+
+            <div class="modalFoot">
+              <button class="btn btnSec">חזור</button>
+              <button class="btn btnGhost">+ הצעה נוספת</button>
+              <button class="btn">שמור</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════ VARIANT B ════════════════════════ -->
+<div class="workspace" data-variant-pane="B" style="display:none">
+  <aside class="infoPanel">
+    <h2 class="infoTitle">מוקאפ B — Action Center פר פרסונה</h2>
+    <div class="infoApproach">דשבורד אישי "מה עליי לעשות עכשיו" — כל משתמש רואה רק את הפעולות הפתוחות שלו (אישורים ממתינים, ניקוד, חתימות). מסך מלא, לא modal.</div>
+
+    <div class="infoBlock" data-screen-info="B1">
+      <div class="infoLabel">מה רואים</div>
+      <div class="infoText">דשבורד "המשימות שלי" — 3 קופסאות עם מספרי פעולות פתוחות לפי קטגוריה, ולמטה רשימת המשימות עם SLA indicator. בראש — בורר פרסונה (לאדמין).</div>
+      <div class="infoLabel" style="margin-top:8px">שלב בתהליך</div>
+      <span class="userBadge stageBadge">חוצה־שלבים</span>
+      <div class="infoLabel" style="margin-top:8px">משתמש פונה</div>
+      <span class="userBadge">תקציבן המערך</span>
+    </div>
+
+    <div class="infoBlock" data-screen-info="B2" style="display:none">
+      <div class="infoLabel">מה רואים</div>
+      <div class="infoText">Wizard מלא־מסך לאישור תקציבי. 3 שלבים: סקירת ההליך והבריף → החלטה (אישור/דחיה/החזרה) → הערות + חתימה. מותאם בדיוק לפעולה של תקציבן.</div>
+      <div class="infoLabel" style="margin-top:8px">שלב בתהליך</div>
+      <span class="userBadge stageBadge">S1.2 — אישור תקציבי</span>
+      <div class="infoLabel" style="margin-top:8px">משתמש פונה</div>
+      <span class="userBadge">תקציבן המערך</span>
+    </div>
+
+    <div class="infoBlock" data-screen-info="B3" style="display:none">
+      <div class="infoLabel">מה רואים</div>
+      <div class="infoText">Wizard ניקוד איכות לועדת משנה. 3 שלבים: השוואת הצעות (טבלה) → ניקוד אישי לכל הצעה → סיכום והגשה לועדה.</div>
+      <div class="infoLabel" style="margin-top:8px">שלב בתהליך</div>
+      <span class="userBadge stageBadge">S6.4 — ניקוד איכות</span>
+      <div class="infoLabel" style="margin-top:8px">משתמש פונה</div>
+      <span class="userBadge">חבר ועדת משנה</span>
+    </div>
+
+    <div class="infoBlock" data-screen-info="B4" style="display:none">
+      <div class="infoLabel">מה רואים</div>
+      <div class="infoText">תור חתימה למורשה חתימה. רשימת הסכמים ממתינים, לחיצה פותחת preview של ההסכם + כפתור "אמת ופתח חתימה דיגיטלית".</div>
+      <div class="infoLabel" style="margin-top:8px">שלב בתהליך</div>
+      <span class="userBadge stageBadge">S8.5 — חתימת המזמין</span>
+      <div class="infoLabel" style="margin-top:8px">משתמש פונה</div>
+      <span class="userBadge">מורשה חתימה</span>
+    </div>
+
+    <div class="infoBlock">
+      <div class="infoLabel">יתרונות</div>
+      <div class="tagList">
+        <span class="pros">משתמש יודע מיד מה עליו</span>
+        <span class="pros">SLA מודגש</span>
+        <span class="pros">מקסם תפוקה</span>
+      </div>
+      <div class="infoLabel" style="margin-top:8px">חסרונות</div>
+      <div class="tagList">
+        <span class="cons">ניתוק מהליך הספציפי</span>
+        <span class="cons">דורש 13 wizards שונים</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="viewport">
+    <div class="screenTabs">
+      <button class="screenTab active" data-screen="B1">מסך 1 · המשימות שלי</button>
+      <button class="screenTab" data-screen="B2">מסך 2 · אישור תקציב (תקציבן)</button>
+      <button class="screenTab" data-screen="B3">מסך 3 · ניקוד איכות (ועדת משנה)</button>
+      <button class="screenTab" data-screen="B4">מסך 4 · תור חתימה (מורשה חתימה)</button>
+    </div>
+
+    <!-- B1 -->
+    <div class="screen active" id="B1">
+      <div class="appShell">
+        <aside class="sidebar">
+          <div class="brand">🏛️ LIBA</div>
+          <div class="navItem">🏠 בית</div>
+          <div class="navItem active">📥 המשימות שלי <span style="background:var(--red);color:#fff;border-radius:8px;padding:1px 7px;font-size:10px;margin-right:auto">7</span></div>
+          <div class="navItem">✅ מורשי חתימה</div>
+        </aside>
+        <div class="content">
+          <div class="personaSwitcher">
+            <div>
+              <h3>שלום רונית — תקציבן המערך</h3>
+              <div class="pSub">יש לך 7 פעולות פתוחות. SLA הקרוב: עוד 1.5 ימים</div>
+            </div>
+            <select>
+              <option>תקציבן המערך</option>
+              <option>גורם מקצועי</option>
+              <option>מורשה חתימה</option>
+            </select>
+          </div>
+
+          <div class="queueGrid">
+            <div class="queueCard queueCardHot">
+              <div class="queueCount">3</div>
+              <div class="queueLabel">בקשות אישור תקציבי</div>
+              <div class="queueSub">1 בריבית — SLA יסתיים מחר</div>
+            </div>
+            <div class="queueCard">
+              <div class="queueCount">2</div>
+              <div class="queueLabel">הקצאת מספרי תיחור</div>
+              <div class="queueSub">SLA: 3 ימי עבודה</div>
+            </div>
+            <div class="queueCard">
+              <div class="queueCount">2</div>
+              <div class="queueLabel">חריגה תקציבית להתראה</div>
+              <div class="queueSub">לבדיקה</div>
+            </div>
+          </div>
+
+          <div class="sectionTitle">תור בקשות אישור תקציבי</div>
+          <div class="queueItem">
+            <div class="queueItemBody">
+              <div class="queueItemTitle">DGTK-2026-0042 · מערכת BI ממשרדית</div>
+              <div class="queueItemMeta">משרד מערך הדיגיטל · ₪ 850,000 · נוצרה לפני יומיים</div>
+            </div>
+            <span class="slaIndicator red">⏰ פוקע מחר 17:00</span>
+            <button class="btn">פתח</button>
+          </div>
+          <div class="queueItem">
+            <div class="queueItemBody">
+              <div class="queueItemTitle">DGTK-2026-0038 · אפליקציית נייד</div>
+              <div class="queueItemMeta">משרד הבריאות · ₪ 1,200,000 · נוצרה לפני 4 שעות</div>
+            </div>
+            <span class="slaIndicator">⏱️ בעוד 2 ימים</span>
+            <button class="btn">פתח</button>
+          </div>
+          <div class="queueItem">
+            <div class="queueItemBody">
+              <div class="queueItemTitle">DGTK-2026-0044 · פורטל שירותים</div>
+              <div class="queueItemMeta">משרד החינוך · ₪ 600,000 · נוצרה היום</div>
+            </div>
+            <span class="slaIndicator green">⏱️ בעוד 3 ימים</span>
+            <button class="btn">פתח</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B2 -->
+    <div class="screen" id="B2">
+      <div class="appShell">
+        <aside class="sidebar">
+          <div class="brand">🏛️ LIBA</div>
+          <div class="navItem active">📥 המשימות שלי</div>
+        </aside>
+        <div class="content">
+          <div class="fullScreenWizard">
+            <div class="wizHead">
+              <span class="wizPersona">📥 תקציבן המערך · DGTK-2026-0042</span>
+              <div class="spacer"></div>
+              <span class="slaIndicator red">⏰ SLA יסתיים מחר 17:00</span>
+            </div>
+            <div class="h">אישור תקציבי — מערכת BI ממשרדית</div>
+            <div class="sub">פעולה: בקשת אישור תקציב לפתיחת הליך</div>
+
+            <div class="wizSteps">
+              <div class="wizStep done">1. סקירה</div>
+              <div class="wizStep act">2. החלטה</div>
+              <div class="wizStep">3. אישור</div>
+            </div>
+
+            <div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
+              <div style="font-size:11px;color:var(--text3);font-weight:700;margin-bottom:6px">סיכום ההליך</div>
+              <div style="font-size:13px">משרד מערך הדיגיטל מבקש לפתוח הליך תיחור למערכת BI מקצה-לקצה. סכום משוער: ₪ 850,000.</div>
+              <div style="margin-top:10px;display:flex;gap:10px;font-size:12px">
+                <span><strong>אשכול:</strong> דאטה</span>
+                <span><strong>תקציב נותר:</strong> ₪ 3.2M</span>
+                <span><strong>מספר תיחור:</strong> 26-0042 (יוקצה)</span>
+              </div>
+            </div>
+
+            <div class="sectionTitle">החלטה</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+              <button class="btn" style="background:var(--green)">✓ אשר תקציב</button>
+              <button class="btn btnSec">📝 בקש השלמות</button>
+              <button class="btn" style="background:var(--red)">✗ דחה</button>
+            </div>
+
+            <div class="formGroup">
+              <label class="label">הערות לבקשה (אופציונלי, חובה אם נדחה/השלמות)</label>
+              <textarea class="input" rows="3" placeholder="הזן הערות לרישום בתיק..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B3 -->
+    <div class="screen" id="B3">
+      <div class="appShell">
+        <aside class="sidebar">
+          <div class="brand">🏛️ LIBA</div>
+          <div class="navItem active">📥 המשימות שלי</div>
+        </aside>
+        <div class="content">
+          <div class="fullScreenWizard">
+            <div class="wizHead">
+              <span class="wizPersona">📥 חבר ועדת משנה · DGTK-2026-0042</span>
+              <div class="spacer"></div>
+              <span class="slaIndicator">⏱️ עוד 4 ימים לועדה</span>
+            </div>
+            <div class="h">ניקוד איכות — 3 הצעות</div>
+
+            <div class="wizSteps">
+              <div class="wizStep done">1. סקירה</div>
+              <div class="wizStep act">2. ניקוד</div>
+              <div class="wizStep">3. הגשה</div>
+            </div>
+
+            <div class="compareTable">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ספק</th>
+                    <th>מחיר</th>
+                    <th>איכות</th>
+                    <th>ניסיון</th>
+                    <th>המלצות</th>
+                    <th>משוקלל</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>טכנודאטה</strong></td>
+                    <td>₪ 820K</td>
+                    <td><input class="input" style="width:50px" type="number" value="85" /></td>
+                    <td><input class="input" style="width:50px" type="number" value="78" /></td>
+                    <td><input class="input" style="width:50px" type="number" value="80" /></td>
+                    <td><strong>81.3</strong><div class="scoreBar"><div class="scoreFill" style="width:81%"></div></div></td>
+                  </tr>
+                  <tr>
+                    <td><strong>אינפיניטי</strong></td>
+                    <td>₪ 910K</td>
+                    <td><input class="input" style="width:50px" type="number" value="92" /></td>
+                    <td><input class="input" style="width:50px" type="number" value="88" /></td>
+                    <td><input class="input" style="width:50px" type="number" value="85" /></td>
+                    <td><strong>88.7</strong><div class="scoreBar"><div class="scoreFill" style="width:89%"></div></div></td>
+                  </tr>
+                  <tr>
+                    <td><strong>דאטה-קור</strong></td>
+                    <td>₪ 760K</td>
+                    <td><input class="input" style="width:50px" type="number" value="70" /></td>
+                    <td><input class="input" style="width:50px" type="number" value="65" /></td>
+                    <td><input class="input" style="width:50px" type="number" value="72" /></td>
+                    <td><strong>69.5</strong><div class="scoreBar"><div class="scoreFill" style="width:70%"></div></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="formGroup">
+              <label class="label">פרוטוקול ניקוד (פנימי לוועדה)</label>
+              <textarea class="input" rows="3" placeholder="נימוקים לציון..."></textarea>
+            </div>
+
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn btnSec">חזור</button>
+              <button class="btn">הגש לועדה</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B4 -->
+    <div class="screen" id="B4">
+      <div class="appShell">
+        <aside class="sidebar">
+          <div class="brand">🏛️ LIBA</div>
+          <div class="navItem active">📥 המשימות שלי</div>
+        </aside>
+        <div class="content">
+          <div class="personaSwitcher">
+            <div>
+              <h3>שלום דוד — מורשה חתימה</h3>
+              <div class="pSub">2 הסכמים ממתינים לחתימה דיגיטלית</div>
+            </div>
+          </div>
+
+          <div class="sectionTitle">תור חתימה</div>
+          <div class="queueItem">
+            <div class="queueItemBody">
+              <div class="queueItemTitle">DGTK-2026-0042 · הסכם עם טכנודאטה</div>
+              <div class="queueItemMeta">₪ 820,000 · ערבות + ביטוח אומתו · ספק חתם 03.06</div>
+            </div>
+            <span class="slaIndicator">⏱️ עוד 2 ימי עבודה</span>
+            <button class="btn">פתח לחתימה</button>
+          </div>
+          <div class="queueItem">
+            <div class="queueItemBody">
+              <div class="queueItemTitle">DGTK-2026-0038 · הסכם עם אינפיניטי</div>
+              <div class="queueItemMeta">₪ 1,200,000 · ממתין לאימות ערבות</div>
+            </div>
+            <span class="slaIndicator green">⏱️ עוד 4 ימי עבודה</span>
+            <button class="btn btnSec">לא מוכן</button>
+          </div>
+
+          <div style="background:var(--primary-bg);border-right:4px solid var(--primary);padding:12px 16px;border-radius:8px;margin-top:14px;font-size:12.5px">
+            💡 לחיצה על "פתח לחתימה" תפתח preview של ההסכם, ולאחר אישור — חיבור ל-Comsign/DocuSign לחתימה הדיגיטלית האמיתית.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════ VARIANT C ════════════════════════ -->
+<div class="workspace" data-variant-pane="C" style="display:none">
+  <aside class="infoPanel">
+    <h2 class="infoTitle">מוקאפ C — Stage-Driven Workflow Bar</h2>
+    <div class="infoApproach">פס workflow רגיש בראש תיק ההליך שמזהה את השלב הנוכחי ב-FSM ומציע בדיוק את הפעולה הבאה. מפת FSM ויזואלית בצד.</div>
+
+    <div class="infoBlock" data-screen-info="C1">
+      <div class="infoLabel">מה רואים</div>
+      <div class="infoText">תיק הליך עם workflow bar גדול בראש שמראה: "השלב הנוכחי: S3 · הפעולה הבאה: הגש פרוטוקול לועדה". פס התקדמות + מפת FSM בצד עם הצגת done/current/future/skipped.</div>
+      <div class="infoLabel" style="margin-top:8px">שלב בתהליך</div>
+      <span class="userBadge stageBadge">S3 — ועדת מכרזים יציאה</span>
+      <div class="infoLabel" style="margin-top:8px">משתמש פונה</div>
+      <span class="userBadge">מנהל הליך</span>
+    </div>
+
+    <div class="infoBlock" data-screen-info="C2" style="display:none">
+      <div class="infoLabel">מה רואים</div>
+      <div class="infoText">לחיצה על "הגש לועדה" פותחת checklist של דרישות מעבר השלב: בריף ✓, אישור תקציב ✓, פרוטוקול בקשה ✗, סלוט ועדה משובץ ✗. לא ניתן להמשיך עד שכולן יסומנו.</div>
+      <div class="infoLabel" style="margin-top:8px">שלב בתהליך</div>
+      <span class="userBadge stageBadge">Gate Validation לפני S3 → S4</span>
+      <div class="infoLabel" style="margin-top:8px">משתמש פונה</div>
+      <span class="userBadge">מנהל הליך</span>
+    </div>
+
+    <div class="infoBlock" data-screen-info="C3" style="display:none">
+      <div class="infoLabel">מה רואים</div>
+      <div class="infoText">Wizard 3 שלבים לאבן דרך חדשה — נשלף אוטומטית מהבריף אם קיים. שלב 1: בחר תוצרים מהבריף → שלב 2: התאם תאריכים → שלב 3: קריטריוני קבלה.</div>
+      <div class="infoLabel" style="margin-top:8px">שלב בתהליך</div>
+      <span class="userBadge stageBadge">S9 — הקמת PO</span>
+      <div class="infoLabel" style="margin-top:8px">משתמש פונה</div>
+      <span class="userBadge">מנהל הליך</span>
+    </div>
+
+    <div class="infoBlock">
+      <div class="infoLabel">יתרונות</div>
+      <div class="tagList">
+        <span class="pros">קשה לטעות (FSM מוביל)</span>
+        <span class="pros">תאימות מלאה לתכ"ם</span>
+        <span class="pros">המשתמש לא צריך לזכור 12 שלבים</span>
+      </div>
+      <div class="infoLabel" style="margin-top:8px">חסרונות</div>
+      <div class="tagList">
+        <span class="cons">פחות גמישות</span>
+        <span class="cons">דורש FSM מוגדר היטב לכל edge case</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="viewport">
+    <div class="screenTabs">
+      <button class="screenTab active" data-screen="C1">מסך 1 · Workflow Bar + מפת FSM</button>
+      <button class="screenTab" data-screen="C2">מסך 2 · Gate validation לפני מעבר</button>
+      <button class="screenTab" data-screen="C3">מסך 3 · Wizard אבן דרך מהבריף</button>
+    </div>
+
+    <!-- C1 -->
+    <div class="screen active" id="C1">
+      <div class="appShell">
+        <aside class="sidebar">
+          <div class="brand">🏛️ LIBA</div>
+          <div class="navItem">🏠 בית</div>
+          <div class="navItem active">✅ מורשי חתימה</div>
+        </aside>
+        <div class="content">
+          <div class="crumb">מורשי חתימה › DGTK-2026-0042</div>
+          <div class="h">מערכת BI ממשרדית</div>
+          <div class="sub">משרד מערך הדיגיטל · ₪ 850,000</div>
+
+          <div class="workflowBar">
+            <div class="workflowLeft">
+              <div class="workflowStage">📍 שלב נוכחי: S3 · ועדת מכרזים — יציאה לתיחור</div>
+              <div class="workflowAction">פעולה הבאה: הגש פרוטוקול בקשה לועדה</div>
+              <div class="workflowMeta">דרישות פתוחות: <strong>2 מתוך 4</strong> · יעד: <strong>15.6.2026</strong></div>
+            </div>
+            <div class="workflowRight">
+              <button class="btn">המשך לפעולה ←</button>
+            </div>
+          </div>
+          <div class="workflowProgress"><div class="workflowProgressFill" style="width:30%"></div></div>
+
+          <div style="display:grid;grid-template-columns:1fr 280px;gap:14px">
+            <div>
+              <div class="tabsBar">
+                <div class="tb">סקירה</div>
+                <div class="tb active">דרישות שלב</div>
+                <div class="tb">מסמכים</div>
+                <div class="tb">תיעוד</div>
+              </div>
+
+              <div class="sectionTitle">דרישות לסיום השלב</div>
+              <div class="requirements" style="margin-top:0">
+                <div class="reqItem"><span class="reqCheck ok">✓</span><span class="reqText ok">פרוטוקול בקשה ליציאה הוכן</span></div>
+                <div class="reqItem"><span class="reqCheck ok">✓</span><span class="reqText ok">נספחים צורפו (בריף + אישור תקציב)</span></div>
+                <div class="reqItem"><span class="reqCheck todo"></span><span class="reqText todo">הגשה לועדה</span></div>
+                <div class="reqItem"><span class="reqCheck todo"></span><span class="reqText todo">המתנה להחלטת ועדה</span></div>
+              </div>
+
+              <div class="sectionTitle">אישורים פתוחים</div>
+              <div class="row">
+                <div>
+                  <div style="font-weight:600">בקשת תקציב</div>
+                  <div style="font-size:11px;color:var(--text3)">תקציבן: רונית כהן · אושר 02.06</div>
+                </div>
+                <span class="pill p_green">אושר</span>
+              </div>
+            </div>
+
+            <aside class="stageMap">
+              <div class="stageMapTitle">מפת תהליך</div>
+              <div class="stageMapList">
+                <div class="stageMapItem done"><span class="stageDot"></span>0. תנאי סף</div>
+                <div class="stageMapItem done"><span class="stageDot"></span>1. ייזום ותקצוב</div>
+                <div class="stageMapItem skip"><span class="stageDot"></span>2. אלמ"ה</div>
+                <div class="stageMapItem curr"><span class="stageDot"></span>3. ועדת מכרזים</div>
+                <div class="stageMapItem fut"><span class="stageDot"></span>4. בדיקה במערכת</div>
+                <div class="stageMapItem fut"><span class="stageDot"></span>5. הפצה לספקים</div>
+                <div class="stageMapItem fut"><span class="stageDot"></span>6. בדיקת הצעות</div>
+                <div class="stageMapItem fut"><span class="stageDot"></span>7. ועדה — זכיה</div>
+                <div class="stageMapItem fut"><span class="stageDot"></span>8. התקשרות</div>
+                <div class="stageMapItem fut"><span class="stageDot"></span>9. הזמנת רכש</div>
+                <div class="stageMapItem fut"><span class="stageDot"></span>10. ביצוע</div>
+                <div class="stageMapItem fut"><span class="stageDot"></span>12. סגירה</div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C2 -->
+    <div class="screen" id="C2">
+      <div class="appShell">
+        <aside class="sidebar">
+          <div class="brand">🏛️ LIBA</div>
+          <div class="navItem active">✅ מורשי חתימה</div>
+        </aside>
+        <div class="content">
+          <div class="crumb">מורשי חתימה › DGTK-2026-0042 › מעבר שלב</div>
+          <div class="h">מעבר מ-S3 ל-S4 — בדיקה במערכת התיחורים</div>
+          <div class="sub">השלמת דרישות לפני המעבר</div>
+
+          <div class="workflowBar" style="background: var(--amber-bg); border-color: var(--amber)">
+            <div class="workflowLeft">
+              <div class="workflowStage" style="color:var(--amber)">⚠️ Gate: 2 דרישות פתוחות</div>
+              <div class="workflowAction" style="color:#78350f">לא ניתן להעביר את ההליך לשלב 4 עד השלמת כל הדרישות</div>
+              <div class="workflowMeta">המשתמש בלוקר מ-FSM בצד השרת (tender_advance ימנע)</div>
+            </div>
+          </div>
+
+          <div class="requirements">
+            <div class="reqItem">
+              <span class="reqCheck ok">✓</span>
+              <span class="reqText ok">פרוטוקול ועדת מכרזים נחתם (יציאה לתיחור)</span>
+            </div>
+            <div class="reqItem">
+              <span class="reqCheck ok">✓</span>
+              <span class="reqText ok">החלטת ועדה: אושר (G3=approved)</span>
+            </div>
+            <div class="reqItem">
+              <span class="reqCheck todo"></span>
+              <div style="flex:1">
+                <div class="reqText todo">פרסום ב-תיחורים הדיגיטלית — מספר תיחור חיצוני</div>
+                <button class="btn" style="margin-top:6px;padding:5px 10px;font-size:11.5px">הזן מספר</button>
+              </div>
+            </div>
+            <div class="reqItem">
+              <span class="reqCheck todo"></span>
+              <div style="flex:1">
+                <div class="reqText todo">בקשת אישור — גורם מקצועי במינהל הרכש (SLA 3 ימים)</div>
+                <button class="btn" style="margin-top:6px;padding:5px 10px;font-size:11.5px">צור בקשה</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn btnGhost">חזור</button>
+            <button class="btn" disabled style="opacity:0.5;cursor:not-allowed">המשך ל-S4 (2 דרישות פתוחות)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C3 -->
+    <div class="screen" id="C3">
+      <div class="appShell">
+        <aside class="sidebar">
+          <div class="brand">🏛️ LIBA</div>
+          <div class="navItem active">✅ מורשי חתימה</div>
+        </aside>
+        <div class="content">
+          <div class="crumb">DGTK-2026-0042 › אבן דרך חדשה</div>
+          <div class="h">יצירת אבן דרך</div>
+          <div class="sub">נטענת אוטומטית מהבריף המקושר (BRF-2026-0094)</div>
+
+          <div class="wizSteps">
+            <div class="wizStep act">1. שלוף מבריף</div>
+            <div class="wizStep">2. התאם תאריכים</div>
+            <div class="wizStep">3. קריטריוני קבלה</div>
+          </div>
+
+          <div class="sectionTitle">תוצרים מהבריף</div>
+          <div class="row">
+            <div class="flex">
+              <input type="checkbox" checked />
+              <div>
+                <div style="font-weight:600">דשבורד KPI מנהלים</div>
+                <div style="font-size:11px;color:var(--text3)">תכולה: 6 מסכים, 15 מדדים, אינטגרציה ל-2 מקורות</div>
+              </div>
+            </div>
+            <span class="pill p_blue">תוצר עיקרי</span>
+          </div>
+          <div class="row">
+            <div class="flex">
+              <input type="checkbox" checked />
+              <div>
+                <div style="font-weight:600">דוחות תפעוליים</div>
+                <div style="font-size:11px;color:var(--text3)">תכולה: 12 דוחות, ייצוא Excel/PDF</div>
+              </div>
+            </div>
+            <span class="pill p_blue">תוצר עיקרי</span>
+          </div>
+          <div class="row">
+            <div class="flex">
+              <input type="checkbox" />
+              <div>
+                <div style="font-weight:600">הדרכת משתמשים</div>
+                <div style="font-size:11px;color:var(--text3)">תכולה: 3 סדנאות, חומרי הדרכה</div>
+              </div>
+            </div>
+            <span class="pill p_amber">תומך</span>
+          </div>
+
+          <div style="background:var(--primary-bg);border-right:4px solid var(--primary);padding:12px 16px;border-radius:8px;margin-top:12px;font-size:12.5px">
+            💡 לאחר בחירת התוצרים — המערכת תציע סכומים מתוך חישוב תכ"ם המקושר (CALC-0152) ותציע תאריכים לפי baseline gantt.
+          </div>
+
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+            <button class="btn btnGhost">ביטול</button>
+            <button class="btn">המשך</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<script>
+// Variant switcher
+document.querySelectorAll('.variantTab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const v = btn.dataset.variant;
+    document.querySelectorAll('.variantTab').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('[data-variant-pane]').forEach(p => {
+      p.style.display = p.dataset.variantPane === v ? '' : 'none';
+    });
+  });
+});
+
+// Screen switcher (per viewport)
+document.querySelectorAll('.viewport').forEach(vp => {
+  vp.querySelectorAll('.screenTab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const id = tab.dataset.screen;
+      vp.querySelectorAll('.screenTab').forEach(t => t.classList.toggle('active', t === tab));
+      vp.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+      // Update info panel
+      const pane = vp.closest('[data-variant-pane]');
+      pane.querySelectorAll('[data-screen-info]').forEach(info => {
+        info.style.display = info.dataset.screenInfo === id ? '' : 'none';
+      });
+    });
+  });
+});
+</script>
+</body>
+</html>

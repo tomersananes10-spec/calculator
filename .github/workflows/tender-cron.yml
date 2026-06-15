@@ -1,0 +1,50 @@
+name: Tender CRM Cron
+
+# מפעיל פעם בשעה את endpoint ה-SLA ופעם ב-5 דקות את ה-notifications dispatcher.
+# מחליף את vercel.json cron שלא עבד בעבר.
+# דורש secrets ב-GitHub repo:
+#   - VERCEL_BASE_URL — URL של ה-deployment (למשל https://calculator-git-develop-...vercel.app)
+#   - TENDER_CRON_SECRET — חייב להיות זהה ל-CRON_SECRET ב-Vercel env
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # כל 10 דקות
+  workflow_dispatch:
+
+jobs:
+  trigger-cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SLA check (hourly)
+        env:
+          BASE: ${{ secrets.VERCEL_BASE_URL }}
+          SECRET: ${{ secrets.TENDER_CRON_SECRET }}
+        run: |
+          if [ -z "$BASE" ] || [ -z "$SECRET" ]; then
+            echo "::warning::VERCEL_BASE_URL or TENDER_CRON_SECRET secret missing — skipping"
+            exit 0
+          fi
+          # ה-SLA check רץ רק פעם בשעה (בדקה 0)
+          minute=$(date +%M)
+          if [ "$minute" = "00" ] || [ "$minute" = "0" ]; then
+            response=$(curl -sS -X POST "$BASE/api/cron/sla-check" \
+              -H "Authorization: Bearer $SECRET" \
+              -w "\nHTTP_STATUS:%{http_code}")
+            echo "$response"
+          else
+            echo "SLA check skipped (not minute 0)"
+          fi
+
+      - name: Notification dispatch (every 10 min)
+        env:
+          BASE: ${{ secrets.VERCEL_BASE_URL }}
+          SECRET: ${{ secrets.TENDER_CRON_SECRET }}
+        run: |
+          if [ -z "$BASE" ] || [ -z "$SECRET" ]; then
+            echo "::warning::secrets missing — skipping"
+            exit 0
+          fi
+          response=$(curl -sS -X POST "$BASE/api/notifications/dispatch" \
+            -H "Authorization: Bearer $SECRET" \
+            -w "\nHTTP_STATUS:%{http_code}")
+          echo "$response"

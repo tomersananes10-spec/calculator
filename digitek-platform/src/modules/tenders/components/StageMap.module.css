@@ -1,0 +1,29 @@
+.map {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+.title {
+  font-size: 12.5px; font-weight: 700;
+  color: var(--text2); margin-bottom: 10px;
+}
+.list { display: flex; flex-direction: column; gap: 4px; }
+.item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 9px; border-radius: 7px;
+  font-size: 12px; cursor: default;
+}
+.item.done { background: var(--green-bg); color: var(--green); }
+.item.current { background: var(--primary-bg); color: var(--primary); font-weight: 700; }
+.item.future { background: var(--bg); color: var(--text3); }
+.item.skipped { background: var(--bg); color: var(--text3); text-decoration: line-through; opacity: 0.6; }
+.item.terminal { background: #f1f5f9; color: var(--text3); }
+
+.dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.num { font-weight: 700; margin-left: 2px; }
+
+.footer {
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);
+  font-size: 11px; color: var(--text3); line-height: 1.5;
+}
