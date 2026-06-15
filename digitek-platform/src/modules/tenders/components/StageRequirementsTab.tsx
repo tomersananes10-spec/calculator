@@ -39,7 +39,9 @@ export function StageRequirementsTab({ detail, onAction }: Props) {
         const cls = `${styles.req} ${done ? styles.done : ''} ${req.blocker !== false && !done ? styles.blocker : ''}`
         return (
           <div key={req.id} className={cls}>
-            <div className={`${styles.check} ${done ? styles.done : ''}`}>{done ? '✓' : ''}</div>
+            <div className={`${styles.status} ${done ? styles.statusDone : styles.statusPending}`}>
+              {done ? '✓ הושלם' : 'ממתין'}
+            </div>
             <div className={styles.body}>
               <div className={`${styles.label} ${done ? styles.done : ''}`}>{req.label}</div>
               {req.description && <div className={styles.description}>{req.description}</div>}
