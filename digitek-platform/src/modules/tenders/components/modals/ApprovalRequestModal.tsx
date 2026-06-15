@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Modal, StepDots, modalStyles as s } from '../Modal'
 import { supabase } from '../../../../lib/supabase'
 import { computeDueAt } from '../../slaEngine'
@@ -6,6 +6,8 @@ import { enqueueNotification } from '../../lib/notifications'
 import type { ApprovalRequestType } from '../../types'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+const ACCEPTED_TYPES = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg'
 
 interface Props {
   open: boolean
@@ -34,6 +36,30 @@ const REQUEST_TYPE_ROLE_HINT: Partial<Record<ApprovalRequestType, string>> = {
   committee_winner: 'חברי ועדת מכרזים',
 }
 
+// מיפוי סוג בקשה → doc_type ב-tender_documents (לפי CHECK constraint במיגרציה 006)
+const DOC_TYPE_BY_REQUEST: Record<ApprovalRequestType, string> = {
+  budget_approval: 'budget_approval',
+  olma_approval: 'olma_approval',
+  professional_review: 'other',
+  committee_outbound: 'committee_request',
+  committee_winner: 'committee_request',
+}
+
+function formatBytes(b: number): string {
+  if (b < 1024) return `${b} B`
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`
+  return `${(b / 1024 / 1024).toFixed(1)} MB`
+}
+
+function fileIcon(mime: string, name: string): string {
+  const ext = name.split('.').pop()?.toLowerCase() ?? ''
+  if (mime.startsWith('image/')) return '🖼️'
+  if (ext === 'pdf') return '📄'
+  if (['doc', 'docx'].includes(ext)) return '📝'
+  if (['xls', 'xlsx'].includes(ext)) return '📊'
+  return '📎'
+}
+
 export function ApprovalRequestModal({ open, onClose, tenderId, requestType, estimatedAmount, onSubmitted }: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [amount, setAmount] = useState<number>(estimatedAmount ?? 0)
@@ -42,8 +68,11 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
   const [emailDraft, setEmailDraft] = useState('')
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
+  const [files, setFiles] = useState<File[]>([])
+  const [dragActive, setDragActive] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const title = REQUEST_TYPE_LABELS[requestType] ?? 'בקשת אישור'
   const roleHint = REQUEST_TYPE_ROLE_HINT[requestType] ?? 'בעל תפקיד מתאים'
@@ -58,6 +87,8 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
     setSubject('')
     setBody('')
     setNotes('')
+    setFiles([])
+    setDragActive(false)
     setAmount(estimatedAmount ?? 0)
   }
 
@@ -111,6 +142,38 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
     setEmails(emails.filter(e => e !== addr))
   }
 
+  function addFiles(incoming: FileList | File[]) {
+    const arr = Array.from(incoming)
+    const accepted: File[] = []
+    const rejected: string[] = []
+    for (const f of arr) {
+      if (f.size > MAX_FILE_SIZE) {
+        rejected.push(`${f.name} (${formatBytes(f.size)} — חורג מ-10MB)`)
+        continue
+      }
+      if (files.some(existing => existing.name === f.name && existing.size === f.size)) continue
+      accepted.push(f)
+    }
+    if (accepted.length) setFiles([...files, ...accepted])
+    if (rejected.length) setError(`קבצים נדחו: ${rejected.join('; ')}`)
+    else if (accepted.length) setError(null)
+  }
+
+  function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files) addFiles(e.target.files)
+    if (fileInputRef.current) fileInputRef.current.value = '' // אפשר לבחור שוב את אותו קובץ
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    setDragActive(false)
+    if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files)
+  }
+
+  function removeFile(idx: number) {
+    setFiles(files.filter((_, i) => i !== idx))
+  }
+
   async function handleSubmit() {
     setSubmitting(true)
     setError(null)
@@ -162,7 +225,38 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
       }
     }
 
-    // 3. הזנת תור התראות — מייל לכל נמען. אם dispatcher נכשל, לא חוסם את הבקשה.
+    // 3. העלאת קבצים מצורפים → Storage + tender_documents
+    type UploadedDoc = { filename: string; path: string; size: number; mime: string }
+    const uploadedDocs: UploadedDoc[] = []
+    for (const file of files) {
+      const safeName = file.name.replace(/[^\w.\-א-ת ]/g, '_')
+      const path = `${tenderId}/approval-${approvalRow.id}-${Date.now()}-${safeName}`
+      const { error: upErr } = await supabase.storage
+        .from('tender-documents')
+        .upload(path, file, { contentType: file.type, upsert: false })
+      if (upErr) {
+        console.warn(`Failed to upload ${file.name}: ${upErr.message}`)
+        continue // לא חוסם — הבקשה כבר נוצרה
+      }
+      const { error: docErr } = await supabase
+        .from('tender_documents')
+        .insert({
+          tender_id: tenderId,
+          doc_type: DOC_TYPE_BY_REQUEST[requestType],
+          title: file.name,
+          file_ref: path,
+          file_size_bytes: file.size,
+          mime_type: file.type || 'application/octet-stream',
+          metadata: { approval_request_id: approvalRow.id, source: 'approval_request_modal' },
+        })
+      if (docErr) {
+        console.warn(`Uploaded but failed to register ${file.name}: ${docErr.message}`)
+        continue
+      }
+      uploadedDocs.push({ filename: file.name, path, size: file.size, mime: file.type })
+    }
+
+    // 4. הזנת תור התראות — מייל לכל נמען עם רשימת המסמכים בגוף ה-payload
     for (const recipientEmail of emails) {
       const enqRes = await enqueueNotification({
         recipientEmail,
@@ -177,6 +271,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
             role_hint: roleHint,
             body: effectiveBody,
             sla_due_at: slaDueAt.toISOString(),
+            attachments: uploadedDocs,
           },
         },
       })
@@ -221,6 +316,52 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
               placeholder="פרטים נוספים שיוצגו למאשר"
             />
           </div>
+
+          <div className={s.formGroup}>
+            <label className={s.label}>מסמכים תומכים (אופציונלי)</label>
+            <div
+              className={`${s.fileDrop} ${dragActive ? s.fileDropActive : ''}`}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={e => { e.preventDefault(); setDragActive(true) }}
+              onDragLeave={() => setDragActive(false)}
+              onDrop={handleDrop}
+              role="button"
+              tabIndex={0}
+            >
+              <div className={s.fileDropIcon}>📎</div>
+              <div className={s.fileDropText}>לחץ או גרור קבצים לכאן</div>
+              <div className={s.fileDropHint}>PDF, Word, Excel, תמונה · עד 10MB לקובץ</div>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept={ACCEPTED_TYPES}
+              onChange={handleFileInputChange}
+              style={{ display: 'none' }}
+            />
+            {files.length > 0 && (
+              <div className={s.fileList}>
+                {files.map((f, i) => (
+                  <div key={`${f.name}-${i}`} className={s.fileItem}>
+                    <span className={s.fileItemIcon}>{fileIcon(f.type, f.name)}</span>
+                    <span className={s.fileItemName} title={f.name}>{f.name}</span>
+                    <span className={s.fileItemSize}>{formatBytes(f.size)}</span>
+                    <button
+                      type="button"
+                      className={s.fileItemRemove}
+                      onClick={e => { e.stopPropagation(); removeFile(i) }}
+                      aria-label={`הסר ${f.name}`}
+                    >×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className={s.hint}>המסמכים יישמרו בתיק ההליך ויופיעו ב-Tab "מסמכים".</div>
+          </div>
+
+          {error && <div className={s.error}>{error}</div>}
+
           <div className={s.info}>
             ⏱️ SLA: יסתיים ב-{slaDueAt.toLocaleDateString('he-IL')} ({slaDueAt.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })})
           </div>
@@ -229,7 +370,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
             <button
               className={`${s.btn} ${s.btnPrimary}`}
               disabled={isBudgetReq && !(amount > 0)}
-              onClick={() => setStep(2)}
+              onClick={() => { setError(null); setStep(2) }}
             >המשך</button>
           </div>
         </>
@@ -331,6 +472,20 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
             {isBudgetReq && <div><strong>סכום:</strong> {new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)}</div>}
             <div><strong>SLA יסתיים:</strong> {slaDueAt.toLocaleDateString('he-IL')}</div>
             {notes && <div><strong>הערות פנימיות:</strong> {notes}</div>}
+            {files.length > 0 && (
+              <div>
+                <strong>מסמכים מצורפים ({files.length}):</strong>
+                <div className={s.fileList} style={{ marginTop: 6 }}>
+                  {files.map((f, i) => (
+                    <div key={`r-${f.name}-${i}`} className={s.fileItem}>
+                      <span className={s.fileItemIcon}>{fileIcon(f.type, f.name)}</span>
+                      <span className={s.fileItemName} title={f.name}>{f.name}</span>
+                      <span className={s.fileItemSize}>{formatBytes(f.size)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           {error && <div className={s.error}>{error}</div>}
           <div className={s.foot}>
