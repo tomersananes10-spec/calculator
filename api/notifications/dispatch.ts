@@ -1,19 +1,24 @@
-// Notification dispatcher — atomic claim + Gmail SMTP send.
+// Notification dispatcher — atomic claim + Resend send.
 //
 // Required Vercel env vars:
-//   CRON_SECRET            — Bearer secret for cron auth
-//   SUPABASE_URL           — Supabase REST endpoint
-//   SUPABASE_SERVICE_ROLE_KEY — bypasses RLS
-//   GMAIL_USER             — sender Gmail address (e.g. tomersananes10@gmail.com)
-//   GMAIL_APP_PASSWORD     — 16-char Google App Password (NOT regular password)
-//   GMAIL_FROM_NAME        — optional display name (default: "LIBA — מכרזים")
+//   CRON_SECRET                 — Bearer secret for cron auth
+//   SUPABASE_URL                — Supabase REST endpoint
+//   SUPABASE_SERVICE_ROLE_KEY   — bypasses RLS
+//   RESEND_API_KEY              — Resend API key (re_…)
+//   RESEND_FROM                 — optional; default "LIBA — מכרזים <onboarding@resend.dev>"
+//                                 once a domain is verified in Resend, override with e.g.
+//                                 "LIBA <tenders@your-domain.com>"
+//   PUBLIC_BASE_URL             — optional public URL used inside email link bodies
+//                                 (e.g. https://calculator-ashen-delta-32.vercel.app)
 //
 // Atomicity: PATCH with `status=eq.pending` + `id=in.(...)` is atomic in
 // PostgREST. Only one worker advances a row from pending → processing.
 
-import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 
-const BATCH_SIZE = 25  // smaller batch — SMTP is slower than mock
+const BATCH_SIZE = 25
+const DEFAULT_FROM = 'LIBA — מכרזים <onboarding@resend.dev>'
+const DEFAULT_BASE_URL = 'https://calculator-ashen-delta-32.vercel.app'
 
 interface QueueRow {
   id: string
@@ -24,6 +29,7 @@ interface QueueRow {
   notification_type: string
   tender_id: string | null
   payload: Record<string, unknown>
+  retry_count?: number
 }
 
 async function supaFetch(url: string, key: string, init: RequestInit) {
@@ -38,12 +44,9 @@ async function supaFetch(url: string, key: string, init: RequestInit) {
   })
 }
 
-/** Resolve recipient address. For internal users we'd lookup auth.users.email,
- *  but for now we only dispatch external email recipients. */
 async function resolveRecipientEmail(row: QueueRow, supabaseUrl: string, key: string): Promise<string | null> {
   if (row.recipient_email) return row.recipient_email
   if (!row.user_id) return null
-  // Look up the auth user's email via the profiles table (RLS-bypass with service role)
   const res = await supaFetch(
     `${supabaseUrl}/rest/v1/profiles?select=email&id=eq.${row.user_id}`,
     key,
@@ -55,8 +58,6 @@ async function resolveRecipientEmail(row: QueueRow, supabaseUrl: string, key: st
 }
 
 // HTML-escape every untrusted value before interpolating into the email body.
-// Queue rows are writable by authenticated users (RLS allows participants
-// to enqueue), so subject/payload/role_hint/request_type are untrusted input.
 function escHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -66,13 +67,11 @@ function escHtml(s: string): string {
     .replace(/'/g, '&#39;')
 }
 
-// UUID guard for tender_id before embedding in a URL — defence in depth even
-// though tender_id is a uuid column at the DB layer.
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
 }
 
-function buildHtmlBody(row: QueueRow): { subject: string; html: string; text: string } {
+function buildHtmlBody(row: QueueRow, baseUrl: string): { subject: string; html: string; text: string } {
   const rawSubject = row.subject || `התראת מערכת — ${row.notification_type}`
   const payload = row.payload || {}
   const bodyText = (payload.body as string) || ''
@@ -84,7 +83,7 @@ function buildHtmlBody(row: QueueRow): { subject: string; html: string; text: st
   const safeSlaTime = slaDue ? escHtml(new Date(slaDue).toLocaleString('he-IL')) : ''
   const slaLine = safeSlaTime ? `<p style="color:#64748b;font-size:13px">⏱️ SLA יסתיים: ${safeSlaTime}</p>` : ''
   const linkLine = tenderId
-    ? `<p><a href="https://liba.vercel.app/tenders/${encodeURIComponent(tenderId)}" style="color:#2563eb">פתיחת ההליך במערכת ←</a></p>`
+    ? `<p><a href="${escHtml(baseUrl)}/tenders/${encodeURIComponent(tenderId)}" style="color:#2563eb">פתיחת ההליך במערכת ←</a></p>`
     : ''
   const bodyHtml = bodyText
     ? `<div style="background:#f1f5f9;padding:14px 16px;border-radius:8px;margin:14px 0;white-space:pre-wrap">${escHtml(bodyText).replace(/\n/g, '<br>')}</div>`
@@ -103,7 +102,7 @@ function buildHtmlBody(row: QueueRow): { subject: string; html: string; text: st
 </body>
 </html>`
 
-  const text = `${rawSubject}\n\n${bodyText}\n\n${slaDue ? `SLA: ${new Date(slaDue).toLocaleString('he-IL')}\n` : ''}${tenderId ? `https://liba.vercel.app/tenders/${tenderId}\n` : ''}`
+  const text = `${rawSubject}\n\n${bodyText}\n\n${slaDue ? `SLA: ${new Date(slaDue).toLocaleString('he-IL')}\n` : ''}${tenderId ? `${baseUrl}/tenders/${tenderId}\n` : ''}`
 
   return { subject: rawSubject, html, text }
 }
@@ -116,23 +115,24 @@ export default async function handler(req: any, res: any) {
 
   const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  const gmailUser = process.env.GMAIL_USER
-  const gmailPass = process.env.GMAIL_APP_PASSWORD
-  const fromName = process.env.GMAIL_FROM_NAME ?? 'LIBA — מכרזים'
+  const resendKey = process.env.RESEND_API_KEY
+  const fromAddress = process.env.RESEND_FROM ?? DEFAULT_FROM
+  const baseUrl = (process.env.PUBLIC_BASE_URL ?? DEFAULT_BASE_URL).replace(/\/+$/, '')
 
   if (!supabaseUrl || !serviceRoleKey) {
     return res.status(500).json({ ok: false, error: 'Supabase env not configured' })
   }
-  if (!gmailUser || !gmailPass) {
-    return res.status(500).json({ ok: false, error: 'Gmail SMTP env not configured (GMAIL_USER / GMAIL_APP_PASSWORD)' })
+  if (!resendKey) {
+    return res.status(500).json({ ok: false, error: 'RESEND_API_KEY not configured' })
   }
 
+  const resend = new Resend(resendKey)
   const nowIso = new Date().toISOString()
 
   try {
     // 1. Fetch pending candidates
     const candidatesUrl = `${supabaseUrl}/rest/v1/tender_notifications_queue`
-      + `?select=id,recipient_email,user_id,subject,channel,notification_type,tender_id,payload`
+      + `?select=id,recipient_email,user_id,subject,channel,notification_type,tender_id,payload,retry_count`
       + `&status=eq.pending&scheduled_for=lte.${encodeURIComponent(nowIso)}`
       + `&channel=eq.email`
       + `&order=scheduled_for.asc&limit=${BATCH_SIZE}`
@@ -145,8 +145,7 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ ok: true, dispatched: 0, message: 'queue empty' })
     }
 
-    // 2. Atomic claim → 'processing' (so a second worker won't pick same rows).
-    //    Only rows still 'pending' will be claimed by us.
+    // 2. Atomic claim → 'processing'
     const ids = candidates.map(c => c.id)
     const claimUrl = `${supabaseUrl}/rest/v1/tender_notifications_queue`
       + `?id=in.(${ids.join(',')})&status=eq.pending`
@@ -167,13 +166,7 @@ export default async function handler(req: any, res: any) {
     const claimedIds = new Set(claimedRows.map(r => r.id))
     const toSend = candidates.filter(c => claimedIds.has(c.id))
 
-    // 3. Initialize SMTP transporter
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: gmailUser, pass: gmailPass },
-    })
-
-    // 4. Send each. On failure → mark failed + record error. On success → sent.
+    // 3. Send each via Resend
     let sent = 0
     let failed = 0
     for (const row of toSend) {
@@ -188,33 +181,34 @@ export default async function handler(req: any, res: any) {
         continue
       }
 
-      const { subject, html, text } = buildHtmlBody(row)
-      try {
-        await transporter.sendMail({
-          from: `"${fromName}" <${gmailUser}>`,
-          to,
-          subject,
-          html,
-          text,
-        })
-        await supaFetch(`${supabaseUrl}/rest/v1/tender_notifications_queue?id=eq.${row.id}`, serviceRoleKey, {
-          method: 'PATCH',
-          headers: { Prefer: 'return=minimal' },
-          body: JSON.stringify({ status: 'sent', sent_at: new Date().toISOString() }),
-        })
-        sent += 1
-      } catch (sendErr: unknown) {
-        const msg = sendErr instanceof Error ? sendErr.message : 'unknown send error'
+      const { subject, html, text } = buildHtmlBody(row, baseUrl)
+      const result = await resend.emails.send({
+        from: fromAddress,
+        to,
+        subject,
+        html,
+        text,
+      })
+
+      if (result.error) {
+        const msg = result.error.message || 'resend error'
         await supaFetch(`${supabaseUrl}/rest/v1/tender_notifications_queue?id=eq.${row.id}`, serviceRoleKey, {
           method: 'PATCH',
           headers: { Prefer: 'return=minimal' },
           body: JSON.stringify({
             status: 'failed',
             error_message: msg.slice(0, 500),
-            retry_count: (row as unknown as { retry_count?: number }).retry_count ?? 0 + 1,
+            retry_count: (row.retry_count ?? 0) + 1,
           }),
         })
         failed += 1
+      } else {
+        await supaFetch(`${supabaseUrl}/rest/v1/tender_notifications_queue?id=eq.${row.id}`, serviceRoleKey, {
+          method: 'PATCH',
+          headers: { Prefer: 'return=minimal' },
+          body: JSON.stringify({ status: 'sent', sent_at: new Date().toISOString() }),
+        })
+        sent += 1
       }
     }
 
