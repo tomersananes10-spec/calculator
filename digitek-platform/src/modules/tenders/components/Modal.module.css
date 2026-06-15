@@ -73,6 +73,38 @@
   direction: ltr;
 }
 
+/* Autocomplete dropdown for email contacts */
+.autocompleteWrap { position: relative; }
+.autocomplete {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 8px; box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.08));
+  max-height: 240px; overflow-y: auto;
+  z-index: 10;
+  padding: 4px;
+}
+.autocompleteHeader {
+  font-size: 11px; color: var(--text3); font-weight: 600;
+  padding: 6px 10px 4px; text-align: right;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.autocompleteItem {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; border-radius: 6px;
+  cursor: pointer; font-size: 13px;
+  direction: ltr; text-align: left;
+}
+.autocompleteItem:hover, .autocompleteItemActive {
+  background: var(--primary-bg);
+}
+.autocompleteEmail { color: var(--text); font-weight: 500; }
+.autocompleteMeta { color: var(--text3); font-size: 11px; }
+.autocompleteEmpty {
+  padding: 12px; text-align: center;
+  color: var(--text3); font-size: 12px;
+}
+
 .summary {
   background: var(--bg); padding: 14px 16px; border-radius: 8px;
   font-size: 12.5px; margin-bottom: 14px;

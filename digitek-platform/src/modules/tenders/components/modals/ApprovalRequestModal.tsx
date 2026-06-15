@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Modal, StepDots, modalStyles as s } from '../Modal'
 import { supabase } from '../../../../lib/supabase'
 import { computeDueAt } from '../../slaEngine'
 import { enqueueNotification } from '../../lib/notifications'
+import { searchEmailContacts, recordEmailContact, type EmailContact } from '../../lib/emailContacts'
 import type { ApprovalRequestType } from '../../types'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -74,6 +75,12 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Autocomplete state
+  const [suggestions, setSuggestions] = useState<EmailContact[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [highlightedIdx, setHighlightedIdx] = useState(-1)
+  const autocompleteRef = useRef<HTMLDivElement>(null)
+
   const title = REQUEST_TYPE_LABELS[requestType] ?? 'בקשת אישור'
   const roleHint = REQUEST_TYPE_ROLE_HINT[requestType] ?? 'בעל תפקיד מתאים'
   const slaDueAt = computeDueAt(requestType)
@@ -90,6 +97,41 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
     setFiles([])
     setDragActive(false)
     setAmount(estimatedAmount ?? 0)
+    setSuggestions([])
+    setShowSuggestions(false)
+    setHighlightedIdx(-1)
+  }
+
+  // טוען הצעות autocomplete בעת הקלדה/פוקוס (debounced).
+  useEffect(() => {
+    if (step !== 2 || !showSuggestions) return
+    const t = setTimeout(async () => {
+      const results = await searchEmailContacts(emailDraft, emails)
+      setSuggestions(results)
+      setHighlightedIdx(results.length > 0 ? 0 : -1)
+    }, 180)
+    return () => clearTimeout(t)
+  }, [emailDraft, emails, showSuggestions, step])
+
+  // סגירת dropdown ב-click מחוץ.
+  useEffect(() => {
+    if (!showSuggestions) return
+    function handleClickOutside(e: MouseEvent) {
+      if (autocompleteRef.current && !autocompleteRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showSuggestions])
+
+  function selectSuggestion(contact: EmailContact) {
+    if (!emails.includes(contact.email)) {
+      setEmails([...emails, contact.email])
+    }
+    setEmailDraft('')
+    setError(null)
+    // ה-dropdown יישאר פתוח אם המשתמש רוצה להוסיף עוד; הפוקוס נשאר ב-input
   }
 
   function handleClose() {
@@ -114,6 +156,29 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
   }
 
   function handleEmailKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    // ניווט ב-dropdown יש לו עדיפות
+    if (showSuggestions && suggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setHighlightedIdx(i => (i + 1) % suggestions.length)
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setHighlightedIdx(i => (i <= 0 ? suggestions.length - 1 : i - 1))
+        return
+      }
+      if (e.key === 'Enter' && highlightedIdx >= 0) {
+        e.preventDefault()
+        selectSuggestion(suggestions[highlightedIdx])
+        return
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setShowSuggestions(false)
+        return
+      }
+    }
     if (e.key === 'Enter' || e.key === ',' || e.key === ';' || e.key === ' ') {
       e.preventDefault()
       commitEmailDraft()
@@ -256,7 +321,12 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
       uploadedDocs.push({ filename: file.name, path, size: file.size, mime: file.type })
     }
 
-    // 4. הזנת תור התראות — מייל לכל נמען עם רשימת המסמכים בגוף ה-payload
+    // 4. שמירת המיילים למאגר Autofill (non-blocking — לא חוסם את שליחת ההתראות)
+    for (const recipientEmail of emails) {
+      void recordEmailContact(recipientEmail)
+    }
+
+    // 5. הזנת תור התראות — מייל לכל נמען עם רשימת המסמכים בגוף ה-payload
     for (const recipientEmail of emails) {
       const enqRes = await enqueueNotification({
         recipientEmail,
@@ -390,31 +460,58 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
             <label className={`${s.label} ${emails.length === 0 ? s.required : ''}`}>
               כתובות מייל לנמענים
             </label>
-            <div className={s.chipsField}>
-              {emails.map(addr => (
-                <span key={addr} className={s.chip}>
-                  {addr}
-                  <button
-                    type="button"
-                    className={s.chipRemove}
-                    onClick={() => removeEmail(addr)}
-                    aria-label={`הסר ${addr}`}
-                  >×</button>
-                </span>
-              ))}
-              <input
-                className={s.chipInput}
-                type="email"
-                value={emailDraft}
-                onChange={e => setEmailDraft(e.target.value)}
-                onKeyDown={handleEmailKeyDown}
-                onPaste={handleEmailPaste}
-                onBlur={() => commitEmailDraft()}
-                placeholder={emails.length === 0 ? 'name@example.com — ניתן להדביק רשימה' : 'הוסף כתובת נוספת'}
-              />
+            <div className={s.autocompleteWrap} ref={autocompleteRef}>
+              <div className={s.chipsField} onClick={() => setShowSuggestions(true)}>
+                {emails.map(addr => (
+                  <span key={addr} className={s.chip}>
+                    {addr}
+                    <button
+                      type="button"
+                      className={s.chipRemove}
+                      onClick={() => removeEmail(addr)}
+                      aria-label={`הסר ${addr}`}
+                    >×</button>
+                  </span>
+                ))}
+                <input
+                  className={s.chipInput}
+                  type="email"
+                  value={emailDraft}
+                  onChange={e => { setEmailDraft(e.target.value); setShowSuggestions(true) }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onKeyDown={handleEmailKeyDown}
+                  onPaste={handleEmailPaste}
+                  placeholder={emails.length === 0 ? 'name@example.com — ניתן להדביק רשימה' : 'הוסף כתובת נוספת'}
+                />
+              </div>
+              {showSuggestions && suggestions.length > 0 && (
+                <div className={s.autocomplete} role="listbox">
+                  <div className={s.autocompleteHeader}>
+                    {emailDraft.trim() ? 'התאמות מהמאגר' : 'בשימוש לאחרונה'}
+                  </div>
+                  {suggestions.map((c, idx) => (
+                    <div
+                      key={c.id}
+                      role="option"
+                      aria-selected={idx === highlightedIdx}
+                      className={`${s.autocompleteItem} ${idx === highlightedIdx ? s.autocompleteItemActive : ''}`}
+                      onMouseDown={e => { e.preventDefault(); selectSuggestion(c) }}
+                      onMouseEnter={() => setHighlightedIdx(idx)}
+                    >
+                      <span className={s.autocompleteEmail}>{c.email}</span>
+                      <span className={s.autocompleteMeta}>{c.use_count}×</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {showSuggestions && suggestions.length === 0 && emailDraft.trim().length >= 2 && (
+                <div className={s.autocomplete}>
+                  <div className={s.autocompleteEmpty}>אין התאמות במאגר — הזן Enter כדי להוסיף ידנית</div>
+                </div>
+              )}
             </div>
             <div className={s.hint}>
-              Enter / פסיק / רווח כדי להוסיף. ניתן להדביק רשימה מופרדת בפסיקים. Backspace מוחק את האחרון.
+              Enter / פסיק / רווח כדי להוסיף. ניתן להדביק רשימה מופרדת בפסיקים. ↑↓ לבחירה מהמאגר.
             </div>
           </div>
 
