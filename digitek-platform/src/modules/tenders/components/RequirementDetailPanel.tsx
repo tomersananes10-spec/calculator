@@ -4,6 +4,7 @@ import type { TenderDetailData } from '../hooks/useTender'
 import type { TenderApprovalRequest, TenderDocument } from '../types'
 import type { RequirementStatus } from '../data/stageRequirements'
 import { InlineApprovalForm } from './InlineApprovalForm'
+import { DocumentVersionsTable } from './DocumentVersionsTable'
 import styles from './StageRequirementsTab.module.css'
 
 interface Props {
@@ -126,6 +127,13 @@ export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
   // האם המשתמש המחובר הוא נמען של הבקשה? אם כן — נציג לו טופס פעולה.
   const isRecipient = !!currentEmail && recipients.some(r => r.toLowerCase() === currentEmail)
 
+  // אם הגרסה האחרונה נמצאת במצב "התבקש שינוי", אסור לאשר עד שהוגשה גרסה חדשה.
+  const latestVersion = attachments
+    .slice()
+    .sort((a, b) => (b.version ?? 0) - (a.version ?? 0))[0]
+  const latestStatusRaw = (latestVersion?.metadata as Record<string, unknown> | undefined)?.version_status
+  const isWaitingForNewVersion = latestStatusRaw === 'revision_requested'
+
   return (
     <div className={styles.detailPanel}>
       {/* AWAITING — מי, מתי, SLA, מסמכים */}
@@ -187,20 +195,31 @@ export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
 
           {attachments.length > 0 && (
             <div className={styles.detailSection}>
-              <div className={styles.detailLabel}>מסמכים מצורפים ({attachments.length})</div>
-              <div className={styles.attachmentList}>
-                {attachments.map(doc => <AttachmentLink key={doc.id} doc={doc} />)}
-              </div>
+              <DocumentVersionsTable
+                requestId={request.id}
+                tenderId={detail.tender?.id ?? request.tender_id}
+                documents={detail.documents}
+                isRecipient={isRecipient}
+                canUpload={true /* RLS enforces server-side; UI surfaces upload only when allowed */}
+                currentUserEmail={currentEmail}
+                onRefresh={onRefresh}
+              />
             </div>
           )}
 
-          {isRecipient ? (
+          {isRecipient && !isWaitingForNewVersion && (
             <InlineApprovalForm
               request={request}
               tenderId={detail.tender?.id ?? request.tender_id}
               onDecided={() => { if (onRefresh) void onRefresh() }}
             />
-          ) : (
+          )}
+          {isRecipient && isWaitingForNewVersion && (
+            <div className={styles.detailHighlight}>
+              ⏳ ביקשת שינוי בגרסה {latestVersion?.version}. ממתינים להעלאת גרסה חדשה.
+            </div>
+          )}
+          {!isRecipient && (
             <div className={styles.detailHighlight}>
               🔒 רק <strong>{request.requested_role ?? 'המאשר'}</strong> יכול להחליט.
               אתה רואה כאן את הסטטוס בלבד עד שתתקבל החלטה.
@@ -264,10 +283,15 @@ export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
 
           {attachments.length > 0 && (
             <div className={styles.detailSection}>
-              <div className={styles.detailLabel}>מסמכים מצורפים לבקשה ({attachments.length})</div>
-              <div className={styles.attachmentList}>
-                {attachments.map(doc => <AttachmentLink key={doc.id} doc={doc} />)}
-              </div>
+              <DocumentVersionsTable
+                requestId={request.id}
+                tenderId={detail.tender?.id ?? request.tender_id}
+                documents={detail.documents}
+                isRecipient={false /* request already decided — no actions */}
+                canUpload={false}
+                currentUserEmail={currentEmail}
+                onRefresh={onRefresh}
+              />
             </div>
           )}
         </>
