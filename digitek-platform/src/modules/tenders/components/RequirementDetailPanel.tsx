@@ -183,17 +183,6 @@ export function RequirementDetailPanel({ status, detail }: Props) {
             🔒 רק <strong>{request.requested_role ?? 'המאשר'}</strong> יכול להחליט.
             אתה רואה כאן את הסטטוס בלבד עד שתתקבל החלטה.
           </div>
-
-          <div className={styles.detailActions}>
-            <a
-              href={`/approve/${request.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.previewLink}
-            >
-              👁 פתח את מסך הבקשה
-            </a>
-          </div>
         </>
       )}
 
