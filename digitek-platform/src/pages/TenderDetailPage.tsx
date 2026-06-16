@@ -150,7 +150,7 @@ export function TenderDetailPage() {
 
           <div className={styles.tabPanel}>
             {tab === 'requirements' && (
-              <StageRequirementsTab detail={detail} onAction={handleAction} />
+              <StageRequirementsTab detail={detail} onAction={handleAction} onRefresh={refresh} />
             )}
 
             {tab === 'overview' && (

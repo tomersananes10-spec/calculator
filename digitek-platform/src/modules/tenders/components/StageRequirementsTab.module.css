@@ -152,26 +152,111 @@
 .attachmentName { color: var(--text); font-weight: 500; }
 .attachmentSize { color: var(--text3); font-size: 11.5px; }
 
-.detailActions {
-  display: flex;
-  gap: 8px;
-  padding-top: 4px;
-}
-.previewLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
+/* Inline approval form (when current user is the recipient) */
+.inlineForm {
   background: var(--surface);
   border: 1px solid var(--primary-light);
-  border-radius: 8px;
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+.inlineFormTitle {
+  font-size: 13px;
+  font-weight: 700;
   color: var(--primary-dark);
-  font-size: 12.5px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background 0.15s, border-color 0.15s;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
-.previewLink:hover {
+.inlineFormField { display: flex; flex-direction: column; gap: 4px; }
+.inlineLabel {
+  font-size: 12px; font-weight: 600; color: var(--text2);
+}
+.inlineInput, .inlineTextarea {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1.5px solid var(--border2);
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.inlineInput:focus, .inlineTextarea:focus { border-color: var(--primary-light); }
+.inlineTextarea { min-height: 70px; resize: vertical; }
+
+.inlineFileDrop {
+  border: 1.5px dashed var(--border2);
+  border-radius: 7px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text2);
+  background: var(--bg);
+  transition: border-color 0.15s, background 0.15s;
+}
+.inlineFileDrop:hover { border-color: var(--primary); background: var(--primary-bg); }
+.inlineFileList { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.inlineFileItem {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 9px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 6px;
+  font-size: 12px;
+}
+.inlineFileItem > span:first-child { flex: 1; }
+.inlineFileRemove {
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 14px; padding: 0 4px;
+}
+.inlineFileRemove:hover { color: var(--red); }
+
+.inlineCheckbox {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 9px 11px;
   background: var(--primary-bg);
-  border-color: var(--primary);
+  border-radius: 7px;
+  font-size: 12.5px;
+  color: var(--text);
+  cursor: pointer;
+  line-height: 1.5;
 }
+.inlineCheckbox input[type="checkbox"] {
+  width: 16px; height: 16px;
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.inlineError {
+  background: var(--red-bg);
+  color: var(--red);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+}
+
+.inlineActions {
+  display: flex; gap: 8px; justify-content: stretch;
+  padding-top: 4px;
+}
+.inlineBtn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.inlineBtn:hover:not(:disabled) { opacity: 0.92; }
+.inlineBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.inlineBtnApprove { background: var(--green); color: #fff; }
+.inlineBtnReject  { background: var(--red);   color: #fff; }

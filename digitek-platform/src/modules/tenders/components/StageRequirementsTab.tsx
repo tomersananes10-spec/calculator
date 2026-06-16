@@ -7,6 +7,7 @@ import styles from './StageRequirementsTab.module.css'
 interface Props {
   detail: TenderDetailData
   onAction: (action: ActionId) => void
+  onRefresh?: () => void | Promise<void>
 }
 
 const ACTION_BUTTON_LABEL: Record<ActionId, string> = {
@@ -72,7 +73,7 @@ function summaryFor(status: RequirementStatus, fallbackDescription?: string): st
   return fallbackDescription ?? null
 }
 
-export function StageRequirementsTab({ detail, onAction }: Props) {
+export function StageRequirementsTab({ detail, onAction, onRefresh }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const tender = detail.tender
   if (!tender) return null
@@ -156,7 +157,7 @@ export function StageRequirementsTab({ detail, onAction }: Props) {
               )}
             </div>
             {isExpanded && canExpand && (
-              <RequirementDetailPanel status={status} detail={detail} />
+              <RequirementDetailPanel status={status} detail={detail} onRefresh={onRefresh} />
             )}
           </div>
         )
