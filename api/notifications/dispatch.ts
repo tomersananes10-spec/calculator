@@ -45,7 +45,8 @@ async function supaFetch(url: string, key: string, init: RequestInit) {
 }
 
 async function resolveRecipientEmail(row: QueueRow, supabaseUrl: string, key: string): Promise<string | null> {
-  if (row.recipient_email) return row.recipient_email
+  // Normalize to lowercase — Resend rejects case-mismatched recipients on free tier.
+  if (row.recipient_email) return row.recipient_email.trim().toLowerCase()
   if (!row.user_id) return null
   const res = await supaFetch(
     `${supabaseUrl}/rest/v1/profiles?select=email&id=eq.${row.user_id}`,
@@ -54,7 +55,7 @@ async function resolveRecipientEmail(row: QueueRow, supabaseUrl: string, key: st
   )
   if (!res.ok) return null
   const rows: Array<{ email: string }> = await res.json()
-  return rows[0]?.email ?? null
+  return rows[0]?.email?.trim().toLowerCase() ?? null
 }
 
 // HTML-escape every untrusted value before interpolating into the email body.
