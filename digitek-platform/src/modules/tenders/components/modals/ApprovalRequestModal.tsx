@@ -448,9 +448,6 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
 
           {error && <div className={s.error}>{error}</div>}
 
-          <div className={s.info}>
-            ⏱️ SLA: יסתיים ב-{slaDueAt.toLocaleDateString('he-IL')} ({slaDueAt.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })})
-          </div>
           <div className={s.foot}>
             <button className={`${s.btn} ${s.btnSecondary}`} onClick={handleClose}>ביטול</button>
             <button
@@ -583,7 +580,6 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
             <div><strong>נושא:</strong> {subject.trim() || title}</div>
             {body.trim() && <div><strong>תיאור:</strong> {body.trim()}</div>}
             {isBudgetReq && <div><strong>סכום:</strong> {new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)}</div>}
-            <div><strong>SLA יסתיים:</strong> {slaDueAt.toLocaleDateString('he-IL')}</div>
             {notes && <div><strong>הערות פנימיות:</strong> {notes}</div>}
             {files.length > 0 && (
               <div>

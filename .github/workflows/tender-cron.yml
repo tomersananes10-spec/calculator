@@ -7,8 +7,10 @@ name: Tender CRM Cron
 #   - TENDER_CRON_SECRET — חייב להיות זהה ל-CRON_SECRET ב-Vercel env
 
 on:
-  schedule:
-    - cron: '*/10 * * * *'  # כל 10 דקות
+  # ה-schedule מבוטל זמנית (16.06.2026) — היה שולח מייל כשלון כל 10 דק'.
+  # מופעל ידנית בלבד עד שנחליט על ארכיטקטורה חלופית (ראה CLAUDE.md סקשן 11).
+  # schedule:
+  #   - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:
