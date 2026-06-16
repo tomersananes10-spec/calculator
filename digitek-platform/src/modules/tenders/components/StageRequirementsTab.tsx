@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { STAGE_REQUIREMENTS, isRequirementDone, type ActionId, type RequirementStatus } from '../data/stageRequirements'
+import { getStage } from '../data/stagesBaseline'
 import type { TenderDetailData } from '../hooks/useTender'
 import { RequirementDetailPanel } from './RequirementDetailPanel'
 import styles from './StageRequirementsTab.module.css'
@@ -88,9 +89,24 @@ export function StageRequirementsTab({ detail, onAction, onRefresh }: Props) {
     )
   }
 
+  // האם כל הדרישות הושלמו? (או שאין דרישות כלל). אם כן — מציגים CTA למעבר לשלב הבא.
+  const allDone = def.requirements.every(r => isRequirementDone(r.getStatus(detail)))
+  const nextStageDef = getStage(def.nextStage)
+
   return (
     <div className={styles.wrap}>
       <div className={styles.title}>דרישות לסיום השלב הנוכחי</div>
+
+      {def.requirements.length === 0 && (
+        <div className={styles.advanceEmptyState}>
+          <div className={styles.advanceEmptyIcon}>✓</div>
+          <div className={styles.advanceEmptyTitle}>אין דרישות לשלב הזה</div>
+          <div className={styles.advanceEmptyText}>
+            השלב המקדים הוא חד-פעמי. ניתן להמשיך ישירות לשלב הבא.
+          </div>
+        </div>
+      )}
+
       {def.requirements.map(req => {
         const status = req.getStatus(detail)
         const done = isRequirementDone(status)
@@ -162,6 +178,18 @@ export function StageRequirementsTab({ detail, onAction, onRefresh }: Props) {
           </div>
         )
       })}
+
+      {allDone && nextStageDef && (
+        <button
+          type="button"
+          className={styles.advanceBtn}
+          onClick={() => onAction('advance_stage')}
+        >
+          <span>המשך לשלב הבא</span>
+          <span className={styles.advanceBtnNext}>{nextStageDef.label}</span>
+          <span className={styles.advanceBtnArrow}>←</span>
+        </button>
+      )}
     </div>
   )
 }
