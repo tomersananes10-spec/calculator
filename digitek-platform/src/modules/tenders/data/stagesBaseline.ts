@@ -217,8 +217,8 @@ export const STAGE_GROUPS: StageGroupDef[] = [
     label: 'שלב א\' — הכנה והגשה למינהל הרכש',
     shortLabel: 'שלב א\'',
     description: 'בריף + פרוטוקול + אישור תקציבי + ועדת מכרזים + העברה למינהל הרכש',
+    // S0_preconditions בוטל מהזרימה הויזואלית — TenderWizard מחליף אותו בפועל.
     stageCodes: [
-      'S0_preconditions',
       'S1_initiation_budget',
       'S2_olma_approval',
       'S3_committee_outbound',
