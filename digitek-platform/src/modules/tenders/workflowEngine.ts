@@ -65,7 +65,7 @@ const WORKFLOW_S1: WorkflowDefinition = {
 const WORKFLOW_S2: WorkflowDefinition = {
   stage: 'S2_olma_approval',
   initialStepId: 'olma_request',
-  description: 'אישור מינהל הרכש דרך אלמ"ה (מעל 5M בלבד)',
+  description: 'אישור מינהל הרכש (מעל 5M בלבד)',
   steps: {
     olma_request: {
       id: 'olma_request',
@@ -73,7 +73,7 @@ const WORKFLOW_S2: WorkflowDefinition = {
       requestType: 'olma_approval',
       assigneeRole: 'procurement_manager',
       nextOnReject: 'olma_request',
-      description: 'אישור אלמ"ה ע"י מנהל הרכש',
+      description: 'אישור מינהל הרכש',
     },
   },
 }

@@ -196,7 +196,7 @@ export function TenderDetailPage() {
                   <div className={styles.fact}><span className={styles.factLabel}>מספר תיחור חיצוני</span><span className={styles.factValue}>{tender.tender_number_external ?? '—'}</span></div>
                   <div className={styles.fact}><span className={styles.factLabel}>אשכול שירות</span><span className={styles.factValue}>{tender.service_cluster ?? '—'}</span></div>
                   <div className={styles.fact}><span className={styles.factLabel}>דורש עורך מכרז</span><span className={styles.factValue}>{tender.requires_tender_editor ? 'כן' : 'לא'}</span></div>
-                  <div className={styles.fact}><span className={styles.factLabel}>אלמ"ה נדרש</span><span className={styles.factValue}>{tender.requires_olma ? 'כן' : 'לא'}</span></div>
+                  <div className={styles.fact}><span className={styles.factLabel}>אישור מינהל הרכש נדרש</span><span className={styles.factValue}>{tender.requires_olma ? 'כן' : 'לא'}</span></div>
                   <div className={styles.fact}><span className={styles.factLabel}>מסלול פשוט</span><span className={styles.factValue}>{tender.is_simple_path ? 'כן' : 'לא'}</span></div>
                 </div>
 

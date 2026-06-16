@@ -214,7 +214,7 @@ export function TenderWizardPage() {
             <>
               {g1.requiresOlma && (
                 <div className={styles.gatewayWarn}>
-                  <strong>G1:</strong> סכום מעל 5M — נדרש אישור אלמ"ה (שלב S2) לפני ועדת מכרזים
+                  <strong>G1:</strong> סכום מעל 5M — נדרש אישור מינהל הרכש (שלב S2) לפני ועדת מכרזים
                 </div>
               )}
               {g1.isSimplePath && (
@@ -327,7 +327,7 @@ export function TenderWizardPage() {
               <span className={styles.summaryValue}>{serviceCluster || '—'}</span>
             </div>
             <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>אלמ"ה נדרש</span>
+              <span className={styles.summaryLabel}>אישור מינהל הרכש נדרש</span>
               <span className={styles.summaryValue}>{g1.requiresOlma ? 'כן' : 'לא'}</span>
             </div>
             <div className={styles.summaryItem}>

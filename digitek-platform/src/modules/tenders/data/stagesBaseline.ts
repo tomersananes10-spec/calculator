@@ -48,15 +48,15 @@ export const STAGES: StageDefinition[] = [
   {
     code: 'S2_olma_approval',
     stageNumber: 2,
-    label: 'אישור מינהל הרכש (אלמ"ה — מעל 5M)',
+    label: 'אישור מינהל הרכש (מעל 5M)',
     durationDays: 8,
     primaryOwnerRole: 'procurement_manager',
-    endsWithMilestone: { code: 'M2', label: 'אישור אלמ"ה' },
+    endsWithMilestone: { code: 'M2', label: 'אישור מינהל הרכש' },
     isCriticalPath: true,
     isGate: false,
     isOptional: true,
     optionalReason: 'רלוונטי רק לסכום > 5M (Gateway G1)',
-    description: 'אישור מנהל הרכש דרך מערכת אלמ"ה.',
+    description: 'אישור מנהל הרכש.',
   },
   {
     code: 'S3_committee_outbound',

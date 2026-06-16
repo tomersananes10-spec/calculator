@@ -16,7 +16,7 @@ export const GATEWAY_DEFS: Record<GatewayCode, GatewayDefinition> = {
     label: 'סכום הפרויקט',
     location: 'לפני שלב 2',
     options: ['עד 200K (מחיר בלבד)', 'עד 200K עם איכות', '200K-1M', '1M-5M', 'מעל 5M'],
-    description: 'מעל 5M → אישור אלמ"ה; עד 200K + מחיר בלבד → דלג לפרסום ללא ועדה; אחרת → ועדת מכרזים',
+    description: 'מעל 5M → אישור מינהל הרכש; עד 200K + מחיר בלבד → דלג לפרסום ללא ועדה; אחרת → ועדת מכרזים',
   },
   G2: {
     code: 'G2',
@@ -172,7 +172,7 @@ export function shouldSkipStage(
 ): { skip: boolean; reason?: string } {
   if (stage === 'S2_olma_approval') {
     const g1 = evaluateG1_Amount(context.amount, context.selection)
-    if (!g1.requiresOlma) return { skip: true, reason: 'סכום מתחת ל-5M — אישור אלמ"ה לא נדרש' }
+    if (!g1.requiresOlma) return { skip: true, reason: 'סכום מתחת ל-5M — אישור מינהל הרכש לא נדרש' }
   }
   if (stage === 'S3_committee_outbound' || stage === 'S7_committee_winner') {
     const g1 = evaluateG1_Amount(context.amount, context.selection)

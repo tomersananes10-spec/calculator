@@ -12,7 +12,7 @@ import styles from './Dashboard.module.css'
 const STAGE_LABELS: Record<string, string> = {
   preconditions: 'S0 — תנאים מקדימים',
   initiation_budget: 'S1 — ייזום ותקציב',
-  olma_approval: 'S2 — אישור אלמ"ה',
+  olma_approval: 'S2 — אישור מינהל הרכש',
   committee_outbound: 'S3 — ועדת יציאה',
   professional_review: 'S4 — סקירה מקצועית',
   vendor_outreach: 'S5 — פניה לספקים',
