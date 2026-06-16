@@ -1,9 +1,24 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 import { createTender } from '../modules/tenders/hooks/useTender'
 import { evaluateG1_Amount, evaluateG7_WinnerApproval, evaluateG9_ContractTemplate } from '../modules/tenders/data/gateways'
 import type { SelectionType } from '../modules/tenders/types'
 import styles from './TenderWizardPage.module.css'
+
+interface BriefOption {
+  id: string
+  title: string
+  status: string | null
+  created_at: string
+}
+interface CalcOption {
+  id: string
+  name: string
+  ministry: string | null
+  grand_total: number | null
+  created_at: string
+}
 
 const STEPS = [
   { num: 1, label: 'פרטים' },
@@ -31,10 +46,29 @@ export function TenderWizardPage() {
   const [selectionType, setSelectionType] = useState<SelectionType>('quality_price')
   const [serviceCluster, setServiceCluster] = useState<string>('')
 
-  // Step 3
-  // brief / calculation linking — לעתיד עם dropdowns אמיתיים. כרגע ידני (אופציונלי).
+  // Step 3 — קישור לבריף וחישוב מתוך הרשימות של המשתמש
   const [briefId, setBriefId] = useState('')
   const [calculationId, setCalculationId] = useState('')
+  const [briefs, setBriefs] = useState<BriefOption[]>([])
+  const [calculations, setCalculations] = useState<CalcOption[]>([])
+  const [loadingLinks, setLoadingLinks] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      setLoadingLinks(true)
+      const [briefsRes, calcsRes] = await Promise.all([
+        supabase.from('briefs').select('id, title, status, created_at').order('created_at', { ascending: false }).limit(50),
+        supabase.from('calculations').select('id, name, ministry, grand_total, created_at').eq('is_draft', false).order('created_at', { ascending: false }).limit(50),
+      ])
+      if (cancelled) return
+      setBriefs((briefsRes.data as BriefOption[] | null) ?? [])
+      setCalculations((calcsRes.data as CalcOption[] | null) ?? [])
+      setLoadingLinks(false)
+    }
+    void load()
+    return () => { cancelled = true }
+  }, [])
 
   const g1 = useMemo(() => evaluateG1_Amount(amount, selectionType), [amount, selectionType])
   const g7 = useMemo(() => evaluateG7_WinnerApproval(amount, selectionType), [amount, selectionType])
@@ -206,28 +240,58 @@ export function TenderWizardPage() {
       {step === 3 && (
         <div className={styles.panel}>
           <h2 className={styles.panelTitle}>קישור לבריף וחישוב תכ"ם</h2>
-          <p className={styles.panelSub}>אופציונלי — ניתן לקשר אחר כך מתוך תיק ההליך</p>
+          <p className={styles.panelSub}>קשר את הבריף הקיים שכתבת ואת חישוב התכ"ם — אופציונלי, אבל מומלץ. ניתן גם לקשר מאוחר יותר.</p>
+
+          {loadingLinks && <div className={styles.hint}>טוען את הבריפים והחישובים שלך…</div>}
 
           <div className={styles.formRow}>
-            <label className={styles.label}>מזהה בריף (Brief ID)</label>
-            <input
-              className={styles.input}
+            <label className={styles.label}>בריף קיים</label>
+            <select
+              className={styles.select}
               value={briefId}
               onChange={e => setBriefId(e.target.value)}
-              placeholder="UUID של בריף קיים — אופציונלי"
-            />
-            <div className={styles.hint}>ניתן להעתיק מ-URL של בריף ב-/briefs</div>
+              disabled={loadingLinks}
+            >
+              <option value="">— ללא קישור —</option>
+              {briefs.map(b => (
+                <option key={b.id} value={b.id}>
+                  {b.title || '(ללא שם)'}{b.status ? ` · ${b.status}` : ''} · {new Date(b.created_at).toLocaleDateString('he-IL')}
+                </option>
+              ))}
+            </select>
+            <div className={styles.hint}>
+              {briefs.length === 0 && !loadingLinks
+                ? 'אין בריפים שמורים בחשבון שלך. תוכל לכתוב בריף ב-/briefs ולחזור.'
+                : `${briefs.length} בריפים זמינים`}
+            </div>
           </div>
 
           <div className={styles.formRow}>
-            <label className={styles.label}>מזהה חישוב תכ"ם (Calculation ID)</label>
-            <input
-              className={styles.input}
+            <label className={styles.label}>חישוב תכ"ם קיים</label>
+            <select
+              className={styles.select}
               value={calculationId}
               onChange={e => setCalculationId(e.target.value)}
-              placeholder="UUID של חישוב קיים — אופציונלי"
-            />
-            <div className={styles.hint}>ניתן להעתיק מהיסטוריית החישובים שלי</div>
+              disabled={loadingLinks}
+            >
+              <option value="">— ללא קישור —</option>
+              {calculations.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.name || '(ללא שם)'}{c.ministry ? ` · ${c.ministry}` : ''}
+                  {c.grand_total ? ` · ${formatAmount(c.grand_total)}` : ''}
+                  {` · ${new Date(c.created_at).toLocaleDateString('he-IL')}`}
+                </option>
+              ))}
+            </select>
+            <div className={styles.hint}>
+              {calculations.length === 0 && !loadingLinks
+                ? 'אין חישובים שמורים. תוכל לבצע חישוב ב-/calculator ולחזור.'
+                : `${calculations.length} חישובים זמינים`}
+            </div>
+          </div>
+
+          <div className={styles.gatewayInfo} style={{ marginTop: 16 }}>
+            💡 מודול פרוטוקולים יתווסף בקרוב — כאן תוכל גם לקשר פרוטוקול קיים. כרגע נסיים בלי קישור פרוטוקול.
           </div>
         </div>
       )}
