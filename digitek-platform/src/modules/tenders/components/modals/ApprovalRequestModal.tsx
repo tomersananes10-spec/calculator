@@ -23,7 +23,7 @@ interface Props {
 
 const REQUEST_TYPE_LABELS: Partial<Record<ApprovalRequestType, string>> = {
   budget_approval: 'בקשת אישור תקציבי',
-  olma_approval: 'בקשת אישור אלמ"ה',
+  olma_approval: 'בקשת אישור מינהל הרכש',
   professional_review: 'בקשת בדיקת גורם מקצועי',
   committee_outbound: 'בקשת ועדה ליציאה לתיחור',
   committee_winner: 'בקשת ועדה לאישור זוכה',
@@ -31,7 +31,7 @@ const REQUEST_TYPE_LABELS: Partial<Record<ApprovalRequestType, string>> = {
 
 const REQUEST_TYPE_ROLE_HINT: Partial<Record<ApprovalRequestType, string>> = {
   budget_approval: 'תקציבן המערך',
-  olma_approval: 'מנהל הרכש (דרך אלמ"ה)',
+  olma_approval: 'מנהל הרכש',
   professional_review: 'גורם מקצועי במינהל הרכש',
   committee_outbound: 'חברי ועדת מכרזים',
   committee_winner: 'חברי ועדת מכרזים',

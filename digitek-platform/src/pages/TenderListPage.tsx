@@ -16,7 +16,7 @@ const STAGE_FILTER_OPTIONS: { value: TenderStage | 'all'; label: string }[] = [
   { value: 'all', label: 'כל השלבים' },
   { value: 'S0_preconditions', label: '0. מקדים' },
   { value: 'S1_initiation_budget', label: '1. ייזום ותקצוב' },
-  { value: 'S2_olma_approval', label: '2. אישור אלמ"ה' },
+  { value: 'S2_olma_approval', label: '2. אישור מינהל הרכש' },
   { value: 'S3_committee_outbound', label: '3. ועדה — יציאה' },
   { value: 'S4_system_input_review', label: '4. בדיקה במערכת' },
   { value: 'S5_distribution_response', label: '5. הפצה ומענה' },
@@ -147,7 +147,7 @@ export function TenderListPage() {
                 <div className={styles.cardDetails}>
                   <span>משרד: {t.ministry || '—'}</span>
                   <span>סוג: {t.selection_type === 'price_only' ? 'מחיר בלבד' : 'איכות + מחיר'}</span>
-                  {t.requires_olma && <span>אלמ"ה נדרש</span>}
+                  {t.requires_olma && <span>אישור מינהל הרכש נדרש</span>}
                 </div>
               </div>
               <div className={styles.cardRight}>

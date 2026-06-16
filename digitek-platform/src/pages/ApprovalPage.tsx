@@ -8,7 +8,7 @@ const ACCEPTED_TYPES = '.pdf,.doc,.docx,.png,.jpg,.jpeg'
 
 const REQUEST_TYPE_LABELS: Record<string, string> = {
   budget_approval: 'אישור תקציבי',
-  olma_approval: 'אישור אלמ"ה',
+  olma_approval: 'אישור מינהל הרכש',
   professional_review: 'בדיקת גורם מקצועי',
   committee_outbound: 'אישור ועדה ליציאה לתיחור',
   committee_winner: 'אישור ועדה לזוכה',

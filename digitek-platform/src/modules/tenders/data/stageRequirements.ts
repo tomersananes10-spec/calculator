@@ -106,8 +106,8 @@ const REQ_TENDER_NUMBER: StageRequirement = {
 
 const REQ_OLMA_APPROVAL: StageRequirement = {
   id: 'olma_approved',
-  label: 'אישור אלמ"ה (מעל 5M)',
-  description: 'אישור מנהל הרכש דרך מערכת אלמ"ה',
+  label: 'אישור מינהל הרכש (מעל 5M)',
+  description: 'אישור מנהל הרכש',
   approvalRequestType: 'olma_approval',
   getStatus: approvalBasedStatus('olma_approval', d => !d.tender?.requires_olma),
   action: 'create_olma_approval',

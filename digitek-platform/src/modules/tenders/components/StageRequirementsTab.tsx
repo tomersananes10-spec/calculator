@@ -13,7 +13,7 @@ interface Props {
 const ACTION_BUTTON_LABEL: Record<ActionId, string> = {
   create_budget_approval: 'בקש אישור תקציבי',
   set_tender_number: 'הזן מספר תיחור',
-  create_olma_approval: 'בקש אישור אלמ"ה',
+  create_olma_approval: 'בקש אישור מינהל הרכש',
   create_committee_outbound_protocol: 'הכן פרוטוקול ועדה',
   create_professional_review: 'בקש בדיקת גורם מקצועי',
   create_committee_winner_protocol: 'הכן פרוטוקול זכיה',

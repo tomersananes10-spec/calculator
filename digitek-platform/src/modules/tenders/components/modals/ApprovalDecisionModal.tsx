@@ -14,7 +14,7 @@ interface Props {
 
 const TYPE_LABEL: Record<string, string> = {
   budget_approval: 'אישור תקציבי',
-  olma_approval: 'אישור אלמ"ה',
+  olma_approval: 'אישור מינהל הרכש',
   professional_review: 'בדיקת גורם מקצועי',
   committee_outbound: 'ועדה ליציאה לתיחור',
   committee_winner: 'ועדה לאישור זוכה',

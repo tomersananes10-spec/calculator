@@ -35,7 +35,7 @@ export const SLA_DEFINITIONS: Record<ApprovalRequestType, SlaDefinition> = {
     warningDays: 2,
     escalationAfterDays: 10,
     escalateTo: 'admin',
-    description: 'אישור אלמ"ה למכרזים מעל 5M (KPI: ≤7 ימים)',
+    description: 'אישור מינהל הרכש למכרזים מעל 5M (KPI: ≤7 ימים)',
   },
   committee_outbound: {
     requestType: 'committee_outbound',
