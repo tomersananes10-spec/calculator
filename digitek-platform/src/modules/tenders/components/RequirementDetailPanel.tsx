@@ -3,11 +3,13 @@ import { supabase } from '../../../lib/supabase'
 import type { TenderDetailData } from '../hooks/useTender'
 import type { TenderApprovalRequest, TenderDocument } from '../types'
 import type { RequirementStatus } from '../data/stageRequirements'
+import { InlineApprovalForm } from './InlineApprovalForm'
 import styles from './StageRequirementsTab.module.css'
 
 interface Props {
   status: RequirementStatus
   detail: TenderDetailData
+  onRefresh?: () => void | Promise<void>
 }
 
 function formatBytes(b: number | null | undefined) {
@@ -96,7 +98,17 @@ function AttachmentLink({ doc }: { doc: TenderDocument }) {
   )
 }
 
-export function RequirementDetailPanel({ status, detail }: Props) {
+export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
+  const [currentEmail, setCurrentEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled) setCurrentEmail(data?.user?.email?.toLowerCase() ?? null)
+    })
+    return () => { cancelled = true }
+  }, [])
+
   if (status.state === 'not_started' || status.state === 'satisfied') {
     return null
   }
@@ -110,6 +122,9 @@ export function RequirementDetailPanel({ status, detail }: Props) {
   const isAwaiting = status.state === 'awaiting'
   const isApproved = status.state === 'approved'
   const isRejected = status.state === 'rejected'
+
+  // האם המשתמש המחובר הוא נמען של הבקשה? אם כן — נציג לו טופס פעולה.
+  const isRecipient = !!currentEmail && recipients.some(r => r.toLowerCase() === currentEmail)
 
   return (
     <div className={styles.detailPanel}>
@@ -179,10 +194,18 @@ export function RequirementDetailPanel({ status, detail }: Props) {
             </div>
           )}
 
-          <div className={styles.detailHighlight}>
-            🔒 רק <strong>{request.requested_role ?? 'המאשר'}</strong> יכול להחליט.
-            אתה רואה כאן את הסטטוס בלבד עד שתתקבל החלטה.
-          </div>
+          {isRecipient ? (
+            <InlineApprovalForm
+              request={request}
+              tenderId={detail.tender?.id ?? request.tender_id}
+              onDecided={() => { if (onRefresh) void onRefresh() }}
+            />
+          ) : (
+            <div className={styles.detailHighlight}>
+              🔒 רק <strong>{request.requested_role ?? 'המאשר'}</strong> יכול להחליט.
+              אתה רואה כאן את הסטטוס בלבד עד שתתקבל החלטה.
+            </div>
+          )}
         </>
       )}
 
