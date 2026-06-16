@@ -176,17 +176,25 @@
   font-size: 13.5px;
 }
 
-.adminBanner {
+.viewOnlyPanel {
+  margin-top: 22px;
+  padding: 18px 20px;
   background: var(--primary-bg);
-  color: var(--primary-dark);
+  border-radius: 10px;
   border-right: 4px solid var(--primary);
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 14px;
-  font-size: 13px;
-  line-height: 1.55;
 }
-.adminBanner strong { font-weight: 700; }
+.viewOnlyTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 6px;
+}
+.viewOnlyText {
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.6;
+}
+.viewOnlyText strong { font-weight: 700; }
 
 .successCard {
   text-align: center;

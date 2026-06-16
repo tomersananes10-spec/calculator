@@ -63,9 +63,8 @@ export function ApprovalPage() {
   const [submitted, setSubmitted] = useState<null | 'approved' | 'rejected'>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  // Admin/owner preview mode — אדמין או בעל ההליך נכנס בלי token (לצפייה/חתימה).
+  // Admin/owner view-only mode — נכנס בלי token. רואה את כל הפרטים אבל לא יכול להחליט.
   const [adminMode, setAdminMode] = useState(false)
-  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -124,7 +123,6 @@ export function ApprovalPage() {
         .maybeSingle()
 
       setAdminMode(true)
-      setCurrentUserEmail(user.email ?? null)
       setData({
         request_id: reqRow.id,
         tender_id: reqRow.tender_id,
@@ -190,25 +188,8 @@ export function ApprovalPage() {
       else console.warn('attachment upload failed:', upErr.message)
     }
 
-    // Admin/owner path: mint a token on-the-fly so the decision goes through
-    // the same audited RPC + state-guard flow. The token is single-use and
-    // gets marked used immediately by the decide RPC.
-    let effectiveToken = token
-    if (adminMode) {
-      const { data: mintedToken, error: mintErr } = await supabase.rpc('mint_approval_token', {
-        p_request_id: data.request_id,
-        p_recipient_email: currentUserEmail ?? 'admin@liba.local',
-      })
-      if (mintErr || !mintedToken) {
-        setSubmitting(false)
-        setSubmitError(mintErr?.message ?? 'כשל ביצירת token לאדמין')
-        return
-      }
-      effectiveToken = mintedToken as string
-    }
-
     const { error: rpcErr } = await supabase.rpc('tender_approval_decide_by_token', {
-      p_token: effectiveToken,
+      p_token: token,
       p_decision: decision,
       p_comments: comments.trim() || null,
       p_signature_name: signatureName.trim(),
@@ -266,13 +247,6 @@ export function ApprovalPage() {
                 {data.tender_number ? ` · ${data.tender_number}` : ''}
               </div>
 
-              {adminMode && (
-                <div className={styles.adminBanner}>
-                  🔓 <strong>תצוגת אדמין/בעל הליך</strong> — אתה רואה כאן את אותו מסך שהמאשר רואה.
-                  ההחלטה שלך תיחתם בשמך ותתועד באודיט. אם אתה רק רוצה לראות, אל תלחץ אשר/דחה.
-                </div>
-              )}
-
               {data.is_used && (
                 <div className={styles.notice}>
                   הקישור הזה כבר נוצל ב-{new Date(data.used_at ?? '').toLocaleString('he-IL')}. החלטה חדשה לא תישמר.
@@ -326,98 +300,118 @@ export function ApprovalPage() {
                 </div>
               )}
 
-              <div className={styles.section}>
-                <label className={styles.label}>הערות {' '}<span style={{ fontWeight: 400, color: 'var(--text3)' }}>(חובה בדחיה)</span></label>
-                <textarea
-                  className={styles.textarea}
-                  value={comments}
-                  onChange={e => setComments(e.target.value)}
-                  placeholder="הוסף הערות, תנאים, נימוקים…"
-                  disabled={data.is_used || data.is_expired}
-                />
-              </div>
-
-              <div className={styles.section}>
-                <div className={styles.sectionTitle}>מסמכים מצורפים (אופציונלי)</div>
-                <div
-                  className={styles.fileDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={e => { e.preventDefault(); if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files) }}
-                >
-                  <div className={styles.fileDropText}>לחץ או גרור מסמך חתום</div>
-                  <div className={styles.fileDropHint}>PDF / Word / תמונה · עד 10MB</div>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept={ACCEPTED_TYPES}
-                  onChange={e => { if (e.target.files) handleFiles(e.target.files); if (fileInputRef.current) fileInputRef.current.value = '' }}
-                  style={{ display: 'none' }}
-                />
-                {files.length > 0 && (
-                  <div className={styles.fileList}>
-                    {files.map((f, i) => (
-                      <div key={`${f.name}-${i}`} className={styles.fileItem}>
-                        <span className={styles.fileItemName}>📎 {f.name}</span>
-                        <span className={styles.fileItemSize}>{formatBytes(f.size)}</span>
-                        <button
-                          type="button"
-                          className={styles.fileItemRemove}
-                          onClick={() => setFiles(files.filter((_, idx) => idx !== i))}
-                          aria-label={`הסר ${f.name}`}
-                        >×</button>
-                      </div>
-                    ))}
+              {/* כל החלקים מתחת — שדות הקלט והכפתורים — מוצגים רק למאשר עצמו
+                  (מי שנכנס עם token חוקי). משתמשים מורשים אחרים (admin, owner)
+                  רואים את הפרטים אבל לא יכולים להחליט מכאן. */}
+              {!adminMode && (
+                <>
+                  <div className={styles.section}>
+                    <label className={styles.label}>הערות {' '}<span style={{ fontWeight: 400, color: 'var(--text3)' }}>(חובה בדחיה)</span></label>
+                    <textarea
+                      className={styles.textarea}
+                      value={comments}
+                      onChange={e => setComments(e.target.value)}
+                      placeholder="הוסף הערות, תנאים, נימוקים…"
+                      disabled={data.is_used || data.is_expired}
+                    />
                   </div>
-                )}
-              </div>
 
-              <div className={styles.section}>
-                <label className={`${styles.label} ${styles.required}`}>שם מלא (חתימה)</label>
-                <input
-                  className={styles.input}
-                  type="text"
-                  value={signatureName}
-                  onChange={e => setSignatureName(e.target.value)}
-                  placeholder="ישראל ישראלי"
-                  disabled={data.is_used || data.is_expired}
-                />
-                <div className={styles.hint}>השם שלך יישמר באודיט כראיה לחתימה אלקטרונית.</div>
+                  <div className={styles.section}>
+                    <div className={styles.sectionTitle}>מסמכים מצורפים (אופציונלי)</div>
+                    <div
+                      className={styles.fileDrop}
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={e => e.preventDefault()}
+                      onDrop={e => { e.preventDefault(); if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files) }}
+                    >
+                      <div className={styles.fileDropText}>לחץ או גרור מסמך חתום</div>
+                      <div className={styles.fileDropHint}>PDF / Word / תמונה · עד 10MB</div>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept={ACCEPTED_TYPES}
+                      onChange={e => { if (e.target.files) handleFiles(e.target.files); if (fileInputRef.current) fileInputRef.current.value = '' }}
+                      style={{ display: 'none' }}
+                    />
+                    {files.length > 0 && (
+                      <div className={styles.fileList}>
+                        {files.map((f, i) => (
+                          <div key={`${f.name}-${i}`} className={styles.fileItem}>
+                            <span className={styles.fileItemName}>📎 {f.name}</span>
+                            <span className={styles.fileItemSize}>{formatBytes(f.size)}</span>
+                            <button
+                              type="button"
+                              className={styles.fileItemRemove}
+                              onClick={() => setFiles(files.filter((_, idx) => idx !== i))}
+                              aria-label={`הסר ${f.name}`}
+                            >×</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
-                <div className={styles.checkboxRow}>
-                  <input
-                    type="checkbox"
-                    id="ack"
-                    checked={acknowledged}
-                    onChange={e => setAcknowledged(e.target.checked)}
-                    disabled={data.is_used || data.is_expired}
-                  />
-                  <label htmlFor="ack">
-                    אני מאשר/ת כי בחנתי את הבקשה ואני מקבל/ת אחריות על החלטתי. ההחלטה תישמר במערכת עם חותמת זמן ושמי.
-                  </label>
+                  <div className={styles.section}>
+                    <label className={`${styles.label} ${styles.required}`}>שם מלא (חתימה)</label>
+                    <input
+                      className={styles.input}
+                      type="text"
+                      value={signatureName}
+                      onChange={e => setSignatureName(e.target.value)}
+                      placeholder="ישראל ישראלי"
+                      disabled={data.is_used || data.is_expired}
+                    />
+                    <div className={styles.hint}>השם שלך יישמר באודיט כראיה לחתימה אלקטרונית.</div>
+
+                    <div className={styles.checkboxRow}>
+                      <input
+                        type="checkbox"
+                        id="ack"
+                        checked={acknowledged}
+                        onChange={e => setAcknowledged(e.target.checked)}
+                        disabled={data.is_used || data.is_expired}
+                      />
+                      <label htmlFor="ack">
+                        אני מאשר/ת כי בחנתי את הבקשה ואני מקבל/ת אחריות על החלטתי. ההחלטה תישמר במערכת עם חותמת זמן ושמי.
+                      </label>
+                    </div>
+                  </div>
+
+                  {submitError && <div className={styles.error}>{submitError}</div>}
+
+                  <div className={styles.actions}>
+                    <button
+                      className={`${styles.btn} ${styles.btnReject}`}
+                      disabled={submitting || data.is_used || data.is_expired}
+                      onClick={() => submit('rejected')}
+                    >
+                      ❌ דחה
+                    </button>
+                    <button
+                      className={`${styles.btn} ${styles.btnApprove}`}
+                      disabled={submitting || data.is_used || data.is_expired}
+                      onClick={() => submit('approved')}
+                    >
+                      ✓ אשר
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {adminMode && (
+                <div className={styles.viewOnlyPanel}>
+                  <div className={styles.viewOnlyTitle}>בקשה ממתינה להחלטה</div>
+                  <div className={styles.viewOnlyText}>
+                    החלטה זו תתקבל ע״י <strong>{data.requested_role ?? 'המאשר המוגדר'}</strong>.
+                    הקישור לחתימה נשלח במייל ל-<strong style={{ direction: 'ltr', display: 'inline-block' }}>{data.recipient_email}</strong>.
+                  </div>
+                  <div className={styles.viewOnlyText} style={{ marginTop: 8, fontSize: 12.5, color: 'var(--text3)' }}>
+                    ההחלטה תופיע כאן אוטומטית ברגע שתתקבל.
+                  </div>
                 </div>
-              </div>
-
-              {submitError && <div className={styles.error}>{submitError}</div>}
-
-              <div className={styles.actions}>
-                <button
-                  className={`${styles.btn} ${styles.btnReject}`}
-                  disabled={submitting || data.is_used || data.is_expired}
-                  onClick={() => submit('rejected')}
-                >
-                  ❌ דחה
-                </button>
-                <button
-                  className={`${styles.btn} ${styles.btnApprove}`}
-                  disabled={submitting || data.is_used || data.is_expired}
-                  onClick={() => submit('approved')}
-                >
-                  ✓ אשר
-                </button>
-              </div>
+              )}
             </>
           )}
         </div>
