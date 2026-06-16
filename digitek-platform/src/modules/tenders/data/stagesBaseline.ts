@@ -193,3 +193,66 @@ export function getStage(code: TenderStage): StageDefinition | undefined {
 // סה"כ ימי עבודה
 export const TOTAL_DAYS_GO_LIVE = 129  // עד M9
 export const TOTAL_DAYS_FULL = 209     // עד M10
+
+// ───────── שלבי-על ─────────
+// 12 השלבים הרשמיים מקובצים ל-2 שלבי-על המשקפים את הזרימה האמיתית:
+//   שלב א' (pre-tender)  = ייזום + תקצוב + ועדה ליציאה + הזנה למינהל הרכש
+//   שלב ב' (execution)    = הפצה + בחירה + זכייה + חוזה + ביצוע + סגירה
+//
+// ה-DB ממשיך לעבוד עם 12 הקודים (S0..S12) — קיבוץ ויזואלי בלבד ל-UI.
+
+export type StageGroup = 'A_pre_tender' | 'B_execution'
+
+export interface StageGroupDef {
+  code: StageGroup
+  label: string
+  shortLabel: string
+  description: string
+  stageCodes: TenderStage[]
+}
+
+export const STAGE_GROUPS: StageGroupDef[] = [
+  {
+    code: 'A_pre_tender',
+    label: 'שלב א\' — הכנה והגשה למינהל הרכש',
+    shortLabel: 'שלב א\'',
+    description: 'בריף + פרוטוקול + אישור תקציבי + ועדת מכרזים + העברה למינהל הרכש',
+    stageCodes: [
+      'S0_preconditions',
+      'S1_initiation_budget',
+      'S2_olma_approval',
+      'S3_committee_outbound',
+      'S4_system_input_review',
+    ],
+  },
+  {
+    code: 'B_execution',
+    label: 'שלב ב\' — ביצוע התיחור',
+    shortLabel: 'שלב ב\'',
+    description: 'הפצה, בחירת ספק, חוזה, ביצוע אבני דרך, סגירה',
+    stageCodes: [
+      'S5_distribution_response',
+      'S6_proposal_evaluation',
+      'S7_committee_winner',
+      'S8_contract',
+      'S9_purchase_order',
+      'S10_execution_m1',
+      'S11_execution_m2',
+      'S12_closure_evaluation',
+    ],
+  },
+]
+
+export function getStageGroup(stage: TenderStage): StageGroupDef | null {
+  for (const g of STAGE_GROUPS) {
+    if (g.stageCodes.includes(stage)) return g
+  }
+  return null
+}
+
+/** מספר הסידורי של השלב בתוך השלב-העל שלו (1-based) */
+export function getStageIndexInGroup(stage: TenderStage): number {
+  const group = getStageGroup(stage)
+  if (!group) return 0
+  return group.stageCodes.indexOf(stage) + 1
+}
