@@ -1,9 +1,9 @@
 name: Tender CRM Cron
 
-# מפעיל פעם בשעה את endpoint ה-SLA ופעם ב-5 דקות את ה-notifications dispatcher.
+# מפעיל את ה-notifications dispatcher כל 10 דק' ואת ה-SLA check פעם בשעה.
 # מחליף את vercel.json cron שלא עבד בעבר.
 # דורש secrets ב-GitHub repo:
-#   - VERCEL_BASE_URL — URL של ה-deployment (למשל https://calculator-git-develop-...vercel.app)
+#   - VERCEL_BASE_URL — URL של ה-prod (למשל https://calculator-ashen-delta-32.vercel.app)
 #   - TENDER_CRON_SECRET — חייב להיות זהה ל-CRON_SECRET ב-Vercel env
 
 on:
@@ -24,11 +24,15 @@ jobs:
             echo "::warning::VERCEL_BASE_URL or TENDER_CRON_SECRET secret missing — skipping"
             exit 0
           fi
-          # ה-SLA check רץ רק פעם בשעה (בדקה 0)
           minute=$(date +%M)
           if [ "$minute" = "00" ] || [ "$minute" = "0" ]; then
+            # --retry 5 + --retry-delay 15 + --retry-all-errors: עמידות
+            # ל-Vercel redeploy windows (~30-90 שניות). אחרי 5 ניסיונות
+            # עם 15s הפסקה (~75s סך), כישלון אמיתי עדיין יתפוצץ.
             response=$(curl -sS -X POST "$BASE/api/cron/sla-check" \
               -H "Authorization: Bearer $SECRET" \
+              --retry 5 --retry-delay 15 --retry-all-errors \
+              --max-time 60 \
               -w "\nHTTP_STATUS:%{http_code}")
             echo "$response"
           else
@@ -46,5 +50,7 @@ jobs:
           fi
           response=$(curl -sS -X POST "$BASE/api/notifications/dispatch" \
             -H "Authorization: Bearer $SECRET" \
+            --retry 5 --retry-delay 15 --retry-all-errors \
+            --max-time 60 \
             -w "\nHTTP_STATUS:%{http_code}")
           echo "$response"
