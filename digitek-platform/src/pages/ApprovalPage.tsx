@@ -63,28 +63,83 @@ export function ApprovalPage() {
   const [submitted, setSubmitted] = useState<null | 'approved' | 'rejected'>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
+  // Admin/owner preview mode — אדמין או בעל ההליך נכנס בלי token (לצפייה/חתימה).
+  const [adminMode, setAdminMode] = useState(false)
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null)
+
   useEffect(() => {
     let cancelled = false
     async function load() {
-      if (!token) {
-        setLoadError('חסר token בכתובת. השתמש בקישור שקיבלת במייל.')
+      // Path 1 — Token (לקוח חיצוני / מאשר עם הקישור מהמייל)
+      if (token) {
+        const { data: rows, error } = await supabase.rpc('redeem_approval_token', { p_token: token })
+        if (cancelled) return
+        if (error) {
+          setLoadError(error.message)
+        } else if (!rows || rows.length === 0) {
+          setLoadError('Token לא תקין. ייתכן שהקישור פג תוקף או שכבר נעשה בו שימוש.')
+        } else {
+          const row = rows[0] as RedeemedRequest
+          if (requestId && row.request_id !== requestId) {
+            setLoadError('Token לא תואם לבקשה המבוקשת.')
+          } else {
+            setData(row)
+          }
+        }
         setLoading(false)
         return
       }
-      const { data: rows, error } = await supabase.rpc('redeem_approval_token', { p_token: token })
-      if (cancelled) return
-      if (error) {
-        setLoadError(error.message)
-      } else if (!rows || rows.length === 0) {
-        setLoadError('Token לא תקין. ייתכן שהקישור פג תוקף או שכבר נעשה בו שימוש.')
-      } else {
-        const row = rows[0] as RedeemedRequest
-        if (requestId && row.request_id !== requestId) {
-          setLoadError('Token לא תואם לבקשה המבוקשת.')
-        } else {
-          setData(row)
-        }
+
+      // Path 2 — No token: try admin/owner direct access via RLS
+      if (!requestId) {
+        setLoadError('חסר מזהה בקשה.')
+        setLoading(false)
+        return
       }
+
+      const { data: userData } = await supabase.auth.getUser()
+      const user = userData?.user
+      if (!user) {
+        setLoadError('חסר token בכתובת. השתמש בקישור שקיבלת במייל, או היכנס למערכת כדי לצפות.')
+        setLoading(false)
+        return
+      }
+
+      // Authenticated — fetch the request directly. RLS allows tender owner + admin only.
+      const { data: reqRow, error: reqErr } = await supabase
+        .from('tender_approval_requests')
+        .select('id, tender_id, request_type, status, requested_role, sla_due_at, metadata')
+        .eq('id', requestId)
+        .maybeSingle()
+      if (cancelled) return
+      if (reqErr || !reqRow) {
+        setLoadError(reqErr?.message ?? 'בקשה לא נמצאה או שאין לך הרשאה לצפות בה.')
+        setLoading(false)
+        return
+      }
+      const { data: tenderRow } = await supabase
+        .from('tenders')
+        .select('title, tender_number')
+        .eq('id', reqRow.tender_id)
+        .maybeSingle()
+
+      setAdminMode(true)
+      setCurrentUserEmail(user.email ?? null)
+      setData({
+        request_id: reqRow.id,
+        tender_id: reqRow.tender_id,
+        tender_title: tenderRow?.title ?? null,
+        tender_number: tenderRow?.tender_number ?? null,
+        request_type: reqRow.request_type,
+        status: reqRow.status,
+        requested_role: reqRow.requested_role,
+        sla_due_at: reqRow.sla_due_at,
+        metadata: reqRow.metadata ?? null,
+        recipient_email: user.email ?? '',
+        is_used: false,
+        is_expired: false,
+        used_at: null,
+      })
       setLoading(false)
     }
     load()
@@ -135,8 +190,25 @@ export function ApprovalPage() {
       else console.warn('attachment upload failed:', upErr.message)
     }
 
+    // Admin/owner path: mint a token on-the-fly so the decision goes through
+    // the same audited RPC + state-guard flow. The token is single-use and
+    // gets marked used immediately by the decide RPC.
+    let effectiveToken = token
+    if (adminMode) {
+      const { data: mintedToken, error: mintErr } = await supabase.rpc('mint_approval_token', {
+        p_request_id: data.request_id,
+        p_recipient_email: currentUserEmail ?? 'admin@liba.local',
+      })
+      if (mintErr || !mintedToken) {
+        setSubmitting(false)
+        setSubmitError(mintErr?.message ?? 'כשל ביצירת token לאדמין')
+        return
+      }
+      effectiveToken = mintedToken as string
+    }
+
     const { error: rpcErr } = await supabase.rpc('tender_approval_decide_by_token', {
-      p_token: token,
+      p_token: effectiveToken,
       p_decision: decision,
       p_comments: comments.trim() || null,
       p_signature_name: signatureName.trim(),
@@ -193,6 +265,13 @@ export function ApprovalPage() {
                 {data.tender_title ? `הליך: ${data.tender_title}` : ''}
                 {data.tender_number ? ` · ${data.tender_number}` : ''}
               </div>
+
+              {adminMode && (
+                <div className={styles.adminBanner}>
+                  🔓 <strong>תצוגת אדמין/בעל הליך</strong> — אתה רואה כאן את אותו מסך שהמאשר רואה.
+                  ההחלטה שלך תיחתם בשמך ותתועד באודיט. אם אתה רק רוצה לראות, אל תלחץ אשר/דחה.
+                </div>
+              )}
 
               {data.is_used && (
                 <div className={styles.notice}>
