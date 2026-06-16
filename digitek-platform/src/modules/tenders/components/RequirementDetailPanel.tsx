@@ -193,19 +193,17 @@ export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
             </div>
           )}
 
-          {attachments.length > 0 && (
-            <div className={styles.detailSection}>
-              <DocumentVersionsTable
-                requestId={request.id}
-                tenderId={detail.tender?.id ?? request.tender_id}
-                documents={detail.documents}
-                isRecipient={isRecipient}
-                canUpload={true /* RLS enforces server-side; UI surfaces upload only when allowed */}
-                currentUserEmail={currentEmail}
-                onRefresh={onRefresh}
-              />
-            </div>
-          )}
+          <div className={styles.detailSection}>
+            <DocumentVersionsTable
+              requestId={request.id}
+              tenderId={detail.tender?.id ?? request.tender_id}
+              documents={detail.documents}
+              isRecipient={isRecipient}
+              canUpload={true /* RLS enforces server-side; UI surfaces upload only when allowed */}
+              currentUserEmail={currentEmail}
+              onRefresh={onRefresh}
+            />
+          </div>
 
           {isRecipient && !isWaitingForNewVersion && (
             <InlineApprovalForm
@@ -288,7 +286,7 @@ export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
                 tenderId={detail.tender?.id ?? request.tender_id}
                 documents={detail.documents}
                 isRecipient={false /* request already decided — no actions */}
-                canUpload={false}
+                canUpload={false /* request closed — no more uploads */}
                 currentUserEmail={currentEmail}
                 onRefresh={onRefresh}
               />

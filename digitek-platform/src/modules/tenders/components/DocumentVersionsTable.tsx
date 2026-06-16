@@ -135,8 +135,9 @@ export function DocumentVersionsTable({
 
   const latest = versions[0]
   const latestStatus = latest?.status
+  // Allow upload when no versions exist yet (initial v1) OR latest is revision_requested.
   const canUploadNew =
-    canUpload && latest != null && latestStatus === 'revision_requested'
+    canUpload && (versions.length === 0 || latestStatus === 'revision_requested')
 
   async function submitRevision(docId: string) {
     if (!revisionComment.trim()) {
@@ -202,17 +203,28 @@ export function DocumentVersionsTable({
     if (onRefresh) void onRefresh()
   }
 
-  if (versions.length === 0) {
-    return null
-  }
-
   return (
     <div className={styles.vWrap}>
       <div className={styles.vHeader}>
         <span className={styles.vHeaderTitle}>📄 גרסאות המסמך</span>
-        <span className={styles.vHeaderCount}>{versions.length} {versions.length === 1 ? 'גרסה' : 'גרסאות'}</span>
+        {versions.length > 0 && (
+          <span className={styles.vHeaderCount}>{versions.length} {versions.length === 1 ? 'גרסה' : 'גרסאות'}</span>
+        )}
       </div>
 
+      {versions.length === 0 && (
+        <div className={styles.vEmpty}>
+          <div className={styles.vEmptyIcon}>📄</div>
+          <div className={styles.vEmptyTitle}>אין מסמך מצורף לבקשה</div>
+          <div className={styles.vEmptyText}>
+            {canUpload
+              ? 'תוכל להעלות את הגרסה הראשונה (v1) למטה.'
+              : 'המעלה עדיין לא צירף את המסמך הראשון.'}
+          </div>
+        </div>
+      )}
+
+      {versions.length > 0 && (
       <table className={styles.vTable}>
         <thead>
           <tr>
@@ -322,14 +334,17 @@ export function DocumentVersionsTable({
           })}
         </tbody>
       </table>
+      )}
 
-      {/* Upload new version (only when latest is revision_requested) */}
+      {/* Upload v1 (no versions yet) or new version (when latest is revision_requested) */}
       {canUploadNew && !uploadOpen && (
         <button
           className={`${styles.vBtn} ${styles.vBtnPrimary} ${styles.vUploadTrigger}`}
           onClick={() => setUploadOpen(true)}
         >
-          📤 העלה גרסה חדשה (v{(latest?.doc.version ?? 0) + 1})
+          {versions.length === 0
+            ? '📤 העלה את המסמך (v1)'
+            : `📤 העלה גרסה חדשה (v${(latest?.doc.version ?? 0) + 1})`}
         </button>
       )}
 
