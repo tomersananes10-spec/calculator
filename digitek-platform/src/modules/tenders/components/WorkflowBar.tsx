@@ -61,7 +61,7 @@ export function WorkflowBar({ tender, requirements, onAdvance }: Props) {
             className={styles.btn}
             disabled={!requirements.canAdvance}
             onClick={onAdvance}
-            title={requirements.canAdvance ? undefined : 'יש להשלים את כל הדרישות הבלוקריות'}
+            title={requirements.canAdvance ? undefined : 'יש להשלים את כל דרישות החובה'}
           >
             {requirements.canAdvance ? 'המשך לפעולה ←' : 'דרישות פתוחות'}
           </button>

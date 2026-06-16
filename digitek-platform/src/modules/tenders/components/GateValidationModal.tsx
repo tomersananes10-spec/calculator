@@ -39,7 +39,7 @@ export function GateValidationModal({ open, onClose, tender, requirements, onAdv
       {requirements.canAdvance ? (
         <>
           <div className={s.info}>
-            ✓ כל הדרישות הבלוקריות מולאו. ניתן להעביר את ההליך
+            ✓ כל דרישות החובה מולאו. ניתן להעביר את ההליך
             {nextStageDef && <> לשלב <strong>{nextStageDef.stageNumber}. {nextStageDef.label}</strong></>}.
           </div>
           <div className={s.formGroup}>
