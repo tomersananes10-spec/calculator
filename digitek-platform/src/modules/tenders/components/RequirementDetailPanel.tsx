@@ -191,7 +191,7 @@ export function RequirementDetailPanel({ status, detail }: Props) {
               rel="noopener noreferrer"
               className={styles.previewLink}
             >
-              👁 פתח את מסך המאשר (תצוגת אדמין)
+              👁 פתח את מסך הבקשה
             </a>
           </div>
         </>
