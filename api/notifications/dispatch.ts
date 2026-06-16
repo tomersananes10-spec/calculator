@@ -81,11 +81,26 @@ function buildHtmlBody(row: QueueRow, baseUrl: string): { subject: string; html:
   const reqType = (payload.request_type as string) || ''
   const slaDue = (payload.sla_due_at as string) || ''
 
+  // Approval link — if the queue row carries an approval token + request_id,
+  // generate a dedicated /approve/:id?t=... URL that lets the recipient act
+  // without logging in. Otherwise fall back to the generic tender page.
+  const data = (payload.data as Record<string, unknown>) ?? {}
+  const approvalRequestId = data.approval_request_id as string | undefined
+  const approvalToken = data.approval_token as string | undefined
+  const hasApprovalLink = Boolean(approvalRequestId && approvalToken && isUuid(approvalRequestId))
+  const approvalUrl = hasApprovalLink
+    ? `${baseUrl}/approve/${encodeURIComponent(approvalRequestId!)}?t=${encodeURIComponent(approvalToken!)}`
+    : null
+
   const safeSlaTime = slaDue ? escHtml(new Date(slaDue).toLocaleString('he-IL')) : ''
   const slaLine = safeSlaTime ? `<p style="color:#64748b;font-size:13px">⏱️ SLA יסתיים: ${safeSlaTime}</p>` : ''
-  const linkLine = tenderId
-    ? `<p><a href="${escHtml(baseUrl)}/tenders/${encodeURIComponent(tenderId)}" style="color:#2563eb">פתיחת ההליך במערכת ←</a></p>`
-    : ''
+
+  const ctaLine = approvalUrl
+    ? `<p style="margin:24px 0"><a href="${escHtml(approvalUrl)}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700">פתיחת טופס האישור ←</a></p>`
+    : tenderId
+      ? `<p><a href="${escHtml(baseUrl)}/tenders/${encodeURIComponent(tenderId)}" style="color:#2563eb">פתיחת ההליך במערכת ←</a></p>`
+      : ''
+
   const bodyHtml = bodyText
     ? `<div style="background:#f1f5f9;padding:14px 16px;border-radius:8px;margin:14px 0;white-space:pre-wrap">${escHtml(bodyText).replace(/\n/g, '<br>')}</div>`
     : ''
@@ -97,13 +112,14 @@ function buildHtmlBody(row: QueueRow, baseUrl: string): { subject: string; html:
   ${roleHint ? `<p style="color:#64748b;margin:0 0 14px">פנייה ל${escHtml(roleHint)}${reqType ? ` · ${escHtml(reqType)}` : ''}</p>` : ''}
   ${bodyHtml}
   ${slaLine}
-  ${linkLine}
+  ${ctaLine}
   <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0">
   <p style="color:#94a3b8;font-size:11px">הודעה זו נשלחה אוטומטית ממערכת LIBA — מכרזים. אין להשיב למייל זה.</p>
 </body>
 </html>`
 
-  const text = `${rawSubject}\n\n${bodyText}\n\n${slaDue ? `SLA: ${new Date(slaDue).toLocaleString('he-IL')}\n` : ''}${tenderId ? `${baseUrl}/tenders/${tenderId}\n` : ''}`
+  const linkForText = approvalUrl ?? (tenderId ? `${baseUrl}/tenders/${tenderId}` : '')
+  const text = `${rawSubject}\n\n${bodyText}\n\n${slaDue ? `SLA: ${new Date(slaDue).toLocaleString('he-IL')}\n` : ''}${linkForText ? `${linkForText}\n` : ''}`
 
   return { subject: rawSubject, html, text }
 }
