@@ -260,3 +260,204 @@
 .inlineBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 .inlineBtnApprove { background: var(--green); color: #fff; }
 .inlineBtnReject  { background: var(--red);   color: #fff; }
+
+/* ─── Document Versions Table ─── */
+.vWrap {
+  margin-top: 2px;
+}
+.vHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.vHeaderTitle { font-size: 12px; font-weight: 700; color: var(--text2); }
+.vHeaderCount { font-size: 11.5px; color: var(--text3); }
+
+.vTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  table-layout: auto;
+}
+.vTable th {
+  text-align: right;
+  padding: 8px 11px;
+  background: var(--bg);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+}
+.vTable td {
+  padding: 9px 11px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.vTable tr:last-child td { border-bottom: none; }
+.vRowClickable { cursor: pointer; }
+.vRowClickable:hover { background: var(--bg); }
+.vRowCurrent { background: var(--primary-bg); }
+.vRowCurrent:hover { background: #cfe2fd; }
+.vRowExpand {
+  background: var(--bg) !important;
+}
+.vRowExpand td {
+  padding: 12px 14px;
+}
+
+.vFileIcon { margin-inline-end: 5px; }
+.vFileName { font-weight: 600; color: var(--text); }
+.vFileSize { color: var(--text3); font-size: 11px; }
+.vUploader { color: var(--text2); direction: ltr; display: inline-block; font-size: 11.5px; }
+.vTime { color: var(--text3); font-size: 11.5px; }
+
+.vChevron {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--text3);
+  transition: transform 0.18s;
+}
+.vChevronOpen { transform: rotate(180deg); color: var(--primary); }
+
+/* Status pills inside versions table */
+.vstatus {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.vstatusReview      { background: var(--primary-bg); color: var(--primary-dark); }
+.vstatusRevision    { background: var(--amber-bg);   color: #78350f; }
+.vstatusApproved    { background: var(--green-bg);   color: var(--green); }
+.vstatusRejected    { background: var(--red-bg);     color: var(--red); }
+.vstatusSuperseded  { background: var(--bg);         color: var(--text3); }
+.vstatusDraft       { background: var(--bg);         color: var(--text3); }
+
+/* Comment blocks inside expanded row */
+.vCommentBlock {
+  padding: 8px 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.55;
+  margin-bottom: 8px;
+}
+.vCommentRevision {
+  border-right: 3px solid var(--amber);
+  background: #fffbeb;
+}
+.vCommentLabel { font-weight: 700; color: var(--text); }
+
+.vDownload {
+  display: inline-block;
+  padding: 5px 11px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 11.5px;
+  text-decoration: none;
+}
+.vDownload:hover { background: var(--bg); border-color: var(--text2); }
+
+.vRowActions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.vBtn {
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+}
+.vBtn:hover:not(:disabled) { background: var(--bg); border-color: var(--text2); }
+.vBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.vBtnPrimary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.vBtnPrimary:hover:not(:disabled) { background: var(--primary-dark); border-color: var(--primary-dark); }
+.vBtnAmber {
+  background: var(--amber);
+  color: #fff;
+  border-color: var(--amber);
+}
+.vBtnAmber:hover:not(:disabled) { opacity: 0.92; }
+
+.vRevisionForm {
+  margin-top: 10px;
+  padding: 11px 12px;
+  background: var(--surface);
+  border: 1px solid var(--amber);
+  border-radius: 8px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.vRevisionLabel { font-size: 12px; font-weight: 600; color: var(--text2); }
+.vRevisionTextarea {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text);
+  min-height: 60px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.vRevisionTextarea:focus { outline: none; border-color: var(--primary-light); }
+
+.vUploadTrigger {
+  margin-top: 10px;
+  width: 100%;
+  padding: 9px;
+}
+.vUploadPanel {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--primary-light);
+  border-radius: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.vUploadTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.vUploadDrop {
+  border: 1.5px dashed var(--border2);
+  border-radius: 7px;
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--bg);
+  font-size: 12px;
+  color: var(--text2);
+  font-weight: 600;
+}
+.vUploadDrop:hover { border-color: var(--primary); background: var(--primary-bg); }
+
+.vError {
+  background: var(--red-bg);
+  color: var(--red);
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
