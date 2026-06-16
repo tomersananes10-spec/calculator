@@ -2,7 +2,10 @@
 .headerRow { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
 .titleBlock { flex: 1; min-width: 240px; }
 .title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
-.subTitle { font-size: 13px; color: var(--text3); display: flex; gap: 12px; flex-wrap: wrap; }
+.subTitle { font-size: 13px; color: var(--text3); display: flex; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+.subTitle > span { display: inline-flex; gap: 4px; align-items: baseline; }
+.subTitle > span:not(:first-child)::before { content: '·'; color: var(--text3); margin-inline-end: 6px; }
+.subTitle strong { color: var(--text2); font-weight: 600; }
 .tenderId { font-family: monospace; }
 
 .actionRow { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }

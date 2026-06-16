@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 import { useTender } from '../modules/tenders/hooks/useTender'
-import { getStage } from '../modules/tenders/data/stagesBaseline'
+import { getStage, getStageGroup } from '../modules/tenders/data/stagesBaseline'
 import { evaluateStageRequirements, type ActionId } from '../modules/tenders/data/stageRequirements'
-import { WorkflowBar } from '../modules/tenders/components/WorkflowBar'
 import { StageMap } from '../modules/tenders/components/StageMap'
 import { StageRequirementsTab } from '../modules/tenders/components/StageRequirementsTab'
 import { GateValidationModal } from '../modules/tenders/components/GateValidationModal'
@@ -14,15 +14,7 @@ import { CommitteeProtocolModal } from '../modules/tenders/components/modals/Com
 import { VendorPickerModal, ProposalModal, WinnerSelectionModal } from '../modules/tenders/components/modals/StageActionsS5_S6'
 import { ContractDraftModal, GuaranteeModal, InsuranceModal, SignatoryModal } from '../modules/tenders/components/modals/StageActionsS8'
 import { PurchaseOrderModal, MilestoneModal, VendorEvaluationModal } from '../modules/tenders/components/modals/StageActionsS9_S12'
-import type { AmountBand } from '../modules/tenders/types'
 import styles from './TenderDetailPage.module.css'
-
-const BAND_LABELS: Record<AmountBand, string> = {
-  lt_200k: 'עד 200K',
-  '200k_1m': '200K-1M',
-  '1m_5m': '1M-5M',
-  gt_5m: 'מעל 5M',
-}
 
 type Tab = 'requirements' | 'overview' | 'documents' | 'committees' | 'vendors' | 'milestones' | 'audit'
 
@@ -53,6 +45,23 @@ export function TenderDetailPage() {
 
   const requirements = useMemo(() => evaluateStageRequirements(detail), [detail])
 
+  // שליפת שם בעל ההליך (כותב הבריף) לתצוגה בכותרת
+  const [ownerName, setOwnerName] = useState<string | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    async function loadOwner() {
+      if (!tender?.owner_id) return
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', tender.owner_id)
+        .maybeSingle()
+      if (!cancelled) setOwnerName(data?.full_name ?? null)
+    }
+    void loadOwner()
+    return () => { cancelled = true }
+  }, [tender?.owner_id])
+
   function handleAction(action: ActionId) {
     setActiveAction(action)
   }
@@ -72,6 +81,7 @@ export function TenderDetailPage() {
   )
 
   const currentStageDef = getStage(tender.current_stage)
+  const currentGroup = getStageGroup(tender.current_stage)
 
   return (
     <div className={styles.page}>
@@ -79,10 +89,9 @@ export function TenderDetailPage() {
         <div className={styles.titleBlock}>
           <h1 className={styles.title}>{tender.title}</h1>
           <div className={styles.subTitle}>
-            <span className={styles.tenderId}>{tender.tender_number ?? tender.id.slice(0, 8)}</span>
-            <span>· {tender.ministry}</span>
-            <span>· {BAND_LABELS[tender.amount_band]}</span>
-            <span>· {tender.selection_type === 'price_only' ? 'מחיר בלבד' : 'איכות + מחיר'}</span>
+            {ownerName && <span><strong>כותב/ת:</strong> {ownerName}</span>}
+            <span>נפתח: {formatDate(tender.created_at)}</span>
+            <span>{formatAmount(tender.estimated_amount)}</span>
           </div>
         </div>
         <div className={styles.actionRow}>
@@ -98,30 +107,31 @@ export function TenderDetailPage() {
         </div>
       </div>
 
-      <WorkflowBar
-        tender={tender}
-        requirements={requirements}
-        onAdvance={() => handleAction('advance_stage')}
-      />
-
       <div className={styles.layoutGrid}>
         <div className={styles.main}>
           <div className={styles.kpiRow}>
             <div className={styles.kpiCard}>
               <div className={styles.kpiLabel}>שלב נוכחי</div>
-              <div className={styles.kpiValue}>{currentStageDef ? `${currentStageDef.stageNumber}. ${currentStageDef.label.slice(0, 22)}` : tender.current_stage}</div>
+              <div className={styles.kpiValue}>
+                {currentGroup?.shortLabel ?? '—'}
+                {currentStageDef && <span className={styles.kpiSub}> · {currentStageDef.label.slice(0, 24)}</span>}
+              </div>
             </div>
             <div className={styles.kpiCard}>
-              <div className={styles.kpiLabel}>סכום</div>
-              <div className={styles.kpiValue}>{formatAmount(tender.estimated_amount)}</div>
+              <div className={styles.kpiLabel}>נדרש כעת</div>
+              <div className={styles.kpiValue}>
+                {requirements.pending[0]?.label ?? (requirements.canAdvance ? 'מוכן למעבר לשלב הבא' : '—')}
+              </div>
             </div>
             <div className={styles.kpiCard}>
-              <div className={styles.kpiLabel}>Go-Live</div>
+              <div className={styles.kpiLabel}>דרישות פתוחות</div>
+              <div className={styles.kpiValue}>
+                {requirements.pending.length} / {requirements.total}
+              </div>
+            </div>
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiLabel}>Go-Live מתוכנן</div>
               <div className={styles.kpiValue}>{formatDate(tender.planned_go_live_date)}</div>
-            </div>
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiLabel}>נפתח</div>
-              <div className={styles.kpiValue}>{formatDate(tender.created_at)}</div>
             </div>
           </div>
 

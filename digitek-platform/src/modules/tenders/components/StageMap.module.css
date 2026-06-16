@@ -8,20 +8,81 @@
   font-size: 12.5px; font-weight: 700;
   color: var(--text2); margin-bottom: 10px;
 }
-.list { display: flex; flex-direction: column; gap: 4px; }
+.list { display: flex; flex-direction: column; gap: 10px; }
+
+/* ─── Group (super-stage) ─── */
+.groupBlock {
+  display: flex; flex-direction: column;
+}
+.groupHeader {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 11px;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg);
+  cursor: pointer;
+  text-align: right;
+  font-family: inherit;
+  width: 100%;
+  transition: background 0.15s, border-color 0.15s;
+}
+.groupHeader:hover { background: var(--surface); border-color: var(--border2); }
+
+.groupCurrent {
+  background: var(--primary-bg);
+  border-color: var(--primary-light);
+  color: var(--primary-dark);
+}
+.groupCurrent:hover { background: var(--primary-bg); }
+.groupDone {
+  background: var(--green-bg);
+  border-color: var(--green);
+  color: var(--green);
+}
+.groupFuture { color: var(--text2); }
+
+.chevron {
+  font-size: 14px;
+  color: currentColor;
+  transition: transform 0.18s;
+  flex-shrink: 0;
+}
+.chevronOpen { transform: rotate(180deg); }
+
+.groupLabel {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.groupCount {
+  font-size: 11px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Sub-stages (the original S0..S12 — visually nested) ─── */
+.subStages {
+  padding: 6px 12px 6px 6px;
+  border-right: 2px solid var(--border);
+  margin-right: 12px;
+  margin-top: 4px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+
 .item {
   display: flex; align-items: center; gap: 8px;
-  padding: 7px 9px; border-radius: 7px;
-  font-size: 12px; cursor: default;
+  padding: 6px 9px; border-radius: 6px;
+  font-size: 11.5px; cursor: default;
 }
-.item.done { background: var(--green-bg); color: var(--green); }
-.item.current { background: var(--primary-bg); color: var(--primary); font-weight: 700; }
-.item.future { background: var(--bg); color: var(--text3); }
-.item.skipped { background: var(--bg); color: var(--text3); text-decoration: line-through; opacity: 0.6; }
-.item.terminal { background: #f1f5f9; color: var(--text3); }
+.item.done    { color: var(--green); }
+.item.current { background: var(--primary-bg); color: var(--primary-dark); font-weight: 700; }
+.item.future  { color: var(--text3); }
+.item.skipped { color: var(--text3); text-decoration: line-through; opacity: 0.55; }
 
-.dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-.num { font-weight: 700; margin-left: 2px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; opacity: 0.8; }
+.subLabel { flex: 1; }
 
 .footer {
   margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);
