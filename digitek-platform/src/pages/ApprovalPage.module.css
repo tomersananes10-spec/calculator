@@ -176,6 +176,18 @@
   font-size: 13.5px;
 }
 
+.adminBanner {
+  background: var(--primary-bg);
+  color: var(--primary-dark);
+  border-right: 4px solid var(--primary);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.adminBanner strong { font-weight: 700; }
+
 .successCard {
   text-align: center;
   padding: 40px 24px;
