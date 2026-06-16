@@ -467,6 +467,15 @@ QA פעולות מומלצות מהמשתמש:
 
 ### 🔜 פיצ'רים אחרים
 
+#### ⏰ ארכיטקטורת ה-cron — להחליט (16.06)
+**הבעיה**: GitHub Actions של `Tender CRM Cron` נכשל באופן עקבי ושולח מייל כשלון כל 10 דק' (~144 ביום). הוא קורא ל-`/api/notifications/dispatch` ול-`/api/cron/sla-check` בפרודקשן. הסיבה לכשלון לא הוסקה (יכול להיות: env vars חסרים ב-Vercel, פונקציה שבורה, הדפלוי לא עלה).
+**מצב נוכחי (16.06)**: ה-`schedule` ב-[.github/workflows/tender-cron.yml](.github/workflows/tender-cron.yml) הוערך ב-comment — workflow_dispatch בלבד. אין יותר מיילים, אבל גם אין יותר dispatching אוטומטי של התראות ו-SLA breach detection.
+**3 אפשרויות לבחירה**:
+1. **השתקת התראות בלבד** (הכי מהיר) — להחזיר את ה-cron, להגדיר ב-GitHub Settings → Notifications → "Only failed workflows I triggered". המיילים נעלמים, ה-cron ממשיך. חיסרון: לא תדע אם משהו באמת שבור.
+2. **מעבר ל-Supabase pg_cron + pg_net** (מומלץ) — להפעיל extensions ב-digitek-dev, ליצור cron job ב-DB שקורא ל-`tender_check_sla_breaches` ישירות ול-`pg_net.http_post` ל-`/api/notifications/dispatch`. self-contained, חינמי, אמין. חיסרון: דורש החלטה לוותר על GitHub Actions לזה.
+3. **מעבר ל-Vercel Cron (vercel.ts)** — היום עם vercel.ts זה יציב. חיסרון: free tier מאפשר רק cron יומי — שעתי דורש Pro (לא מתאים, [feedback_no_paid_upgrades]).
+**לפני החלטה**: לבדוק *למה* ה-cron נכשל בכלל (אולי תיקון קצר יחסוך את כל הדיון). הצעד הראשון — `gh run view` על הרצה אחרונה.
+
 #### 🖊️ הגדרת מורשי חתימה לכל שלב מראש (16.06)
 **הבעיה**: כיום מורשה החתימה נקבע ב-runtime — בלחיצה על "בקש אישור" המשתמש מקליד כתובת מייל בטופס. אין רשימה מוגדרת מראש של מי חותם על מה. שגיאת הקלדה / כתובת לא נכונה = החלטה נופלת ע״י לא-מורשה.
 **הפתרון המוצע**:
