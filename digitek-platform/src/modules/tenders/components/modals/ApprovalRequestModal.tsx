@@ -290,7 +290,22 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
       }
     }
 
-    // 3. העלאת קבצים מצורפים → Storage + tender_documents
+    // 3. הטבעת approval token לכל נמען — נצרך ע"י ה-dispatcher כדי לבנות לינק ייעודי במייל.
+    //    מפה: email → token. מי שאין לו token לא יקבל לינק עם t=... (אבל עדיין יקבל מייל).
+    const tokensByEmail: Record<string, string> = {}
+    for (const recipientEmail of emails) {
+      const { data: token, error: tokenErr } = await supabase.rpc('mint_approval_token', {
+        p_request_id: approvalRow.id,
+        p_recipient_email: recipientEmail,
+      })
+      if (tokenErr) {
+        console.warn(`Failed to mint token for ${recipientEmail}: ${tokenErr.message}`)
+        continue
+      }
+      tokensByEmail[recipientEmail] = token as string
+    }
+
+    // 4. העלאת קבצים מצורפים → Storage + tender_documents
     type UploadedDoc = { filename: string; path: string; size: number; mime: string }
     const uploadedDocs: UploadedDoc[] = []
     for (const file of files) {
@@ -321,12 +336,12 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
       uploadedDocs.push({ filename: file.name, path, size: file.size, mime: file.type })
     }
 
-    // 4. שמירת המיילים למאגר Autofill (non-blocking — לא חוסם את שליחת ההתראות)
+    // 5. שמירת המיילים למאגר Autofill (non-blocking — לא חוסם את שליחת ההתראות)
     for (const recipientEmail of emails) {
       void recordEmailContact(recipientEmail)
     }
 
-    // 5. הזנת תור התראות — מייל לכל נמען עם רשימת המסמכים בגוף ה-payload
+    // 6. הזנת תור התראות — מייל לכל נמען עם token ייעודי וקבצי attachments ב-payload
     for (const recipientEmail of emails) {
       const enqRes = await enqueueNotification({
         recipientEmail,
@@ -337,6 +352,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
           tender_id: tenderId,
           data: {
             approval_request_id: approvalRow.id,
+            approval_token: tokensByEmail[recipientEmail] ?? null,
             request_type: requestType,
             role_hint: roleHint,
             body: effectiveBody,

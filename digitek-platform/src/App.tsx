@@ -16,6 +16,7 @@ import { TendersDashboardPage } from './pages/TendersDashboardPage'
 import { SuppliersPage }   from './pages/SuppliersPage'
 import { ProjectsPage }    from './pages/ProjectsPage'
 import { TestPage }        from './pages/TestPage'
+import { ApprovalPage }    from './pages/ApprovalPage'
 import { ProtectedRoute }  from './components/ProtectedRoute'
 import { AppLayout }       from './components/AppLayout'
 
@@ -33,6 +34,7 @@ export default function App() {
       <Routes>
         <Route path="/login"          element={<Login />} />
         <Route path="/auth/callback"  element={<AuthCallback />} />
+        <Route path="/approve/:requestId" element={<ApprovalPage />} />
         <Route path="/"               element={<Protected><Dashboard /></Protected>} />
         <Route path="/briefs"         element={<Protected><BriefGenerator /></Protected>} />
         <Route path="/calculator"     element={<Protected><Calculator /></Protected>} />
