@@ -1,8 +1,9 @@
 // הגדרות דרישות (checklist) לכל שלב — מבוסס על workflowEngine + state machine
-// כל requirement הוא predicate על TenderDetailData. הפעולה (action) מצביעה לאיזה modal להציג.
+// כל requirement מחזיר RequirementStatus עשיר (לא רק boolean) כדי שה-UI יוכל
+// להציג מצב פעיל של בקשה ממתינה: למי נשלחה, מתי, SLA, וכו'.
 
 import type { TenderDetailData } from '../hooks/useTender'
-import type { TenderStage } from '../types'
+import type { ApprovalRequestType, TenderApprovalRequest, TenderStage } from '../types'
 
 export type ActionId =
   | 'create_budget_approval'
@@ -25,13 +26,22 @@ export type ActionId =
   | 'evaluate_vendor'
   | 'advance_stage'
 
+export type RequirementStatus =
+  | { state: 'not_started' }
+  | { state: 'awaiting'; request: TenderApprovalRequest }
+  | { state: 'approved'; request: TenderApprovalRequest }
+  | { state: 'rejected'; request: TenderApprovalRequest }
+  | { state: 'satisfied' }
+
 export interface StageRequirement {
   id: string
   label: string
   description?: string
-  check: (detail: TenderDetailData) => boolean
+  getStatus: (detail: TenderDetailData) => RequirementStatus
   action?: ActionId
   blocker?: boolean
+  /** מיפוי תיעודי לסוג בקשת אישור — לרכיבי UI שצריכים לדעת לאיזה סוג בקשה היא קשורה. */
+  approvalRequestType?: ApprovalRequestType
 }
 
 export interface StageRequirementsDef {
@@ -40,10 +50,35 @@ export interface StageRequirementsDef {
   requirements: StageRequirement[]
 }
 
-// ───────── shared predicates ─────────
+// ───────── helpers ─────────
 
-const hasApprovedRequest = (d: TenderDetailData, type: string) =>
-  d.approvalRequests.some(r => r.request_type === type && r.status === 'approved')
+/** דרישה מבוססת approval_request — מחזירה state לפי הבקשה האחרונה מהסוג המבוקש. */
+function approvalBasedStatus(
+  type: ApprovalRequestType,
+  alreadySatisfied?: (d: TenderDetailData) => boolean,
+): (d: TenderDetailData) => RequirementStatus {
+  return (d) => {
+    if (alreadySatisfied?.(d)) return { state: 'satisfied' }
+
+    const matching = d.approvalRequests
+      .filter(r => r.request_type === type)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    const latest = matching[0]
+    if (!latest) return { state: 'not_started' }
+
+    if (latest.status === 'approved') return { state: 'approved', request: latest }
+    if (latest.status === 'rejected' || latest.status === 'returned' || latest.status === 'cancelled') {
+      return { state: 'rejected', request: latest }
+    }
+    // pending / in_review / escalated
+    return { state: 'awaiting', request: latest }
+  }
+}
+
+/** דרישה מבוססת שדה ב-DB — בינארית: מולאה או לא. */
+function fieldBasedStatus(check: (d: TenderDetailData) => boolean): (d: TenderDetailData) => RequirementStatus {
+  return (d) => (check(d) ? { state: 'satisfied' } : { state: 'not_started' })
+}
 
 const hasApprovedProtocol = (d: TenderDetailData, type: string) =>
   d.protocols.some(p => p.protocol_type === type && p.decision === 'approved')
@@ -54,7 +89,8 @@ const REQ_BUDGET_APPROVED: StageRequirement = {
   id: 'budget_approved',
   label: 'אישור תקציבי',
   description: 'אישור תקציב ע"י תקציבן המערך',
-  check: d => d.budget?.status === 'approved' || hasApprovedRequest(d, 'budget_approval'),
+  approvalRequestType: 'budget_approval',
+  getStatus: approvalBasedStatus('budget_approval', d => d.budget?.status === 'approved'),
   action: 'create_budget_approval',
   blocker: true,
 }
@@ -63,7 +99,7 @@ const REQ_TENDER_NUMBER: StageRequirement = {
   id: 'tender_number',
   label: 'מספר תיחור פנימי',
   description: 'מספר ייחודי לזיהוי ההליך',
-  check: d => Boolean(d.tender?.tender_number),
+  getStatus: fieldBasedStatus(d => Boolean(d.tender?.tender_number)),
   action: 'set_tender_number',
   blocker: true,
 }
@@ -72,7 +108,8 @@ const REQ_OLMA_APPROVAL: StageRequirement = {
   id: 'olma_approved',
   label: 'אישור אלמ"ה (מעל 5M)',
   description: 'אישור מנהל הרכש דרך מערכת אלמ"ה',
-  check: d => !d.tender?.requires_olma || hasApprovedRequest(d, 'olma_approval'),
+  approvalRequestType: 'olma_approval',
+  getStatus: approvalBasedStatus('olma_approval', d => !d.tender?.requires_olma),
   action: 'create_olma_approval',
   blocker: true,
 }
@@ -81,7 +118,7 @@ const REQ_COMMITTEE_OUTBOUND: StageRequirement = {
   id: 'committee_outbound_approved',
   label: 'אישור ועדת מכרזים — יציאה לתיחור',
   description: 'פרוטוקול חתום של ועדת מכרזים המאשר יציאה לתיחור (G3=approved)',
-  check: d => hasApprovedProtocol(d, 'outbound_request'),
+  getStatus: fieldBasedStatus(d => hasApprovedProtocol(d, 'outbound_request')),
   action: 'create_committee_outbound_protocol',
   blocker: true,
 }
@@ -90,7 +127,7 @@ const REQ_TENDER_NUMBER_EXTERNAL: StageRequirement = {
   id: 'tender_number_external',
   label: 'מספר תיחור חיצוני',
   description: 'מספר ההליך במערכת התיחורים הדיגיטלית',
-  check: d => Boolean(d.tender?.tender_number_external),
+  getStatus: fieldBasedStatus(d => Boolean(d.tender?.tender_number_external)),
   action: 'set_tender_number',
   blocker: true,
 }
@@ -99,7 +136,8 @@ const REQ_PROFESSIONAL_REVIEW: StageRequirement = {
   id: 'professional_review_approved',
   label: 'אישור גורם מקצועי במינהל הרכש',
   description: 'בדיקה ואישור הפרויקט תוך SLA של 3 ימי עבודה',
-  check: d => hasApprovedRequest(d, 'professional_review'),
+  approvalRequestType: 'professional_review',
+  getStatus: approvalBasedStatus('professional_review'),
   action: 'create_professional_review',
   blocker: true,
 }
@@ -109,7 +147,7 @@ const REQ_DISTRIBUTION: StageRequirement = {
   id: 'vendors_invited',
   label: 'הפצת הפניה לספקים',
   description: 'בחר לפחות 3 ספקים והפץ אליהם את הפניה',
-  check: d => d.proposals.length >= 3 || d.proposals.some(p => p.status !== 'draft'),
+  getStatus: fieldBasedStatus(d => d.proposals.length >= 3 || d.proposals.some(p => p.status !== 'draft')),
   action: 'distribute_to_vendors',
   blocker: true,
 }
@@ -118,7 +156,7 @@ const REQ_QA_CLOSED: StageRequirement = {
   id: 'qa_closed',
   label: 'תקופת הגשת ההצעות נסגרה',
   description: 'יש לסגור את תיבת ההצעות לפני מעבר לשלב הבחירה',
-  check: d => d.proposals.some(p => p.status === 'submitted' || p.status === 'qualified' || p.status === 'winner'),
+  getStatus: fieldBasedStatus(d => d.proposals.some(p => p.status === 'submitted' || p.status === 'qualified' || p.status === 'winner')),
   action: 'register_proposal',
   blocker: true,
 }
@@ -128,7 +166,7 @@ const REQ_PROPOSALS_REGISTERED: StageRequirement = {
   id: 'proposals_registered',
   label: 'הצעות נרשמו במערכת',
   description: 'יש לרשום לפחות הצעה אחת',
-  check: d => d.proposals.length > 0 && d.proposals.some(p => p.price != null),
+  getStatus: fieldBasedStatus(d => d.proposals.length > 0 && d.proposals.some(p => p.price != null)),
   action: 'register_proposal',
   blocker: true,
 }
@@ -137,7 +175,7 @@ const REQ_WINNER_SELECTED: StageRequirement = {
   id: 'winner_selected',
   label: 'בחירת ספק מועדף',
   description: 'יש לסמן ספק כ-"winner" לפני אישור הועדה',
-  check: d => d.proposals.some(p => p.status === 'winner'),
+  getStatus: fieldBasedStatus(d => d.proposals.some(p => p.status === 'winner')),
   action: 'select_winner',
   blocker: true,
 }
@@ -147,7 +185,7 @@ const REQ_COMMITTEE_WINNER: StageRequirement = {
   id: 'committee_winner_approved',
   label: 'אישור ועדת מכרזים — זכיה',
   description: 'פרוטוקול חתום של ועדת מכרזים המאשר את הזוכה (G8=approved)',
-  check: d => hasApprovedProtocol(d, 'winner_approval'),
+  getStatus: fieldBasedStatus(d => hasApprovedProtocol(d, 'winner_approval')),
   action: 'create_committee_winner_protocol',
   blocker: true,
 }
@@ -157,7 +195,7 @@ const REQ_CONTRACT_DRAFTED: StageRequirement = {
   id: 'contract_drafted',
   label: 'טיוטת הסכם נוצרה',
   description: 'בחירת תבנית הסכם וקישור לספק זוכה',
-  check: d => d.contracts.length > 0,
+  getStatus: fieldBasedStatus(d => d.contracts.length > 0),
   action: 'draft_contract',
   blocker: true,
 }
@@ -166,11 +204,11 @@ const REQ_VENDOR_SIGNED: StageRequirement = {
   id: 'vendor_signed',
   label: 'הספק חתם על ההסכם',
   description: 'הסכם הוחזר חתום מהספק',
-  check: d => d.contracts.some(c =>
+  getStatus: fieldBasedStatus(d => d.contracts.some(c =>
     c.signature_status === 'vendor_signed'
     || c.signature_status === 'pending_internal_review'
     || c.signature_status === 'pending_signatory'
-    || c.signature_status === 'fully_signed'),
+    || c.signature_status === 'fully_signed')),
   action: 'sign_contract_internal',
   blocker: true,
 }
@@ -179,11 +217,11 @@ const REQ_GUARANTEE: StageRequirement = {
   id: 'guarantee_verified',
   label: 'ערבות אומתה',
   description: 'נדרשת רק במכרזים מעל 1M (G9)',
-  check: d => {
+  getStatus: fieldBasedStatus(d => {
     const needsGuarantee = (d.tender?.estimated_amount ?? 0) > 1000000
     if (!needsGuarantee) return true
     return d.guarantees.some(g => g.status === 'verified')
-  },
+  }),
   action: 'verify_guarantee',
   blocker: true,
 }
@@ -192,11 +230,11 @@ const REQ_INSURANCE: StageRequirement = {
   id: 'insurance_verified',
   label: 'ביטוח אומת',
   description: 'נדרש במרבית התבניות',
-  check: d => {
+  getStatus: fieldBasedStatus(d => {
     const needsInsurance = (d.tender?.estimated_amount ?? 0) > 1000000
     if (!needsInsurance) return true
     return d.insurance.some(i => i.status === 'verified')
-  },
+  }),
   action: 'verify_insurance',
   blocker: true,
 }
@@ -205,7 +243,7 @@ const REQ_SIGNATORY: StageRequirement = {
   id: 'signatory_signed',
   label: 'מורשי החתימה חתמו',
   description: 'חתימת המזמין — שלב 8.5 באפיון. סוף שלב ההתקשרות.',
-  check: d => d.contracts.some(c => c.signature_status === 'fully_signed'),
+  getStatus: fieldBasedStatus(d => d.contracts.some(c => c.signature_status === 'fully_signed')),
   action: 'sign_contract_internal',
   blocker: true,
 }
@@ -215,7 +253,7 @@ const REQ_PO: StageRequirement = {
   id: 'po_issued',
   label: 'הזמנת רכש (PO) הוקמה',
   description: 'הקמה ב-ERP ושליחה לפורטל הספקים',
-  check: d => d.purchaseOrders.some(po => po.status === 'sent_to_vendor' || po.status === 'acknowledged'),
+  getStatus: fieldBasedStatus(d => d.purchaseOrders.some(po => po.status === 'sent_to_vendor' || po.status === 'acknowledged')),
   action: 'create_purchase_order',
   blocker: true,
 }
@@ -225,7 +263,7 @@ const REQ_MILESTONE_DEFINED: StageRequirement = {
   id: 'milestone1_defined',
   label: 'אבן דרך 1 הוגדרה',
   description: 'הגדרת אבן הדרך הראשונה לביצוע',
-  check: d => d.milestones.length >= 1,
+  getStatus: fieldBasedStatus(d => d.milestones.length >= 1),
   action: 'create_milestone',
   blocker: true,
 }
@@ -234,11 +272,11 @@ const REQ_MILESTONE1_ACCEPTED: StageRequirement = {
   id: 'milestone1_accepted',
   label: 'אבן דרך 1 התקבלה',
   description: 'תוצרים אושרו ע"י המנהל המקצועי + חשבונית אושרה',
-  check: d => {
+  getStatus: fieldBasedStatus(d => {
     const m1 = d.milestones.find(m => m.sequence_no === 1)
     if (!m1) return false
     return m1.status === 'accepted' || m1.status === 'partially_accepted'
-  },
+  }),
   action: 'approve_milestone',
   blocker: true,
 }
@@ -248,11 +286,11 @@ const REQ_MILESTONE2_ACCEPTED: StageRequirement = {
   id: 'milestone2_accepted',
   label: 'אבן דרך 2 התקבלה',
   description: 'אבן הדרך השנייה התקבלה',
-  check: d => {
+  getStatus: fieldBasedStatus(d => {
     const m2 = d.milestones.find(m => m.sequence_no === 2)
     if (!m2) return true  // אם אין m2 — לא חוסם
     return m2.status === 'accepted' || m2.status === 'partially_accepted'
-  },
+  }),
   action: 'approve_milestone',
   blocker: true,
 }
@@ -262,7 +300,7 @@ const REQ_VENDOR_EVALUATION: StageRequirement = {
   id: 'vendor_evaluated',
   label: 'הערכת ספק (חובה)',
   description: 'סיכון #11: לא ניתן לסגור הליך ללא הערכת ספק',
-  check: d => d.vendorEvaluations.length > 0,
+  getStatus: fieldBasedStatus(d => d.vendorEvaluations.length > 0),
   action: 'evaluate_vendor',
   blocker: true,
 }
@@ -335,6 +373,11 @@ export const STAGE_REQUIREMENTS: Partial<Record<TenderStage, StageRequirementsDe
   },
 }
 
+/** דרישה נחשבת "הושלמה" כשהיא satisfied או approved. */
+export function isRequirementDone(status: RequirementStatus): boolean {
+  return status.state === 'satisfied' || status.state === 'approved'
+}
+
 export interface StageRequirementsResult {
   stage: TenderStage
   nextStage: TenderStage | null
@@ -366,7 +409,7 @@ export function evaluateStageRequirements(detail: TenderDetailData): StageRequir
     }
   }
 
-  const pending = def.requirements.filter(r => !r.check(detail))
+  const pending = def.requirements.filter(r => !isRequirementDone(r.getStatus(detail)))
   const blockingPending = pending.filter(r => r.blocker !== false)
   const done = def.requirements.length - pending.length
 
