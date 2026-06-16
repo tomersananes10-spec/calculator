@@ -1,5 +1,7 @@
-import { STAGE_REQUIREMENTS, type ActionId } from '../data/stageRequirements'
+import { useState } from 'react'
+import { STAGE_REQUIREMENTS, isRequirementDone, type ActionId, type RequirementStatus } from '../data/stageRequirements'
 import type { TenderDetailData } from '../hooks/useTender'
+import { RequirementDetailPanel } from './RequirementDetailPanel'
 import styles from './StageRequirementsTab.module.css'
 
 interface Props {
@@ -14,10 +16,64 @@ const ACTION_BUTTON_LABEL: Record<ActionId, string> = {
   create_committee_outbound_protocol: 'הכן פרוטוקול ועדה',
   create_professional_review: 'בקש בדיקת גורם מקצועי',
   create_committee_winner_protocol: 'הכן פרוטוקול זכיה',
+  distribute_to_vendors: 'הפץ לספקים',
+  register_proposal: 'רשום הצעה',
+  select_winner: 'בחר זוכה',
+  draft_contract: 'צור חוזה',
+  verify_guarantee: 'אמת ערבות',
+  verify_insurance: 'אמת ביטוח',
+  sign_contract_internal: 'חתום פנימית',
+  create_purchase_order: 'הקם PO',
+  create_milestone: 'הגדר אבן דרך',
+  approve_milestone: 'אשר אבן דרך',
+  approve_invoice: 'אשר חשבונית',
+  evaluate_vendor: 'הערך ספק',
   advance_stage: 'המשך לשלב הבא',
 }
 
+function statusPillFor(state: RequirementStatus['state']) {
+  switch (state) {
+    case 'satisfied':
+    case 'approved':
+      return { label: '✓ הושלם', className: styles.statusDone }
+    case 'awaiting':
+      return { label: 'ממתין למאשר', className: styles.statusAwaiting }
+    case 'rejected':
+      return { label: '❌ נדחה', className: styles.statusRejected }
+    case 'not_started':
+    default:
+      return { label: 'ממתין', className: styles.statusPending }
+  }
+}
+
+function summaryFor(status: RequirementStatus, fallbackDescription?: string): string | null {
+  if (status.state === 'awaiting') {
+    const meta = status.request.metadata as Record<string, unknown>
+    const recipients = Array.isArray(meta?.recipients) ? meta.recipients as string[] : []
+    const firstRecipient = recipients[0]
+    const date = new Date(status.request.created_at)
+    const days = Math.floor((Date.now() - date.getTime()) / 86_400_000)
+    const dayLabel = days < 1 ? 'היום' : days === 1 ? 'אתמול' : `לפני ${days} ימים`
+    const recipientText = firstRecipient
+      ? `נשלחה ל-${firstRecipient}${recipients.length > 1 ? ` (+${recipients.length - 1})` : ''}`
+      : `נשלחה ל${status.request.requested_role ?? 'מאשר'}`
+    return `${recipientText} · ${dayLabel}`
+  }
+  if (status.state === 'approved' && status.request.decided_at) {
+    const sig = (status.request.metadata as Record<string, unknown>)?.signature_name
+    const sigStr = typeof sig === 'string' ? ` ע״י ${sig}` : ''
+    return `אושרה${sigStr} · ${new Date(status.request.decided_at).toLocaleDateString('he-IL')}`
+  }
+  if (status.state === 'rejected' && status.request.decided_at) {
+    const sig = (status.request.metadata as Record<string, unknown>)?.signature_name
+    const sigStr = typeof sig === 'string' ? ` ע״י ${sig}` : ''
+    return `נדחתה${sigStr} · ${new Date(status.request.decided_at).toLocaleDateString('he-IL')}`
+  }
+  return fallbackDescription ?? null
+}
+
 export function StageRequirementsTab({ detail, onAction }: Props) {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const tender = detail.tender
   if (!tender) return null
 
@@ -35,21 +91,72 @@ export function StageRequirementsTab({ detail, onAction }: Props) {
     <div className={styles.wrap}>
       <div className={styles.title}>דרישות לסיום השלב הנוכחי</div>
       {def.requirements.map(req => {
-        const done = req.check(detail)
-        const cls = `${styles.req} ${done ? styles.done : ''} ${req.blocker !== false && !done ? styles.blocker : ''}`
+        const status = req.getStatus(detail)
+        const done = isRequirementDone(status)
+        const isBlocker = req.blocker !== false && !done
+        const isExpanded = expandedId === req.id
+        const canExpand =
+          status.state === 'awaiting' || status.state === 'approved' || status.state === 'rejected'
+
+        const pill = statusPillFor(status.state)
+        const summary = summaryFor(status, req.description)
+        const stateClass =
+          status.state === 'awaiting' ? styles.awaiting
+          : status.state === 'rejected' ? styles.rejected
+          : done ? styles.done
+          : isBlocker ? styles.blocker
+          : ''
+
+        // Determine action button per state
+        let actionEl: React.ReactNode = null
+        if (status.state === 'not_started' && req.action) {
+          actionEl = (
+            <button
+              className={styles.actionBtn}
+              onClick={(e) => { e.stopPropagation(); onAction(req.action!) }}
+            >
+              {ACTION_BUTTON_LABEL[req.action]}
+            </button>
+          )
+        } else if (status.state === 'rejected' && req.action) {
+          actionEl = (
+            <button
+              className={styles.actionBtn}
+              onClick={(e) => { e.stopPropagation(); onAction(req.action!) }}
+            >
+              פתח בקשה חדשה
+            </button>
+          )
+        }
+
         return (
-          <div key={req.id} className={cls}>
-            <div className={`${styles.status} ${done ? styles.statusDone : styles.statusPending}`}>
-              {done ? '✓ הושלם' : 'ממתין'}
+          <div key={req.id} className={`${styles.req} ${stateClass} ${isExpanded ? styles.expanded : ''}`}>
+            <div
+              className={`${styles.reqRow} ${canExpand ? styles.clickable : ''}`}
+              onClick={() => canExpand && setExpandedId(isExpanded ? null : req.id)}
+              role={canExpand ? 'button' : undefined}
+              tabIndex={canExpand ? 0 : undefined}
+              onKeyDown={canExpand ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setExpandedId(isExpanded ? null : req.id)
+                }
+              } : undefined}
+            >
+              <div className={`${styles.status} ${pill.className}`}>{pill.label}</div>
+              <div className={styles.body}>
+                <div className={`${styles.label} ${done ? styles.done : ''}`}>{req.label}</div>
+                {summary && <div className={styles.description}>{summary}</div>}
+              </div>
+              {actionEl}
+              {canExpand && (
+                <div className={`${styles.chevron} ${isExpanded ? styles.chevronOpen : ''}`} aria-hidden="true">
+                  ▾
+                </div>
+              )}
             </div>
-            <div className={styles.body}>
-              <div className={`${styles.label} ${done ? styles.done : ''}`}>{req.label}</div>
-              {req.description && <div className={styles.description}>{req.description}</div>}
-            </div>
-            {!done && req.action && (
-              <button className={styles.actionBtn} onClick={() => onAction(req.action!)}>
-                {ACTION_BUTTON_LABEL[req.action]}
-              </button>
+            {isExpanded && canExpand && (
+              <RequirementDetailPanel status={status} detail={detail} />
             )}
           </div>
         )

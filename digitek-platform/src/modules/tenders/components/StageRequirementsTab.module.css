@@ -7,21 +7,36 @@
   background: var(--bg);
   border: 1.5px solid var(--border);
   border-radius: 10px;
-  padding: 12px 14px;
-  display: flex; align-items: flex-start; gap: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.15s, border-color 0.15s;
 }
 .req.done { background: var(--green-bg); border-color: var(--green); }
 .req.blocker { border-right: 4px solid var(--amber); }
+.req.awaiting { border-right: 4px solid var(--primary); background: var(--surface); }
+.req.rejected { border-right: 4px solid var(--red); background: var(--surface); }
+.req.expanded { box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); }
+
+.reqRow {
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.reqRow.clickable { cursor: pointer; }
+.reqRow.clickable:hover { background: rgba(15, 23, 42, 0.02); }
+.req.expanded .reqRow { border-bottom: 1px solid var(--border); }
 
 .status {
   flex-shrink: 0; align-self: center;
   padding: 4px 10px; border-radius: 999px;
   font-size: 11.5px; font-weight: 700;
   white-space: nowrap;
-  min-width: 64px; text-align: center;
+  min-width: 96px; text-align: center;
 }
-.statusPending { background: var(--amber-bg); color: #78350f; }
-.statusDone    { background: var(--green-bg); color: var(--green); }
+.statusPending  { background: var(--amber-bg);   color: #78350f; }
+.statusAwaiting { background: var(--primary-bg); color: var(--primary-dark); }
+.statusDone     { background: var(--green-bg);   color: var(--green); }
+.statusRejected { background: var(--red-bg);     color: var(--red); }
 
 .body { flex: 1; min-width: 0; }
 .label { font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
@@ -37,6 +52,16 @@
 }
 .actionBtn:hover { opacity: 0.9; }
 
+.chevron {
+  font-size: 14px;
+  color: var(--text3);
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.chevronOpen { transform: rotate(180deg); color: var(--primary); }
+
 .empty {
   text-align: center; padding: 30px 20px;
   color: var(--text3); font-size: 13px;
@@ -44,3 +69,85 @@
 .emptyOk {
   color: var(--green); font-size: 14.5px; font-weight: 700; margin-bottom: 4px;
 }
+
+/* ─── Detail panel (expanded content) ─── */
+.detailPanel {
+  padding: 14px 16px;
+  background: var(--bg);
+  display: flex; flex-direction: column; gap: 14px;
+  font-size: 13px;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  row-gap: 8px;
+  column-gap: 14px;
+  align-items: baseline;
+}
+.detailLabel {
+  font-size: 12px; font-weight: 600; color: var(--text3);
+}
+.detailValue {
+  font-size: 13px; color: var(--text); font-weight: 500;
+  word-break: break-word;
+}
+
+.detailSection {
+  display: flex; flex-direction: column; gap: 6px;
+  padding-top: 4px;
+}
+.detailSection .detailLabel { margin-bottom: 2px; }
+
+.detailBody {
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--text2);
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.detailHighlight {
+  padding: 10px 14px;
+  background: var(--primary-bg);
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--primary-dark);
+  line-height: 1.5;
+}
+
+.emailChip {
+  display: inline-block;
+  direction: ltr;
+  font-size: 12.5px;
+  background: var(--surface);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  color: var(--text);
+  margin-inline-end: 4px;
+}
+
+.attachmentList {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.attachmentLink {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.attachmentLink:hover {
+  background: var(--primary-bg);
+  border-color: var(--primary-light);
+}
+.attachmentName { color: var(--text); font-weight: 500; }
+.attachmentSize { color: var(--text3); font-size: 11.5px; }
