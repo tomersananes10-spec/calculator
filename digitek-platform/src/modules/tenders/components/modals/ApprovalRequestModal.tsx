@@ -141,7 +141,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
 
   /** מבצע commit לטיוטת המייל. מחזיר את רשימת המיילים הסופית או null אם הטיוטה לא תקינה. */
   function commitEmailDraft(): string[] | null {
-    const raw = emailDraft.trim().replace(/[,;\s]+$/, '')
+    const raw = emailDraft.trim().replace(/[,;\s]+$/, '').toLowerCase()
     if (!raw) return emails
     if (!EMAIL_RE.test(raw)) {
       setError(`כתובת לא תקינה: ${raw}`)
@@ -191,7 +191,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
     const pasted = e.clipboardData.getData('text')
     if (!/[\s,;]/.test(pasted)) return
     e.preventDefault()
-    const parts = pasted.split(/[\s,;]+/).map(p => p.trim()).filter(Boolean)
+    const parts = pasted.split(/[\s,;]+/).map(p => p.trim().toLowerCase()).filter(Boolean)
     const valid: string[] = []
     const invalid: string[] = []
     for (const p of parts) {
