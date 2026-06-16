@@ -14,7 +14,18 @@ import { CommitteeProtocolModal } from '../modules/tenders/components/modals/Com
 import { VendorPickerModal, ProposalModal, WinnerSelectionModal } from '../modules/tenders/components/modals/StageActionsS5_S6'
 import { ContractDraftModal, GuaranteeModal, InsuranceModal, SignatoryModal } from '../modules/tenders/components/modals/StageActionsS8'
 import { PurchaseOrderModal, MilestoneModal, VendorEvaluationModal } from '../modules/tenders/components/modals/StageActionsS9_S12'
+import { CommitteeScheduleModal } from '../modules/tenders/components/modals/CommitteeScheduleModal'
 import styles from './TenderDetailPage.module.css'
+
+interface CommitteeMeetingRow {
+  id: string
+  committee_id: string
+  scheduled_at: string
+  duration_minutes: number
+  agenda: unknown
+  status: string
+  attendees: unknown
+}
 
 type Tab = 'requirements' | 'overview' | 'documents' | 'committees' | 'vendors' | 'milestones' | 'audit'
 
@@ -61,6 +72,20 @@ export function TenderDetailPage() {
     void loadOwner()
     return () => { cancelled = true }
   }, [tender?.owner_id])
+
+  // Committee meetings — נטענים בנפרד (useTender לא טוען אותם כי הם רב-tender)
+  const [committeeMeetings, setCommitteeMeetings] = useState<CommitteeMeetingRow[]>([])
+  const [committeeModalOpen, setCommitteeModalOpen] = useState(false)
+  const loadMeetings = async () => {
+    if (!tender?.id) return
+    const { data } = await supabase
+      .from('tender_committee_meetings')
+      .select('id, committee_id, scheduled_at, duration_minutes, agenda, status, attendees')
+      .contains('tender_refs', [tender.id])
+      .order('scheduled_at', { ascending: false })
+    setCommitteeMeetings((data as CommitteeMeetingRow[] | null) ?? [])
+  }
+  useEffect(() => { void loadMeetings() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [tender?.id])
 
   function handleAction(action: ActionId) {
     setActiveAction(action)
@@ -221,21 +246,67 @@ export function TenderDetailPage() {
             )}
 
             {tab === 'committees' && (
-              protocols.length === 0 ? <div className={styles.emptyTab}>אין פרוטוקולי ועדות</div> : (
-                <div className={styles.list}>
-                  {protocols.map(p => (
-                    <div key={p.id} className={styles.listItem}>
-                      <div className={styles.listItemBody}>
-                        <div className={styles.listItemTitle}>{p.protocol_type}</div>
-                        <div className={styles.listItemMeta}>{p.signed_at ? `נחתם ${formatDate(p.signed_at)}` : 'לא חתום'} · {p.rationale ?? ''}</div>
-                      </div>
-                      <span className={`${styles.statusPill} ${p.decision === 'approved' ? styles.green : p.decision === 'rejected' ? styles.red : styles.amber}`}>
-                        {p.decision}
-                      </span>
-                    </div>
-                  ))}
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                  <div className={styles.sectionTitle}>ועדות ופרוטוקולים</div>
+                  <button
+                    className={`${styles.btn} ${styles.btnPrimary}`}
+                    onClick={() => setCommitteeModalOpen(true)}
+                  >
+                    📅 קבע דיון ועדה
+                  </button>
                 </div>
-              )
+
+                {committeeMeetings.length === 0 && protocols.length === 0 && (
+                  <div className={styles.emptyTab}>אין דיונים מתוזמנים או פרוטוקולים. לחץ "קבע דיון ועדה" להתחיל.</div>
+                )}
+
+                {committeeMeetings.length > 0 && (
+                  <>
+                    <div className={styles.sectionTitle} style={{ marginTop: 8, marginBottom: 8 }}>דיונים מתוזמנים</div>
+                    <div className={styles.list}>
+                      {committeeMeetings.map(m => {
+                        const agendaArr = Array.isArray(m.agenda) ? m.agenda : []
+                        const agendaText = agendaArr[0] && typeof agendaArr[0] === 'object' && agendaArr[0] !== null
+                          ? (agendaArr[0] as { agenda_text?: string }).agenda_text ?? ''
+                          : ''
+                        return (
+                          <div key={m.id} className={styles.listItem}>
+                            <div className={styles.listItemBody}>
+                              <div className={styles.listItemTitle}>
+                                {formatDateTime(m.scheduled_at)} ({m.duration_minutes} דק')
+                              </div>
+                              <div className={styles.listItemMeta}>{agendaText || 'אין אגנדה'}</div>
+                            </div>
+                            <span className={`${styles.statusPill} ${m.status === 'scheduled' ? styles.amber : m.status === 'completed' ? styles.green : styles.red}`}>
+                              {m.status === 'scheduled' ? 'מתוזמן' : m.status === 'completed' ? 'הסתיים' : m.status}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+
+                {protocols.length > 0 && (
+                  <>
+                    <div className={styles.sectionTitle} style={{ marginTop: 18, marginBottom: 8 }}>פרוטוקולים חתומים</div>
+                    <div className={styles.list}>
+                      {protocols.map(p => (
+                        <div key={p.id} className={styles.listItem}>
+                          <div className={styles.listItemBody}>
+                            <div className={styles.listItemTitle}>{p.protocol_type}</div>
+                            <div className={styles.listItemMeta}>{p.signed_at ? `נחתם ${formatDate(p.signed_at)}` : 'לא חתום'} · {p.rationale ?? ''}</div>
+                          </div>
+                          <span className={`${styles.statusPill} ${p.decision === 'approved' ? styles.green : p.decision === 'rejected' ? styles.red : styles.amber}`}>
+                            {p.decision}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
             )}
 
             {tab === 'vendors' && (
@@ -447,6 +518,13 @@ export function TenderDetailPage() {
         proposals={proposals}
         vendors={vendors}
         onSubmitted={onActionDone}
+      />
+
+      <CommitteeScheduleModal
+        open={committeeModalOpen}
+        onClose={() => setCommitteeModalOpen(false)}
+        detail={detail}
+        onScheduled={async () => { await loadMeetings(); await refresh() }}
       />
     </div>
   )
