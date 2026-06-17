@@ -122,7 +122,24 @@ export function TenderDetailPage() {
             {ownerName && <span><strong>כותב/ת:</strong> {ownerName}</span>}
             <span>נפתח: {formatDate(tender.created_at)}</span>
             <span>{formatAmount(tender.estimated_amount)}</span>
+            {tender.tender_number && <span><strong>מס׳ תיחור:</strong> {tender.tender_number}</span>}
+            {tender.tender_number_external && <span><strong>מס׳ במערכת:</strong> {tender.tender_number_external}</span>}
           </div>
+          {requirements.metadataBlockers.length > 0 && (
+            <div className={styles.metaWarning}>
+              <span className={styles.metaWarningIcon}>⚠️</span>
+              <span className={styles.metaWarningText}>
+                יש להשלים: {requirements.metadataBlockers.map(b => b.label).join(' · ')}
+              </span>
+              <button
+                type="button"
+                className={styles.metaWarningBtn}
+                onClick={() => handleAction(requirements.metadataBlockers[0].action)}
+              >
+                השלם
+              </button>
+            </div>
+          )}
         </div>
         <div className={styles.actionRow}>
           <button

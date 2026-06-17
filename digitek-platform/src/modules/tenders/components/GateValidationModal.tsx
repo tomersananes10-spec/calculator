@@ -62,13 +62,27 @@ export function GateValidationModal({ open, onClose, tender, requirements, onAdv
       ) : (
         <>
           <div className={s.warn}>
-            ⚠️ {requirements.blockingPending.length} דרישות פתוחות חוסמות את המעבר
+            ⚠️ {requirements.blockingPending.length + requirements.metadataBlockers.length} פריטים פתוחים חוסמים את המעבר
           </div>
           <div className={s.summary}>
-            <div><strong>דרישות פתוחות:</strong></div>
-            {requirements.blockingPending.map(r => (
-              <div key={r.id}>• {r.label}</div>
-            ))}
+            {requirements.metadataBlockers.length > 0 && (
+              <>
+                <div><strong>שדות חסרים:</strong></div>
+                {requirements.metadataBlockers.map(b => (
+                  <div key={b.id}>• {b.label}</div>
+                ))}
+              </>
+            )}
+            {requirements.blockingPending.length > 0 && (
+              <>
+                <div style={{ marginTop: requirements.metadataBlockers.length > 0 ? 10 : 0 }}>
+                  <strong>דרישות פתוחות:</strong>
+                </div>
+                {requirements.blockingPending.map(r => (
+                  <div key={r.id}>• {r.label}</div>
+                ))}
+              </>
+            )}
           </div>
           <div className={s.foot}>
             <button className={`${s.btn} ${s.btnSecondary}`} onClick={onClose}>הבנתי</button>

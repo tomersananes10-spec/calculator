@@ -316,7 +316,9 @@ export const STAGE_REQUIREMENTS: Partial<Record<TenderStage, StageRequirementsDe
   S1_initiation_budget: {
     stage: 'S1_initiation_budget',
     nextStage: 'S2_olma_approval',
-    requirements: [REQ_BUDGET_APPROVED, REQ_TENDER_NUMBER],
+    // מספר תיחור פנימי הוא שדה מטא-דאטה (לא פעולת checklist) — מוצג כבאנר צהוב
+    // בכותרת ההליך אם חסר, ונחסם דרך metadataBlockers ב-evaluateStageRequirements
+    requirements: [REQ_BUDGET_APPROVED],
   },
   S2_olma_approval: {
     stage: 'S2_olma_approval',
@@ -331,7 +333,8 @@ export const STAGE_REQUIREMENTS: Partial<Record<TenderStage, StageRequirementsDe
   S4_system_input_review: {
     stage: 'S4_system_input_review',
     nextStage: 'S5_distribution_response',
-    requirements: [REQ_TENDER_NUMBER_EXTERNAL, REQ_PROFESSIONAL_REVIEW],
+    // מספר תיחור חיצוני הוא שדה מטא-דאטה — מוצג כבאנר אם חסר
+    requirements: [REQ_PROFESSIONAL_REVIEW],
   },
   S5_distribution_response: {
     stage: 'S5_distribution_response',
@@ -380,6 +383,19 @@ export function isRequirementDone(status: RequirementStatus): boolean {
   return status.state === 'satisfied' || status.state === 'approved'
 }
 
+/**
+ * חוסם מטא-דאטה — שדה ב-tender שחסר ובלעדיו אי אפשר להתקדם, אבל לא ראוי להופיע
+ * כשורה ב-checklist (זה לא "פעולה" — זה ערך שאמור היה להיכנס בזמן הפתיחה).
+ * דוגמאות: מספר תיחור פנימי בשלב 1, מספר תיחור חיצוני בשלב 4.
+ * ה-UI מציג אותם כבאנר אזהרה צהוב בכותרת ההליך, עם כפתור לפתיחת המודאל הרלוונטי.
+ */
+export interface MetadataBlocker {
+  id: string
+  label: string
+  /** ActionId שיופעל כדי לפתוח את המודאל המתאים לעריכת השדה. */
+  action: ActionId
+}
+
 export interface StageRequirementsResult {
   stage: TenderStage
   nextStage: TenderStage | null
@@ -387,16 +403,42 @@ export interface StageRequirementsResult {
   done: number
   pending: StageRequirement[]
   blockingPending: StageRequirement[]
+  metadataBlockers: MetadataBlocker[]
   canAdvance: boolean
   progressPct: number
+}
+
+/** בדיקת מטא-דאטה חוסמת לפי השלב הנוכחי. נקראת מתוך evaluateStageRequirements. */
+function getMetadataBlockers(detail: TenderDetailData): MetadataBlocker[] {
+  const tender = detail.tender
+  if (!tender) return []
+  const blockers: MetadataBlocker[] = []
+
+  if (tender.current_stage === 'S1_initiation_budget' && !tender.tender_number) {
+    blockers.push({
+      id: 'tender_number',
+      label: 'מספר תיחור פנימי',
+      action: 'set_tender_number',
+    })
+  }
+  if (tender.current_stage === 'S4_system_input_review' && !tender.tender_number_external) {
+    blockers.push({
+      id: 'tender_number_external',
+      label: 'מספר תיחור חיצוני (במערכת התיחורים)',
+      action: 'set_tender_number',
+    })
+  }
+
+  return blockers
 }
 
 export function evaluateStageRequirements(detail: TenderDetailData): StageRequirementsResult {
   const tender = detail.tender
   if (!tender) {
-    return { stage: 'S0_preconditions', nextStage: null, total: 0, done: 0, pending: [], blockingPending: [], canAdvance: false, progressPct: 0 }
+    return { stage: 'S0_preconditions', nextStage: null, total: 0, done: 0, pending: [], blockingPending: [], metadataBlockers: [], canAdvance: false, progressPct: 0 }
   }
 
+  const metadataBlockers = getMetadataBlockers(detail)
   const def = STAGE_REQUIREMENTS[tender.current_stage]
   if (!def) {
     return {
@@ -406,7 +448,8 @@ export function evaluateStageRequirements(detail: TenderDetailData): StageRequir
       done: 0,
       pending: [],
       blockingPending: [],
-      canAdvance: true,
+      metadataBlockers,
+      canAdvance: metadataBlockers.length === 0,
       progressPct: 100,
     }
   }
@@ -422,7 +465,8 @@ export function evaluateStageRequirements(detail: TenderDetailData): StageRequir
     done,
     pending,
     blockingPending,
-    canAdvance: blockingPending.length === 0,
+    metadataBlockers,
+    canAdvance: blockingPending.length === 0 && metadataBlockers.length === 0,
     progressPct: def.requirements.length === 0 ? 100 : Math.round((done / def.requirements.length) * 100),
   }
 }
