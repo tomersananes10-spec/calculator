@@ -16,6 +16,8 @@ import { VendorPickerModal, ProposalModal, WinnerSelectionModal } from '../modul
 import { ContractDraftModal, GuaranteeModal, InsuranceModal, SignatoryModal } from '../modules/tenders/components/modals/StageActionsS8'
 import { PurchaseOrderModal, MilestoneModal, VendorEvaluationModal } from '../modules/tenders/components/modals/StageActionsS9_S12'
 import { CommitteeScheduleModal } from '../modules/tenders/components/modals/CommitteeScheduleModal'
+import { DocumentArchive } from '../modules/tenders/components/DocumentArchive'
+import archiveStyles from '../modules/tenders/components/DocumentArchive.module.css'
 import styles from './TenderDetailPage.module.css'
 
 interface CommitteeMeetingRow {
@@ -51,6 +53,7 @@ export function TenderDetailPage() {
   const [tab, setTab] = useState<Tab>('requirements')
   const [activeAction, setActiveAction] = useState<ActionId | null>(null)
   const [resubmitRequest, setResubmitRequest] = useState<TenderApprovalRequest | null>(null)
+  const [archiveOpen, setArchiveOpen] = useState(false)
   const detail = useTender(id)
   const { tender, budget, documents, proposals, contracts, milestones, protocols, personas, auditLog, approvalRequests, vendors, loading, error, refresh } = detail
   const [decisionModalOpen, setDecisionModalOpen] = useState(false)
@@ -122,6 +125,14 @@ export function TenderDetailPage() {
           </div>
         </div>
         <div className={styles.actionRow}>
+          <button
+            className={archiveStyles.triggerBtn}
+            onClick={() => setArchiveOpen(true)}
+            title="כל המסמכים של ההליך, מקובצים לפי סוג עם היסטוריית גרסאות"
+          >
+            📚 תיקיית מסמכים
+            <span className={archiveStyles.triggerCount}>{documents.length}</span>
+          </button>
           {pendingApprovals.length > 0 && (
             <button
               className={`${styles.btn} ${styles.btnPrimary}`}
@@ -539,6 +550,14 @@ export function TenderDetailPage() {
         estimatedAmount={tender.estimated_amount}
         resubmitOf={resubmitRequest ?? undefined}
         onSubmitted={async () => { setResubmitRequest(null); await onActionDone() }}
+      />
+
+      {/* Document Archive — כל מסמכי ההליך מקובצים לפי סוג עם היסטוריית גרסאות */}
+      <DocumentArchive
+        open={archiveOpen}
+        onClose={() => setArchiveOpen(false)}
+        documents={documents}
+        tenderTitle={tender.title}
       />
     </div>
   )
