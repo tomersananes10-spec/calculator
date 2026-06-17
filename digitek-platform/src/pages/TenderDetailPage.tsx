@@ -151,7 +151,7 @@ export function TenderDetailPage() {
             <div className={styles.kpiCard}>
               <div className={styles.kpiLabel}>דרישות פתוחות</div>
               <div className={styles.kpiValue}>
-                {requirements.pending.length} / {requirements.total}
+                {requirements.pending.length} מתוך {requirements.total}
               </div>
             </div>
             <div className={styles.kpiCard}>
