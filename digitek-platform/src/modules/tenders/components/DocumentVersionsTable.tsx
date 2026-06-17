@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { safeFileName } from '../lib/safeFileName'
 import type { TenderDocument } from '../types'
 import styles from './StageRequirementsTab.module.css'
 
@@ -186,7 +187,7 @@ export function DocumentVersionsTable({
     setUploadSubmitting(true)
     setActionError(null)
 
-    const safeName = uploadFile.name.replace(/[^\w.\-א-ת ]/g, '_')
+    const safeName = safeFileName(uploadFile.name)
     const path = `${tenderId}/approval-${requestId}-v${(latest?.doc.version ?? 0) + 1}-${Date.now()}-${safeName}`
     const { error: upErr } = await supabase.storage
       .from('tender-documents')

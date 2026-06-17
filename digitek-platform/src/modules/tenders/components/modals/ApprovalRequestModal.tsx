@@ -4,6 +4,7 @@ import { supabase } from '../../../../lib/supabase'
 import { computeDueAt } from '../../slaEngine'
 import { enqueueNotification } from '../../lib/notifications'
 import { searchEmailContacts, recordEmailContact, type EmailContact } from '../../lib/emailContacts'
+import { safeFileName } from '../../lib/safeFileName'
 import type { ApprovalRequestType, TenderApprovalRequest } from '../../types'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -386,7 +387,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
     const uploadedDocs: UploadedDoc[] = []
     const uploadErrors: string[] = []
     for (const file of files) {
-      const safeName = file.name.replace(/[^\w.\-א-ת ]/g, '_')
+      const safeName = safeFileName(file.name)
       const path = `${tenderId}/approval-${approvalRow.id}-${Date.now()}-${safeName}`
       const { error: upErr } = await supabase.storage
         .from('tender-documents')

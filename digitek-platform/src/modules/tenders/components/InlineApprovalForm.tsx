@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { safeFileName } from '../lib/safeFileName'
 import type { TenderApprovalRequest } from '../types'
 import styles from './StageRequirementsTab.module.css'
 
@@ -63,7 +64,7 @@ export function InlineApprovalForm({ request, tenderId, onDecided }: Props) {
     // Upload optional attachments
     const attachmentPaths: string[] = []
     for (const file of files) {
-      const safeName = file.name.replace(/[^\w.\-א-ת ]/g, '_')
+      const safeName = safeFileName(file.name)
       const path = `${tenderId}/approval-${request.id}-decision-${Date.now()}-${safeName}`
       const { error: upErr } = await supabase.storage
         .from('tender-documents')

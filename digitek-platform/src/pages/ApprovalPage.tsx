@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { safeFileName } from '../modules/tenders/lib/safeFileName'
 import styles from './ApprovalPage.module.css'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -183,7 +184,7 @@ export function ApprovalPage() {
     // it fails and just decide without attachments.
     const attachmentPaths: string[] = []
     for (const file of files) {
-      const safeName = file.name.replace(/[^\w.\-א-ת ]/g, '_')
+      const safeName = safeFileName(file.name)
       const path = `${data.tender_id}/approval-${data.request_id}-decision-${Date.now()}-${safeName}`
       const { error: upErr } = await supabase.storage
         .from('tender-documents')
