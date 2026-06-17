@@ -566,6 +566,12 @@ export function TenderDetailPage() {
         requestType={(resubmitRequest?.request_type ?? 'budget_approval') as ApprovalRequestType}
         estimatedAmount={tender.estimated_amount}
         resubmitOf={resubmitRequest ?? undefined}
+        previousDocs={resubmitRequest
+          ? documents
+              .filter(d => (d.metadata as Record<string, unknown> | undefined)?.approval_request_id === resubmitRequest.id)
+              .map(d => ({ id: d.id, title: d.title, file_ref: d.file_ref, file_size_bytes: d.file_size_bytes }))
+          : undefined
+        }
         onSubmitted={async () => { setResubmitRequest(null); await onActionDone() }}
       />
 

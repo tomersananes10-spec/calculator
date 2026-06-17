@@ -7,6 +7,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024
 const ACCEPTED_TYPES = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg'
 
 interface Props {
+  /** הבקשה הנוכחית — מסמכים שיועלו יקושרו אליה. */
   requestId: string
   tenderId: string
   documents: TenderDocument[]
@@ -14,6 +15,12 @@ interface Props {
   canUpload: boolean   // owner / admin / recipient — anyone authorised to upload a new version
   currentUserEmail: string | null
   onRefresh?: () => void | Promise<void>
+  /**
+   * אופציונלי — אם הבקשה היא resubmit (יש לה parent_request_id), נעביר כאן את
+   * כל ה-ids של השרשרת (כולל הנוכחית) כדי שגרסאות מסבבים קודמים יופיעו בטבלה.
+   * אם לא מועבר — מסננים רק לפי requestId כפי שהיה.
+   */
+  chainRequestIds?: string[]
 }
 
 type VersionStatus = 'pending_review' | 'revision_requested' | 'approved' | 'rejected' | 'superseded' | 'draft'
@@ -105,12 +112,19 @@ function VersionDownloadLink({ path, label }: { path: string | null; label: stri
 }
 
 export function DocumentVersionsTable({
-  requestId, tenderId, documents, isRecipient, canUpload, onRefresh,
+  requestId, tenderId, documents, isRecipient, canUpload, onRefresh, chainRequestIds,
 }: Props) {
-  // Build version list: documents linked to this request_id, sorted DESC by version
+  // Build version list: documents linked to any request in the resubmit chain
+  // (current + all parents). If no chain provided — fall back to current request only.
+  const idSet = new Set(chainRequestIds && chainRequestIds.length > 0 ? chainRequestIds : [requestId])
   const versions: VersionRow[] = documents
-    .filter(d => (d.metadata as Record<string, unknown> | undefined)?.approval_request_id === requestId)
-    .sort((a, b) => (b.version ?? 0) - (a.version ?? 0))
+    .filter(d => {
+      const rid = (d.metadata as Record<string, unknown> | undefined)?.approval_request_id
+      return typeof rid === 'string' && idSet.has(rid)
+    })
+    // sort by created_at DESC (latest upload first). version numbers may be 1
+    // for both rounds if uploads weren't chained via parent_version_id.
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .map(d => ({
       doc: d,
       status: readStatus(d),

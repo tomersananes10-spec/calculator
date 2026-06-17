@@ -5,6 +5,7 @@ import type { TenderApprovalRequest, TenderDocument } from '../types'
 import type { RequirementStatus } from '../data/stageRequirements'
 import { InlineApprovalForm } from './InlineApprovalForm'
 import { DocumentVersionsTable } from './DocumentVersionsTable'
+import { buildApprovalChain, getChainRequestIds, getResubmitIteration } from '../lib/approvalChain'
 import styles from './StageRequirementsTab.module.css'
 
 interface Props {
@@ -119,7 +120,20 @@ export function RequirementDetailPanel({ status, detail, onRefresh, onResubmit }
   const recipients = getRecipients(request)
   const body = getRequestBody(request)
   const amount = getAmount(request)
-  const attachments = findRequestDocuments(detail, request.id)
+
+  // שרשרת הסבבים — מהראשון לנוכחי. נצרך כדי להציג היסטוריה ולהוריד מסמכים מסבבים קודמים.
+  const chain = buildApprovalChain(request, detail.approvalRequests)
+  const chainIds = getChainRequestIds(chain)
+  const iteration = getResubmitIteration(request)
+  const previousRounds = chain.slice(0, -1)  // הכל חוץ מהנוכחי
+  const resubmitResponse = (() => {
+    const v = (request.metadata as Record<string, unknown> | null)?.resubmit_response
+    return typeof v === 'string' && v.trim() ? v : null
+  })()
+  const attachments = detail.documents.filter(d => {
+    const rid = (d.metadata as Record<string, unknown> | undefined)?.approval_request_id
+    return typeof rid === 'string' && chainIds.includes(rid)
+  })
 
   const isAwaiting = status.state === 'awaiting'
   const isApproved = status.state === 'approved'
@@ -138,6 +152,53 @@ export function RequirementDetailPanel({ status, detail, onRefresh, onResubmit }
 
   return (
     <div className={styles.detailPanel}>
+      {/* RESUBMIT RESPONSE — הסבר המבקש מה תוקן */}
+      {resubmitResponse && (
+        <div className={styles.resubmitResponseBanner}>
+          <div className={styles.resubmitResponseTitle}>
+            📤 תגובת המבקש לתיקונים (סבב {iteration}):
+          </div>
+          <div className={styles.resubmitResponseBody}>{resubmitResponse}</div>
+        </div>
+      )}
+
+      {/* PREVIOUS ROUNDS — היסטוריית סבבים (אם זהו resubmit) */}
+      {previousRounds.length > 0 && (
+        <div className={styles.roundsTimeline}>
+          <div className={styles.roundsTimelineTitle}>
+            🔁 היסטוריית סבבים (סבב נוכחי: {iteration})
+          </div>
+          {previousRounds.map((round, idx) => {
+            const sig = getSignatureName(round)
+            const decidedAt = round.decided_at
+            const isReturn = round.status === 'returned'
+            const isReject = round.status === 'rejected'
+            const decisionLabel = isReturn ? '↩ הוחזר לתיקונים'
+              : isReject ? '❌ נדחה'
+              : round.status === 'approved' ? '✓ אושר'
+              : round.status
+            const decisionColor = isReturn ? 'var(--amber)'
+              : isReject ? 'var(--red)'
+              : 'var(--green)'
+            return (
+              <div key={round.id} className={styles.roundItem}>
+                <div className={styles.roundHead}>
+                  <span className={styles.roundNumber}>סבב {idx + 1}</span>
+                  <span className={styles.roundDecision} style={{ color: decisionColor }}>
+                    {decisionLabel}
+                  </span>
+                  {sig && <span className={styles.roundBy}>ע״י {sig}</span>}
+                  {decidedAt && <span className={styles.roundDate}>· {formatDateTime(decidedAt)}</span>}
+                </div>
+                {round.comments && (
+                  <div className={styles.roundComments}>"{round.comments}"</div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       {/* AWAITING — מי, מתי, מסמכים */}
       {isAwaiting && (
         <>
@@ -197,6 +258,7 @@ export function RequirementDetailPanel({ status, detail, onRefresh, onResubmit }
               canUpload={true /* RLS enforces server-side; UI surfaces upload only when allowed */}
               currentUserEmail={currentEmail}
               onRefresh={onRefresh}
+              chainRequestIds={chainIds}
             />
           </div>
 
@@ -282,6 +344,7 @@ export function RequirementDetailPanel({ status, detail, onRefresh, onResubmit }
                 canUpload={false /* request closed — no more uploads */}
                 currentUserEmail={currentEmail}
                 onRefresh={onRefresh}
+                chainRequestIds={chainIds}
               />
             </div>
           )}

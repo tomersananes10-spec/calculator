@@ -25,6 +25,11 @@ interface Props {
    * ובשליחה נוצרת בקשה חדשה עם `metadata.parent_request_id` המקשרת לאחור.
    */
   resubmitOf?: TenderApprovalRequest
+  /**
+   * מסמכים מהבקשה הקודמת (כשמדובר ב-resubmit) — מוצגים כקריאה-בלבד בשלב 1
+   * כדי שהמשתמש יראה מה היה צמוד קודם ויוכל להעלות גרסה מעודכנת.
+   */
+  previousDocs?: { id: string; title: string; file_ref: string | null; file_size_bytes: number | null }[]
 }
 
 const REQUEST_TYPE_LABELS: Partial<Record<ApprovalRequestType, string>> = {
@@ -67,7 +72,7 @@ function fileIcon(mime: string, name: string): string {
   return '📎'
 }
 
-export function ApprovalRequestModal({ open, onClose, tenderId, requestType, estimatedAmount, onSubmitted, resubmitOf }: Props) {
+export function ApprovalRequestModal({ open, onClose, tenderId, requestType, estimatedAmount, onSubmitted, resubmitOf, previousDocs }: Props) {
   const isResubmit = !!resubmitOf
 
   // טעינה ראשונית של ערכי הטופס. כשמדובר ב-resubmit — שולפים מההיסטוריה של הבקשה הקודמת.
@@ -98,6 +103,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [amount, setAmount] = useState<number>(initialAmount())
   const [notes, setNotes] = useState('')
+  const [resubmitResponse, setResubmitResponse] = useState('')
   const [emails, setEmails] = useState<string[]>(initialEmails())
   const [emailDraft, setEmailDraft] = useState('')
   const [subject, setSubject] = useState<string>(initialSubject())
@@ -139,6 +145,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
     setAmount(initialAmount())
     setEmailDraft('')
     setNotes('')
+    setResubmitResponse('')
     setFiles([])
     setSuggestions([])
     setShowSuggestions(false)
@@ -316,6 +323,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
       const prevIter = (resubmitOf.metadata as Record<string, unknown> | null)?.resubmit_iteration
       const prevN = typeof prevIter === 'number' ? prevIter : 1
       metadata.resubmit_iteration = prevN + 1
+      if (resubmitResponse.trim()) metadata.resubmit_response = resubmitResponse.trim()
     }
 
     // 1. צור approval_request
@@ -463,6 +471,43 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
               <div style={{ marginTop: 8, fontSize: 11.5, color: 'var(--text2)' }}>
                 💡 תקן את הבקשה לפי ההערות שלעיל. הנתונים של הבקשה הקודמת הועתקו ויש להעלות גרסה מעודכנת של המסמכים.
               </div>
+            </div>
+          )}
+          {isResubmit && previousDocs && previousDocs.length > 0 && (
+            <div style={{
+              background: 'var(--bg)',
+              border: '1px solid var(--border)',
+              borderRadius: 10,
+              padding: '10px 14px',
+              marginBottom: 14,
+              fontSize: 12.5,
+            }}>
+              <div style={{ fontWeight: 700, color: 'var(--text2)', marginBottom: 6 }}>
+                📎 מסמכים מהבקשה הקודמת:
+              </div>
+              <ul style={{ margin: 0, paddingInlineStart: 18, color: 'var(--text2)' }}>
+                {previousDocs.map(d => (
+                  <li key={d.id}>
+                    {d.title}
+                    {d.file_size_bytes ? <span style={{ color: 'var(--text3)' }}> · {formatBytes(d.file_size_bytes)}</span> : null}
+                  </li>
+                ))}
+              </ul>
+              <div style={{ marginTop: 6, fontSize: 11.5, color: 'var(--text3)' }}>
+                הם נשמרים בארכיון. העלה למטה את הגרסה המעודכנת.
+              </div>
+            </div>
+          )}
+          {isResubmit && (
+            <div className={s.formGroup}>
+              <label className={s.label}>תגובה לתיקונים <span style={{ fontWeight: 400, color: 'var(--text3)' }}>(אופציונלי, מומלץ)</span></label>
+              <textarea
+                className={s.textarea}
+                value={resubmitResponse}
+                onChange={e => setResubmitResponse(e.target.value)}
+                placeholder='הסבר בקצרה מה תוקן בעקבות הערות המאשר — לדוגמה: "צירפתי חתימת ראש האגף", "עדכנתי את הטבלה בעמ׳ 3" וכו׳'
+              />
+              <div className={s.hint}>יישמר ב-audit log ויוצג למאשר ככיוון לתיקון.</div>
             </div>
           )}
           {isBudgetReq && (
