@@ -184,10 +184,6 @@ export function TenderDetailPage() {
                 {requirements.pending.length} מתוך {requirements.total}
               </div>
             </div>
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiLabel}>Go-Live מתוכנן</div>
-              <div className={styles.kpiValue}>{formatDate(tender.planned_go_live_date)}</div>
-            </div>
           </div>
 
           <div className={styles.tabs}>
