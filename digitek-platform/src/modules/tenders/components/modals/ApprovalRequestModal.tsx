@@ -380,8 +380,11 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
     }
 
     // 4. העלאת קבצים מצורפים → Storage + tender_documents
+    //    כשל בכל שלב נחשב כשל אמיתי — מציגים שגיאה ולא ממשיכים בשקט.
+    //    הבקשה כבר נוצרה ב-DB, אבל המשתמש יקבל הודעה ברורה שמשהו נכשל כדי שיוכל לתקן.
     type UploadedDoc = { filename: string; path: string; size: number; mime: string }
     const uploadedDocs: UploadedDoc[] = []
+    const uploadErrors: string[] = []
     for (const file of files) {
       const safeName = file.name.replace(/[^\w.\-א-ת ]/g, '_')
       const path = `${tenderId}/approval-${approvalRow.id}-${Date.now()}-${safeName}`
@@ -389,8 +392,8 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
         .from('tender-documents')
         .upload(path, file, { contentType: file.type, upsert: false })
       if (upErr) {
-        console.warn(`Failed to upload ${file.name}: ${upErr.message}`)
-        continue // לא חוסם — הבקשה כבר נוצרה
+        uploadErrors.push(`${file.name}: ${upErr.message}`)
+        continue
       }
       const { error: docErr } = await supabase
         .from('tender_documents')
@@ -404,10 +407,21 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
           metadata: { approval_request_id: approvalRow.id, source: 'approval_request_modal' },
         })
       if (docErr) {
-        console.warn(`Uploaded but failed to register ${file.name}: ${docErr.message}`)
+        uploadErrors.push(`${file.name} (נשמר ב-Storage אך לא נרשם): ${docErr.message}`)
         continue
       }
       uploadedDocs.push({ filename: file.name, path, size: file.size, mime: file.type })
+    }
+    if (uploadErrors.length > 0) {
+      setSubmitting(false)
+      setError(`הבקשה נוצרה אבל העלאת ${uploadErrors.length} קבצים נכשלה — נסה לפתוח שוב ולצרף את הקובץ. שגיאה: ${uploadErrors.join('; ')}`)
+      return
+    }
+    // הגנה ב-resubmit: אם הגענו לכאן ללא קבצים — שגיאה (לא אמור לקרות בגלל הוולידציה ב-step 1).
+    if (isResubmit && uploadedDocs.length === 0) {
+      setSubmitting(false)
+      setError('שליחה מחדש לאחר תיקון מחייבת לפחות קובץ אחד — חזור לשלב 1 וצרף קובץ מתוקן.')
+      return
     }
 
     // 5. שמירת המיילים למאגר Autofill (non-blocking — לא חוסם את שליחת ההתראות)
@@ -499,16 +513,65 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
             </div>
           )}
           {isResubmit && (
-            <div className={s.formGroup}>
-              <label className={s.label}>תגובה לתיקונים <span style={{ fontWeight: 400, color: 'var(--text3)' }}>(אופציונלי, מומלץ)</span></label>
-              <textarea
-                className={s.textarea}
-                value={resubmitResponse}
-                onChange={e => setResubmitResponse(e.target.value)}
-                placeholder='הסבר בקצרה מה תוקן בעקבות הערות המאשר — לדוגמה: "צירפתי חתימת ראש האגף", "עדכנתי את הטבלה בעמ׳ 3" וכו׳'
-              />
-              <div className={s.hint}>יישמר ב-audit log ויוצג למאשר ככיוון לתיקון.</div>
-            </div>
+            <>
+              <div className={s.formGroup}>
+                <label className={s.label}>תגובה לתיקונים <span style={{ fontWeight: 400, color: 'var(--text3)' }}>(אופציונלי, מומלץ)</span></label>
+                <textarea
+                  className={s.textarea}
+                  value={resubmitResponse}
+                  onChange={e => setResubmitResponse(e.target.value)}
+                  placeholder='הסבר בקצרה מה תוקן בעקבות הערות המאשר — לדוגמה: "צירפתי חתימת ראש האגף", "עדכנתי את הטבלה בעמ׳ 3" וכו׳'
+                />
+                <div className={s.hint}>יישמר ב-audit log ויוצג למאשר ככיוון לתיקון.</div>
+              </div>
+              <div className={s.formGroup}>
+                <label className={`${s.label} ${s.required}`}>
+                  קובץ מתוקן
+                </label>
+                <div
+                  className={`${s.fileDrop} ${dragActive ? s.fileDropActive : ''}`}
+                  style={files.length === 0 ? { borderColor: 'var(--amber)', background: 'var(--amber-bg)' } : undefined}
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={e => { e.preventDefault(); setDragActive(true) }}
+                  onDragLeave={() => setDragActive(false)}
+                  onDrop={handleDrop}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className={s.fileDropIcon}>📎</div>
+                  <div className={s.fileDropText}>
+                    {files.length === 0 ? 'חובה לצרף לפחות קובץ אחד מתוקן' : 'לחץ או גרור כדי להוסיף עוד קבצים'}
+                  </div>
+                  <div className={s.fileDropHint}>PDF, Word, Excel, תמונה · עד 10MB לקובץ</div>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept={ACCEPTED_TYPES}
+                  onChange={handleFileInputChange}
+                  style={{ display: 'none' }}
+                />
+                {files.length > 0 && (
+                  <div className={s.fileList}>
+                    {files.map((f, i) => (
+                      <div key={`${f.name}-${i}`} className={s.fileItem}>
+                        <span className={s.fileItemIcon}>{fileIcon(f.type, f.name)}</span>
+                        <span className={s.fileItemName} title={f.name}>{f.name}</span>
+                        <span className={s.fileItemSize}>{formatBytes(f.size)}</span>
+                        <button
+                          type="button"
+                          className={s.fileItemRemove}
+                          onClick={e => { e.stopPropagation(); removeFile(i) }}
+                          aria-label={`הסר ${f.name}`}
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className={s.hint}>הקובץ ייכנס לארכיון ההליך כגרסה חדשה.</div>
+              </div>
+            </>
           )}
           {isBudgetReq && (
             <div className={s.formGroup}>
@@ -533,48 +596,50 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
             />
           </div>
 
-          <div className={s.formGroup}>
-            <label className={s.label}>מסמכים תומכים (אופציונלי)</label>
-            <div
-              className={`${s.fileDrop} ${dragActive ? s.fileDropActive : ''}`}
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={e => { e.preventDefault(); setDragActive(true) }}
-              onDragLeave={() => setDragActive(false)}
-              onDrop={handleDrop}
-              role="button"
-              tabIndex={0}
-            >
-              <div className={s.fileDropIcon}>📎</div>
-              <div className={s.fileDropText}>לחץ או גרור קבצים לכאן</div>
-              <div className={s.fileDropHint}>PDF, Word, Excel, תמונה · עד 10MB לקובץ</div>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept={ACCEPTED_TYPES}
-              onChange={handleFileInputChange}
-              style={{ display: 'none' }}
-            />
-            {files.length > 0 && (
-              <div className={s.fileList}>
-                {files.map((f, i) => (
-                  <div key={`${f.name}-${i}`} className={s.fileItem}>
-                    <span className={s.fileItemIcon}>{fileIcon(f.type, f.name)}</span>
-                    <span className={s.fileItemName} title={f.name}>{f.name}</span>
-                    <span className={s.fileItemSize}>{formatBytes(f.size)}</span>
-                    <button
-                      type="button"
-                      className={s.fileItemRemove}
-                      onClick={e => { e.stopPropagation(); removeFile(i) }}
-                      aria-label={`הסר ${f.name}`}
-                    >×</button>
-                  </div>
-                ))}
+          {!isResubmit && (
+            <div className={s.formGroup}>
+              <label className={s.label}>מסמכים תומכים (אופציונלי)</label>
+              <div
+                className={`${s.fileDrop} ${dragActive ? s.fileDropActive : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setDragActive(true) }}
+                onDragLeave={() => setDragActive(false)}
+                onDrop={handleDrop}
+                role="button"
+                tabIndex={0}
+              >
+                <div className={s.fileDropIcon}>📎</div>
+                <div className={s.fileDropText}>לחץ או גרור קבצים לכאן</div>
+                <div className={s.fileDropHint}>PDF, Word, Excel, תמונה · עד 10MB לקובץ</div>
               </div>
-            )}
-            <div className={s.hint}>המסמכים יישמרו בתיק ההליך ויופיעו ב-Tab "מסמכים".</div>
-          </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept={ACCEPTED_TYPES}
+                onChange={handleFileInputChange}
+                style={{ display: 'none' }}
+              />
+              {files.length > 0 && (
+                <div className={s.fileList}>
+                  {files.map((f, i) => (
+                    <div key={`${f.name}-${i}`} className={s.fileItem}>
+                      <span className={s.fileItemIcon}>{fileIcon(f.type, f.name)}</span>
+                      <span className={s.fileItemName} title={f.name}>{f.name}</span>
+                      <span className={s.fileItemSize}>{formatBytes(f.size)}</span>
+                      <button
+                        type="button"
+                        className={s.fileItemRemove}
+                        onClick={e => { e.stopPropagation(); removeFile(i) }}
+                        aria-label={`הסר ${f.name}`}
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className={s.hint}>המסמכים יישמרו בתיק ההליך ויופיעו ב-Tab "מסמכים".</div>
+            </div>
+          )}
 
           {error && <div className={s.error}>{error}</div>}
 
@@ -582,8 +647,15 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
             <button className={`${s.btn} ${s.btnSecondary}`} onClick={handleClose}>ביטול</button>
             <button
               className={`${s.btn} ${s.btnPrimary}`}
-              disabled={isBudgetReq && !(amount > 0)}
-              onClick={() => { setError(null); setStep(2) }}
+              disabled={(isBudgetReq && !(amount > 0)) || (isResubmit && files.length === 0)}
+              onClick={() => {
+                if (isResubmit && files.length === 0) {
+                  setError('חובה לצרף לפחות קובץ אחד מתוקן לפני המשך')
+                  return
+                }
+                setError(null)
+                setStep(2)
+              }}
             >המשך</button>
           </div>
         </>
