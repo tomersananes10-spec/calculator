@@ -1,8 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTenderList } from '../modules/tenders/hooks/useTenderList'
+import { createTender } from '../modules/tenders/hooks/useTender'
 import { getStage } from '../modules/tenders/data/stagesBaseline'
 import type { AmountBand, Tender, TenderStage } from '../modules/tenders/types'
+import { useAuth } from '../hooks/useAuth'
+import { supabase } from '../lib/supabase'
 import styles from './TenderListPage.module.css'
 
 const BAND_LABELS: Record<AmountBand, string> = {
@@ -50,11 +53,78 @@ function stageLabel(stage: TenderStage): string {
 
 export function TenderListPage() {
   const navigate = useNavigate()
+  const { user, isAdmin } = useAuth()
   const [stageFilter, setStageFilter] = useState<TenderStage | 'all'>('all')
   const [search, setSearch] = useState('')
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
 
   const filters = useMemo(() => ({ stage: stageFilter, search }), [stageFilter, search])
-  const { tenders, loading, error } = useTenderList(filters)
+  const { tenders, loading, error, refresh } = useTenderList(filters)
+
+  useEffect(() => {
+    if (!menuOpenId) return
+    const close = () => setMenuOpenId(null)
+    window.addEventListener('click', close)
+    window.addEventListener('scroll', close, true)
+    return () => {
+      window.removeEventListener('click', close)
+      window.removeEventListener('scroll', close, true)
+    }
+  }, [menuOpenId])
+
+  useEffect(() => {
+    if (!toast) return
+    const id = window.setTimeout(() => setToast(null), 2500)
+    return () => window.clearTimeout(id)
+  }, [toast])
+
+  const canDelete = (t: Tender) => isAdmin || (user?.id != null && t.owner_id === user.id)
+
+  const handleShare = async (t: Tender) => {
+    const url = `${window.location.origin}/tenders/${t.id}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setToast('הקישור להליך הועתק')
+    } catch {
+      setToast(url)
+    }
+  }
+
+  const handleDuplicate = async (t: Tender) => {
+    setBusyId(t.id)
+    const res = await createTender({
+      title: `עותק של ${t.title}`,
+      ministry: t.ministry,
+      estimated_amount: t.estimated_amount,
+      selection_type: t.selection_type,
+      service_cluster: t.service_cluster,
+      requires_tender_editor: t.requires_tender_editor,
+      brief_id: t.brief_id,
+      calculation_id: t.calculation_id,
+    })
+    setBusyId(null)
+    if (!res.ok) {
+      setToast(`שגיאה בשכפול: ${res.error ?? 'לא ידוע'}`)
+      return
+    }
+    if (res.id) navigate(`/tenders/${res.id}`)
+  }
+
+  const handleDelete = async (t: Tender) => {
+    const ok = window.confirm(`למחוק את ההליך "${t.title}"?\nפעולה זו בלתי הפיכה ותמחק את כל המסמכים, הבקשות, האישורים והאודיט.`)
+    if (!ok) return
+    setBusyId(t.id)
+    const { error: delErr } = await supabase.from('tenders').delete().eq('id', t.id)
+    setBusyId(null)
+    if (delErr) {
+      setToast(`שגיאה במחיקה: ${delErr.message}`)
+      return
+    }
+    setToast('ההליך נמחק')
+    await refresh()
+  }
 
   const stats = useMemo(() => {
     const active = tenders.filter(t => t.current_stage !== 'closed' && t.current_stage !== 'cancelled').length
@@ -154,10 +224,62 @@ export function TenderListPage() {
                 <div className={styles.amount}>{formatAmount(t.estimated_amount)}</div>
                 <div className={styles.amountLabel}>סכום משוער</div>
               </div>
+              <div className={styles.menuWrap} onClick={e => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className={styles.menuBtn}
+                  aria-label="פעולות נוספות"
+                  disabled={busyId === t.id}
+                  onClick={e => {
+                    e.stopPropagation()
+                    setMenuOpenId(menuOpenId === t.id ? null : t.id)
+                  }}
+                >
+                  <span className={styles.dots}>⋮</span>
+                </button>
+                {menuOpenId === t.id && (
+                  <div className={styles.menuPopup} role="menu">
+                    <button
+                      type="button"
+                      className={styles.menuItem}
+                      role="menuitem"
+                      onClick={() => { setMenuOpenId(null); void handleShare(t) }}
+                    >
+                      <span className={styles.menuIcon}>🔗</span>
+                      שתף תהליך
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.menuItem}
+                      role="menuitem"
+                      onClick={() => { setMenuOpenId(null); void handleDuplicate(t) }}
+                    >
+                      <span className={styles.menuIcon}>📄</span>
+                      שכפל תהליך
+                    </button>
+                    {canDelete(t) && (
+                      <>
+                        <div className={styles.menuDivider} />
+                        <button
+                          type="button"
+                          className={`${styles.menuItem} ${styles.menuItemDanger}`}
+                          role="menuitem"
+                          onClick={() => { setMenuOpenId(null); void handleDelete(t) }}
+                        >
+                          <span className={styles.menuIcon}>🗑</span>
+                          מחק תהליך
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
       )}
+
+      {toast && <div className={styles.toast}>{toast}</div>}
     </div>
   )
 }
