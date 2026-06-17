@@ -281,14 +281,6 @@ export function ApprovalPage() {
                   </>
                 )}
 
-                {data.sla_due_at && (
-                  <>
-                    <span className={styles.metaLabel}>SLA יסתיים:</span>
-                    <span className={styles.metaValue}>
-                      {new Date(data.sla_due_at).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}
-                    </span>
-                  </>
-                )}
               </div>
 
               {data.metadata?.body && (

@@ -63,7 +63,6 @@ export function ApprovalDecisionModal({ open, onClose, approvals, onSubmitted }:
           <div className={s.summary}>
             <div><strong>סוג בקשה:</strong> {TYPE_LABEL[active.request_type] ?? active.request_type}</div>
             <div><strong>תפקיד נמען:</strong> {active.requested_role ?? '—'}</div>
-            {active.sla_due_at && <div><strong>SLA יסתיים:</strong> {new Date(active.sla_due_at).toLocaleDateString('he-IL')}</div>}
           </div>
           <div className={s.formGroup}>
             <label className={s.label}>הערות (אופציונלי)</label>

@@ -136,7 +136,7 @@ export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
 
   return (
     <div className={styles.detailPanel}>
-      {/* AWAITING — מי, מתי, SLA, מסמכים */}
+      {/* AWAITING — מי, מתי, מסמכים */}
       {isAwaiting && (
         <>
           <div className={styles.detailGrid}>
@@ -168,13 +168,6 @@ export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
                 · {formatDateTime(request.created_at)}
               </span>
             </div>
-
-            {request.sla_due_at && (
-              <>
-                <div className={styles.detailLabel}>SLA יסתיים</div>
-                <div className={styles.detailValue}>{formatDateTime(request.sla_due_at)}</div>
-              </>
-            )}
 
             {amount != null && (
               <>
