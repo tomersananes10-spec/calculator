@@ -60,7 +60,7 @@ export function ApprovalPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState<null | 'approved' | 'rejected'>(null)
+  const [submitted, setSubmitted] = useState<null | 'approved' | 'rejected' | 'returned'>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   // Admin/owner view-only mode — נכנס בלי token. רואה את כל הפרטים אבל לא יכול להחליט.
@@ -155,7 +155,7 @@ export function ApprovalPage() {
     if (accepted.length) setFiles([...files, ...accepted])
   }
 
-  async function submit(decision: 'approved' | 'rejected') {
+  async function submit(decision: 'approved' | 'rejected' | 'returned') {
     setSubmitError(null)
 
     if (!signatureName.trim()) {
@@ -168,6 +168,10 @@ export function ApprovalPage() {
     }
     if (decision === 'rejected' && !comments.trim()) {
       setSubmitError('בדחיה — יש לפרט את הסיבה בשדה ההערות')
+      return
+    }
+    if (decision === 'returned' && !comments.trim()) {
+      setSubmitError('בהחזרה לתיקונים — יש לפרט בהערות מה צריך לתקן')
       return
     }
     if (!data) return
@@ -226,13 +230,15 @@ export function ApprovalPage() {
           {!loading && !loadError && data && submitted && (
             <div className={styles.successCard}>
               <div className={styles.successIcon}>
-                {submitted === 'approved' ? '✓' : '✕'}
+                {submitted === 'approved' ? '✓' : submitted === 'returned' ? '↩' : '✕'}
               </div>
               <div className={styles.successTitle}>
-                {submitted === 'approved' ? 'הבקשה אושרה' : 'הבקשה נדחתה'}
+                {submitted === 'approved' ? 'הבקשה אושרה' : submitted === 'returned' ? 'הבקשה הוחזרה לתיקונים' : 'הבקשה נדחתה'}
               </div>
               <div className={styles.successText}>
-                ההחלטה נשמרה במערכת ונשלחה הודעה למבקש. ניתן לסגור חלון זה.
+                {submitted === 'returned'
+                  ? 'הבקשה הוחזרה לבעל ההליך עם ההערות שלך. ברגע שיעלה גרסה מתוקנת תקבל מייל עם בקשה חדשה.'
+                  : 'ההחלטה נשמרה במערכת ונשלחה הודעה למבקש. ניתן לסגור חלון זה.'}
               </div>
             </div>
           )}
@@ -380,6 +386,14 @@ export function ApprovalPage() {
                       onClick={() => submit('rejected')}
                     >
                       ❌ דחה
+                    </button>
+                    <button
+                      className={`${styles.btn} ${styles.btnReturn}`}
+                      disabled={submitting || data.is_used || data.is_expired}
+                      onClick={() => submit('returned')}
+                      title="הבקשה תחזור לבעל ההליך לתיקון, ואז תגיע אליך שוב לחתימה"
+                    >
+                      ↩ החזר לתיקונים
                     </button>
                     <button
                       className={`${styles.btn} ${styles.btnApprove}`}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { STAGE_REQUIREMENTS, isRequirementDone, type ActionId, type RequirementStatus } from '../data/stageRequirements'
 import { getStage } from '../data/stagesBaseline'
 import type { TenderDetailData } from '../hooks/useTender'
+import type { TenderApprovalRequest } from '../types'
 import { RequirementDetailPanel } from './RequirementDetailPanel'
 import styles from './StageRequirementsTab.module.css'
 
@@ -9,6 +10,7 @@ interface Props {
   detail: TenderDetailData
   onAction: (action: ActionId) => void
   onRefresh?: () => void | Promise<void>
+  onResubmit?: (request: TenderApprovalRequest) => void
 }
 
 const ACTION_BUTTON_LABEL: Record<ActionId, string> = {
@@ -40,6 +42,8 @@ function statusPillFor(state: RequirementStatus['state']) {
       return { label: '✓ הושלם', className: styles.statusDone }
     case 'awaiting':
       return { label: 'ממתין למאשר', className: styles.statusAwaiting }
+    case 'returned':
+      return { label: '↩ הוחזר לתיקונים', className: styles.statusReturned }
     case 'rejected':
       return { label: '❌ נדחה', className: styles.statusRejected }
     case 'not_started':
@@ -71,10 +75,15 @@ function summaryFor(status: RequirementStatus, fallbackDescription?: string): st
     const sigStr = typeof sig === 'string' ? ` ע״י ${sig}` : ''
     return `נדחתה${sigStr} · ${new Date(status.request.decided_at).toLocaleDateString('he-IL')}`
   }
+  if (status.state === 'returned' && status.request.decided_at) {
+    const sig = (status.request.metadata as Record<string, unknown>)?.signature_name
+    const sigStr = typeof sig === 'string' ? ` ע״י ${sig}` : ''
+    return `הוחזרה לתיקונים${sigStr} · ${new Date(status.request.decided_at).toLocaleDateString('he-IL')}`
+  }
   return fallbackDescription ?? null
 }
 
-export function StageRequirementsTab({ detail, onAction, onRefresh }: Props) {
+export function StageRequirementsTab({ detail, onAction, onRefresh, onResubmit }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const tender = detail.tender
   if (!tender) return null
@@ -113,12 +122,13 @@ export function StageRequirementsTab({ detail, onAction, onRefresh }: Props) {
         const isBlocker = req.blocker !== false && !done
         const isExpanded = expandedId === req.id
         const canExpand =
-          status.state === 'awaiting' || status.state === 'approved' || status.state === 'rejected'
+          status.state === 'awaiting' || status.state === 'approved' || status.state === 'rejected' || status.state === 'returned'
 
         const pill = statusPillFor(status.state)
         const summary = summaryFor(status, req.description)
         const stateClass =
           status.state === 'awaiting' ? styles.awaiting
+          : status.state === 'returned' ? styles.returned
           : status.state === 'rejected' ? styles.rejected
           : done ? styles.done
           : isBlocker ? styles.blocker
@@ -173,7 +183,7 @@ export function StageRequirementsTab({ detail, onAction, onRefresh }: Props) {
               )}
             </div>
             {isExpanded && canExpand && (
-              <RequirementDetailPanel status={status} detail={detail} onRefresh={onRefresh} />
+              <RequirementDetailPanel status={status} detail={detail} onRefresh={onRefresh} onResubmit={onResubmit} />
             )}
           </div>
         )

@@ -31,6 +31,7 @@ export type RequirementStatus =
   | { state: 'awaiting'; request: TenderApprovalRequest }
   | { state: 'approved'; request: TenderApprovalRequest }
   | { state: 'rejected'; request: TenderApprovalRequest }
+  | { state: 'returned'; request: TenderApprovalRequest }
   | { state: 'satisfied' }
 
 export interface StageRequirement {
@@ -67,7 +68,8 @@ function approvalBasedStatus(
     if (!latest) return { state: 'not_started' }
 
     if (latest.status === 'approved') return { state: 'approved', request: latest }
-    if (latest.status === 'rejected' || latest.status === 'returned' || latest.status === 'cancelled') {
+    if (latest.status === 'returned') return { state: 'returned', request: latest }
+    if (latest.status === 'rejected' || latest.status === 'cancelled') {
       return { state: 'rejected', request: latest }
     }
     // pending / in_review / escalated

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useTender } from '../modules/tenders/hooks/useTender'
 import { getStage, getStageGroup } from '../modules/tenders/data/stagesBaseline'
 import { evaluateStageRequirements, type ActionId } from '../modules/tenders/data/stageRequirements'
+import type { TenderApprovalRequest, ApprovalRequestType } from '../modules/tenders/types'
 import { StageMap } from '../modules/tenders/components/StageMap'
 import { StageRequirementsTab } from '../modules/tenders/components/StageRequirementsTab'
 import { GateValidationModal } from '../modules/tenders/components/GateValidationModal'
@@ -49,6 +50,7 @@ export function TenderDetailPage() {
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('requirements')
   const [activeAction, setActiveAction] = useState<ActionId | null>(null)
+  const [resubmitRequest, setResubmitRequest] = useState<TenderApprovalRequest | null>(null)
   const detail = useTender(id)
   const { tender, budget, documents, proposals, contracts, milestones, protocols, personas, auditLog, approvalRequests, vendors, loading, error, refresh } = detail
   const [decisionModalOpen, setDecisionModalOpen] = useState(false)
@@ -185,7 +187,7 @@ export function TenderDetailPage() {
 
           <div className={styles.tabPanel}>
             {tab === 'requirements' && (
-              <StageRequirementsTab detail={detail} onAction={handleAction} onRefresh={refresh} />
+              <StageRequirementsTab detail={detail} onAction={handleAction} onRefresh={refresh} onResubmit={setResubmitRequest} />
             )}
 
             {tab === 'overview' && (
@@ -525,6 +527,18 @@ export function TenderDetailPage() {
         onClose={() => setCommitteeModalOpen(false)}
         detail={detail}
         onScheduled={async () => { await loadMeetings(); await refresh() }}
+      />
+
+      {/* Resubmit modal — נפתח כשבעל ההליך לוחץ "שלח שוב לאחר תיקון" על בקשה שהוחזרה.
+          טוען את הנתונים מהבקשה הקודמת ושומר parent_request_id ב-metadata. */}
+      <ApprovalRequestModal
+        open={!!resubmitRequest}
+        onClose={() => setResubmitRequest(null)}
+        tenderId={tender.id}
+        requestType={(resubmitRequest?.request_type ?? 'budget_approval') as ApprovalRequestType}
+        estimatedAmount={tender.estimated_amount}
+        resubmitOf={resubmitRequest ?? undefined}
+        onSubmitted={async () => { setResubmitRequest(null); await onActionDone() }}
       />
     </div>
   )

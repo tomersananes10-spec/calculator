@@ -4,7 +4,7 @@ import { supabase } from '../../../../lib/supabase'
 import { computeDueAt } from '../../slaEngine'
 import { enqueueNotification } from '../../lib/notifications'
 import { searchEmailContacts, recordEmailContact, type EmailContact } from '../../lib/emailContacts'
-import type { ApprovalRequestType } from '../../types'
+import type { ApprovalRequestType, TenderApprovalRequest } from '../../types'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -19,6 +19,12 @@ interface Props {
   /** סכום (לבקשת תקציב — יחושב גם budget). */
   estimatedAmount?: number
   onSubmitted: () => void
+  /**
+   * במצב "שליחה מחדש לאחר תיקון" (resubmit) — הבקשה הקודמת שהוחזרה לתיקונים.
+   * אם קיימת, הטופס נטען עם הנתונים שלה + מוצג באנר עם הערות המאשר,
+   * ובשליחה נוצרת בקשה חדשה עם `metadata.parent_request_id` המקשרת לאחור.
+   */
+  resubmitOf?: TenderApprovalRequest
 }
 
 const REQUEST_TYPE_LABELS: Partial<Record<ApprovalRequestType, string>> = {
@@ -61,14 +67,41 @@ function fileIcon(mime: string, name: string): string {
   return '📎'
 }
 
-export function ApprovalRequestModal({ open, onClose, tenderId, requestType, estimatedAmount, onSubmitted }: Props) {
+export function ApprovalRequestModal({ open, onClose, tenderId, requestType, estimatedAmount, onSubmitted, resubmitOf }: Props) {
+  const isResubmit = !!resubmitOf
+
+  // טעינה ראשונית של ערכי הטופס. כשמדובר ב-resubmit — שולפים מההיסטוריה של הבקשה הקודמת.
+  const initialEmails = (): string[] => {
+    if (!resubmitOf) return []
+    const rec = resubmitOf.metadata?.recipients
+    if (Array.isArray(rec)) return rec.filter((r): r is string => typeof r === 'string')
+    return []
+  }
+  const initialSubject = (): string => {
+    if (!resubmitOf) return ''
+    const subj = resubmitOf.metadata?.subject
+    return typeof subj === 'string' ? subj : ''
+  }
+  const initialBody = (): string => {
+    if (!resubmitOf) return ''
+    const b = resubmitOf.metadata?.body
+    return typeof b === 'string' ? b : ''
+  }
+  const initialAmount = (): number => {
+    if (resubmitOf) {
+      const amt = (resubmitOf.metadata as Record<string, unknown> | null)?.amount
+      if (typeof amt === 'number') return amt
+    }
+    return estimatedAmount ?? 0
+  }
+
   const [step, setStep] = useState<1 | 2 | 3>(1)
-  const [amount, setAmount] = useState<number>(estimatedAmount ?? 0)
+  const [amount, setAmount] = useState<number>(initialAmount())
   const [notes, setNotes] = useState('')
-  const [emails, setEmails] = useState<string[]>([])
+  const [emails, setEmails] = useState<string[]>(initialEmails())
   const [emailDraft, setEmailDraft] = useState('')
-  const [subject, setSubject] = useState('')
-  const [body, setBody] = useState('')
+  const [subject, setSubject] = useState<string>(initialSubject())
+  const [body, setBody] = useState<string>(initialBody())
   const [files, setFiles] = useState<File[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -81,10 +114,37 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
   const [highlightedIdx, setHighlightedIdx] = useState(-1)
   const autocompleteRef = useRef<HTMLDivElement>(null)
 
-  const title = REQUEST_TYPE_LABELS[requestType] ?? 'בקשת אישור'
+  const baseTitle = REQUEST_TYPE_LABELS[requestType] ?? 'בקשת אישור'
+  const title = isResubmit ? `📤 גרסה מתוקנת — ${baseTitle}` : baseTitle
   const roleHint = REQUEST_TYPE_ROLE_HINT[requestType] ?? 'בעל תפקיד מתאים'
   const slaDueAt = computeDueAt(requestType)
   const isBudgetReq = requestType === 'budget_approval'
+
+  // הערות המאשר שהחזיר את הבקשה הקודמת לתיקונים — מוצגות כבאנר בראש שלב 1.
+  const returnerComments = resubmitOf?.comments?.trim() ?? null
+  const returnerName = (() => {
+    if (!resubmitOf) return null
+    const sig = (resubmitOf.metadata as Record<string, unknown> | null)?.signature_name
+    return typeof sig === 'string' && sig.trim() ? sig : null
+  })()
+
+  // בעת פתיחת המודאל ב-resubmit mode עם בקשה חדשה — לאתחל מחדש את הטופס מהמטא של הבקשה הקודמת.
+  useEffect(() => {
+    if (!open || !resubmitOf) return
+    setStep(1)
+    setError(null)
+    setEmails(initialEmails())
+    setSubject(initialSubject())
+    setBody(initialBody())
+    setAmount(initialAmount())
+    setEmailDraft('')
+    setNotes('')
+    setFiles([])
+    setSuggestions([])
+    setShowSuggestions(false)
+    setHighlightedIdx(-1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, resubmitOf?.id])
 
   function resetState() {
     setStep(1)
@@ -243,7 +303,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
     setSubmitting(true)
     setError(null)
 
-    const effectiveSubject = subject.trim() || title
+    const effectiveSubject = subject.trim() || baseTitle
     const effectiveBody = body.trim()
 
     const metadata: Record<string, unknown> = {}
@@ -251,6 +311,12 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
     if (emails.length) metadata.recipients = emails
     if (subject.trim()) metadata.subject = subject.trim()
     if (effectiveBody) metadata.body = effectiveBody
+    if (isResubmit && resubmitOf) {
+      metadata.parent_request_id = resubmitOf.id
+      const prevIter = (resubmitOf.metadata as Record<string, unknown> | null)?.resubmit_iteration
+      const prevN = typeof prevIter === 'number' ? prevIter : 1
+      metadata.resubmit_iteration = prevN + 1
+    }
 
     // 1. צור approval_request
     const { data: approvalRow, error: appErr } = await supabase
@@ -380,6 +446,25 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
 
       {step === 1 && (
         <>
+          {isResubmit && returnerComments && (
+            <div style={{
+              background: 'var(--amber-bg)',
+              border: '1px solid var(--amber)',
+              borderRadius: 10,
+              padding: '12px 14px',
+              marginBottom: 14,
+            }}>
+              <div style={{ fontWeight: 700, color: '#78350f', marginBottom: 6, fontSize: 13 }}>
+                ↩ הערות {returnerName ?? 'המאשר'} מההחזרה הקודמת:
+              </div>
+              <div style={{ fontSize: 13.5, lineHeight: 1.55, color: 'var(--text)', whiteSpace: 'pre-wrap' }}>
+                {returnerComments}
+              </div>
+              <div style={{ marginTop: 8, fontSize: 11.5, color: 'var(--text2)' }}>
+                💡 תקן את הבקשה לפי ההערות שלעיל. הנתונים של הבקשה הקודמת הועתקו ויש להעלות גרסה מעודכנת של המסמכים.
+              </div>
+            </div>
+          )}
           {isBudgetReq && (
             <div className={s.formGroup}>
               <label className={`${s.label} ${s.required}`}>סכום מבוקש (₪)</label>

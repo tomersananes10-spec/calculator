@@ -156,6 +156,7 @@
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btnApprove { background: var(--green); color: #fff; }
 .btnReject  { background: var(--red);   color: #fff; }
+.btnReturn  { background: var(--amber); color: #fff; }
 
 .error {
   background: var(--red-bg);

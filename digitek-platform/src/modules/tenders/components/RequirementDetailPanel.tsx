@@ -11,6 +11,7 @@ interface Props {
   status: RequirementStatus
   detail: TenderDetailData
   onRefresh?: () => void | Promise<void>
+  onResubmit?: (request: TenderApprovalRequest) => void
 }
 
 function formatBytes(b: number | null | undefined) {
@@ -99,7 +100,7 @@ function AttachmentLink({ doc }: { doc: TenderDocument }) {
   )
 }
 
-export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
+export function RequirementDetailPanel({ status, detail, onRefresh, onResubmit }: Props) {
   const [currentEmail, setCurrentEmail] = useState<string | null>(null)
 
   useEffect(() => {
@@ -123,6 +124,7 @@ export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
   const isAwaiting = status.state === 'awaiting'
   const isApproved = status.state === 'approved'
   const isRejected = status.state === 'rejected'
+  const isReturned = status.state === 'returned'
 
   // האם המשתמש המחובר הוא נמען של הבקשה? אם כן — נציג לו טופס פעולה.
   const isRecipient = !!currentEmail && recipients.some(r => r.toLowerCase() === currentEmail)
@@ -219,17 +221,15 @@ export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
         </>
       )}
 
-      {/* APPROVED / REJECTED — תיעוד החלטה */}
-      {(isApproved || isRejected) && (
+      {/* APPROVED / REJECTED / RETURNED — תיעוד החלטה */}
+      {(isApproved || isRejected || isReturned) && (
         <>
           <div className={styles.detailGrid}>
             <div className={styles.detailLabel}>החלטה</div>
             <div className={styles.detailValue}>
-              {isApproved ? (
-                <span style={{ color: 'var(--green)', fontWeight: 700 }}>✓ אושרה</span>
-              ) : (
-                <span style={{ color: 'var(--red)', fontWeight: 700 }}>❌ נדחתה</span>
-              )}
+              {isApproved && <span style={{ color: 'var(--green)', fontWeight: 700 }}>✓ אושרה</span>}
+              {isRejected && <span style={{ color: 'var(--red)', fontWeight: 700 }}>❌ נדחתה</span>}
+              {isReturned && <span style={{ color: 'var(--amber)', fontWeight: 700 }}>↩ הוחזרה לתיקונים</span>}
             </div>
 
             {getSignatureName(request) && (
@@ -283,6 +283,21 @@ export function RequirementDetailPanel({ status, detail, onRefresh }: Props) {
                 currentUserEmail={currentEmail}
                 onRefresh={onRefresh}
               />
+            </div>
+          )}
+
+          {isReturned && onResubmit && (
+            <div className={styles.resubmitCta}>
+              <div className={styles.resubmitText}>
+                <strong>{request.requested_role ?? 'המאשר'}</strong> מבקש/ת תיקונים. תקן את הבקשה לפי ההערות שלמעלה ושלח שוב לחתימה.
+              </div>
+              <button
+                type="button"
+                className={styles.resubmitBtn}
+                onClick={() => onResubmit(request)}
+              >
+                📤 שלח שוב לאחר תיקון
+              </button>
             </div>
           )}
         </>

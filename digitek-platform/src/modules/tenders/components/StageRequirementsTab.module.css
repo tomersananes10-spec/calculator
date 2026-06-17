@@ -16,6 +16,7 @@
 .req.blocker { border-right: 4px solid var(--amber); }
 .req.awaiting { border-right: 4px solid var(--primary); background: var(--surface); }
 .req.rejected { border-right: 4px solid var(--red); background: var(--surface); }
+.req.returned { border-right: 4px solid var(--amber); background: var(--surface); }
 .req.expanded { box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); }
 
 .reqRow {
@@ -37,6 +38,7 @@
 .statusAwaiting { background: var(--primary-bg); color: var(--primary-dark); }
 .statusDone     { background: var(--green-bg);   color: var(--green); }
 .statusRejected { background: var(--red-bg);     color: var(--red); }
+.statusReturned { background: var(--amber-bg);   color: #78350f; min-width: 120px; }
 
 .body { flex: 1; min-width: 0; }
 .label { font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
@@ -260,6 +262,32 @@
 .inlineBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 .inlineBtnApprove { background: var(--green); color: #fff; }
 .inlineBtnReject  { background: var(--red);   color: #fff; }
+.inlineBtnReturn  { background: var(--amber); color: #fff; }
+
+/* ─── Resubmit CTA (after request was returned for revisions) ─── */
+.resubmitCta {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.resubmitText { flex: 1; font-size: 13px; color: #78350f; line-height: 1.5; }
+.resubmitBtn {
+  flex-shrink: 0;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.resubmitBtn:hover { background: var(--primary-dark); }
 
 /* ─── Document Versions Table ─── */
 .vWrap {

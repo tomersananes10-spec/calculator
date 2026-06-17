@@ -39,7 +39,7 @@ export function InlineApprovalForm({ request, tenderId, onDecided }: Props) {
     if (accepted.length) setFiles([...files, ...accepted])
   }
 
-  async function submit(decision: 'approved' | 'rejected') {
+  async function submit(decision: 'approved' | 'rejected' | 'returned') {
     setSubmitError(null)
     if (!signatureName.trim()) {
       setSubmitError('יש להזין שם מלא לחתימה')
@@ -51,6 +51,10 @@ export function InlineApprovalForm({ request, tenderId, onDecided }: Props) {
     }
     if (decision === 'rejected' && !comments.trim()) {
       setSubmitError('בדחיה — יש לפרט את הסיבה בשדה ההערות')
+      return
+    }
+    if (decision === 'returned' && !comments.trim()) {
+      setSubmitError('בהחזרה לתיקונים — יש לפרט בהערות מה צריך לתקן')
       return
     }
 
@@ -166,6 +170,14 @@ export function InlineApprovalForm({ request, tenderId, onDecided }: Props) {
           onClick={() => submit('rejected')}
         >
           ❌ דחה
+        </button>
+        <button
+          className={`${styles.inlineBtn} ${styles.inlineBtnReturn}`}
+          disabled={submitting}
+          onClick={() => submit('returned')}
+          title="הבקשה תחזור לבעל ההליך לתיקון, ואז תגיע אליך שוב לחתימה"
+        >
+          ↩ החזר לתיקונים
         </button>
         <button
           className={`${styles.inlineBtn} ${styles.inlineBtnApprove}`}
