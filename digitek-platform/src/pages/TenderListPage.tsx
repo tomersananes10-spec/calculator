@@ -141,9 +141,11 @@ export function TenderListPage() {
           <h1 className={styles.title}>מורשי חתימה — הליכי מכרז דיגיטק</h1>
           <p className={styles.sub}>ניהול מקצה-לקצה לפי תכ"מ 16.2.19</p>
         </div>
-        <button className={styles.newBtn} onClick={() => navigate('/tenders/new')}>
-          + הליך חדש
-        </button>
+        {tenders.length > 0 && (
+          <button className={styles.newBtn} onClick={() => navigate('/tenders/new')}>
+            + הליך חדש
+          </button>
+        )}
       </div>
 
       <div className={styles.statsGrid}>
