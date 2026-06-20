@@ -1,5 +1,5 @@
 import { ApprovalRequestModal } from './ApprovalRequestModal'
-import type { PersonaRole } from '../../types'
+import type { PersonaRole, TenderSigner } from '../../types'
 
 interface Props {
   open: boolean
@@ -7,6 +7,7 @@ interface Props {
   tenderId: string
   /** התפקיד המבוקש לחתימה */
   signerRole: PersonaRole
+  signers?: TenderSigner[]
   onSubmitted: () => void
 }
 
@@ -24,7 +25,7 @@ const ROLE_LABELS: Partial<Record<PersonaRole, string>> = {
  *
  * משתמש בכל מנגנון הפינגפונג הקיים: גרסאות, החזרה לתיקונים, החלטה inline.
  */
-export function SignatureRequestModal({ open, onClose, tenderId, signerRole, onSubmitted }: Props) {
+export function SignatureRequestModal({ open, onClose, tenderId, signerRole, signers, onSubmitted }: Props) {
   const roleLabel = ROLE_LABELS[signerRole] ?? signerRole
 
   return (
@@ -35,6 +36,7 @@ export function SignatureRequestModal({ open, onClose, tenderId, signerRole, onS
       requestType="contract_signature"
       requestedRole={signerRole}
       customTitle={`בקשת חתימה — ${roleLabel}`}
+      signers={signers}
       onSubmitted={onSubmitted}
     />
   )

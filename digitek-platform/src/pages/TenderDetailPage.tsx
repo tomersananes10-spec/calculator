@@ -429,6 +429,7 @@ export function TenderDetailPage() {
         tenderId={tender.id}
         requestType="budget_approval"
         estimatedAmount={tender.estimated_amount}
+        signers={signers}
         onSubmitted={onActionDone}
       />
 
@@ -454,6 +455,7 @@ export function TenderDetailPage() {
         onClose={closeAction}
         tenderId={tender.id}
         signerRole="legal_professional"
+        signers={signers}
         onSubmitted={onActionDone}
       />
       <SignatureRequestModal
@@ -461,6 +463,7 @@ export function TenderDetailPage() {
         onClose={closeAction}
         tenderId={tender.id}
         signerRole="treasurer"
+        signers={signers}
         onSubmitted={onActionDone}
       />
       <SignatureRequestModal
@@ -468,6 +471,7 @@ export function TenderDetailPage() {
         onClose={closeAction}
         tenderId={tender.id}
         signerRole="signatory"
+        signers={signers}
         onSubmitted={onActionDone}
       />
 
@@ -563,6 +567,7 @@ export function TenderDetailPage() {
         requestType={(resubmitRequest?.request_type ?? 'budget_approval') as ApprovalRequestType}
         estimatedAmount={tender.estimated_amount}
         resubmitOf={resubmitRequest ?? undefined}
+        signers={signers}
         previousDocs={resubmitRequest
           ? documents
               .filter(d => (d.metadata as Record<string, unknown> | undefined)?.approval_request_id === resubmitRequest.id)

@@ -5,11 +5,31 @@ import { computeDueAt } from '../../slaEngine'
 import { enqueueNotification } from '../../lib/notifications'
 import { searchEmailContacts, recordEmailContact, type EmailContact } from '../../lib/emailContacts'
 import { safeFileName } from '../../lib/safeFileName'
-import type { ApprovalRequestType, TenderApprovalRequest } from '../../types'
+import { activeByRole } from '../../lib/signers'
+import type { ApprovalRequestType, TenderApprovalRequest, TenderSigner, SignerRole } from '../../types'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ACCEPTED_TYPES = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg'
+
+// מיפוי requestType ל-role. עבור contract_signature משתמשים ב-requestedRole שמועבר.
+const REQUEST_TYPE_TO_SIGNER_ROLE: Partial<Record<ApprovalRequestType, SignerRole>> = {
+  budget_approval:    'budget_officer',
+  committee_outbound: 'committee_head',
+  committee_winner:   'committee_head',
+}
+
+function resolveSignerRole(
+  requestType: ApprovalRequestType,
+  requestedRole?: string,
+): SignerRole | null {
+  if (requestType === 'contract_signature' && requestedRole) {
+    if (requestedRole === 'legal_professional' || requestedRole === 'treasurer' || requestedRole === 'signatory') {
+      return requestedRole
+    }
+  }
+  return REQUEST_TYPE_TO_SIGNER_ROLE[requestType] ?? null
+}
 
 interface Props {
   open: boolean
@@ -42,6 +62,11 @@ interface Props {
    * כדי שהמשתמש יראה מה היה צמוד קודם ויוכל להעלות גרסה מעודכנת.
    */
   previousDocs?: { id: string; title: string; file_ref: string | null; file_size_bytes: number | null }[]
+  /**
+   * רשימת חתמים מוגדרים להליך — משמשת לפרה-פיל של כתובת המייל לנמען לפי requestType.
+   * אופציונלי; אם לא מועבר, הנמענים מתחילים ריקים (התנהגות קיימת).
+   */
+  signers?: TenderSigner[]
 }
 
 const REQUEST_TYPE_LABELS: Partial<Record<ApprovalRequestType, string>> = {
@@ -87,14 +112,24 @@ function fileIcon(mime: string, name: string): string {
   return '📎'
 }
 
-export function ApprovalRequestModal({ open, onClose, tenderId, requestType, requestedRole, customTitle, estimatedAmount, onSubmitted, resubmitOf, previousDocs }: Props) {
+export function ApprovalRequestModal({ open, onClose, tenderId, requestType, requestedRole, customTitle, estimatedAmount, onSubmitted, resubmitOf, previousDocs, signers }: Props) {
   const isResubmit = !!resubmitOf
 
   // טעינה ראשונית של ערכי הטופס. כשמדובר ב-resubmit — שולפים מההיסטוריה של הבקשה הקודמת.
   const initialEmails = (): string[] => {
-    if (!resubmitOf) return []
-    const rec = resubmitOf.metadata?.recipients
-    if (Array.isArray(rec)) return rec.filter((r): r is string => typeof r === 'string')
+    if (resubmitOf) {
+      const rec = resubmitOf.metadata?.recipients
+      if (Array.isArray(rec)) return rec.filter((r): r is string => typeof r === 'string')
+      return []
+    }
+    // Pre-fill from active signer
+    if (signers && signers.length > 0) {
+      const targetRole = resolveSignerRole(requestType, requestedRole)
+      if (targetRole) {
+        const active = activeByRole(signers, targetRole)
+        if (active) return [active.email]
+      }
+    }
     return []
   }
   const initialSubject = (): string => {
