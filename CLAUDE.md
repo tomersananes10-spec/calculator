@@ -265,6 +265,7 @@ CLAUDE_CODE_TOMER/
 | 16.06 | **feat(tenders): חתימה inline מתוך LIBA — בלי לפתוח את המייל**. תקציבן/מאשר שמחובר ל-LIBA רואה את הבקשה ב-Tender 360 → לוחץ "פתח" → אם המייל שלו ב-`metadata.recipients` של הבקשה, מקבל את הטופס המלא (הערות, drag-drop, שם מלא, checkbox, אשר/דחה) **inline ב-RequirementDetailPanel**, בלי לעבור ל-`/approve`. migration 024 — RPC חדש `tender_approval_decide_as_recipient` (SECURITY DEFINER): מאמת `auth.email() ∈ metadata.recipients` (case-insensitive), נועל את ה-request עם FOR UPDATE, בודק state, מעדכן status + מאחסן signature/attachments ב-metadata, סורק־מסמן כל ה-tokens הקשורים כ-used. רכיב חדש [InlineApprovalForm.tsx](digitek-platform/src/modules/tenders/components/InlineApprovalForm.tsx). RequirementDetailPanel: השוואת `currentEmail` מ-`supabase.auth.getUser()` מול recipients — אם match, מציג את הטופס; אחרת, פאנל view-only (כמו לפני). prop חדש `onRefresh` ב-StageRequirementsTab → RequirementDetailPanel → טופס; מוזרם מ-TenderDetailPage כ-`refresh` מ-useTender. החלטה inline מקבילה ל-flow של ה-token: state-guard, sibling-token invalidation, audit trigger קיים. |
 | 16.06 | **refactor(tenders): מסך אישור = view-only למי שאינו המאשר**. הוסר ה-banner של "תצוגת אדמין" — המסך נראה זהה לכל מי שמורשה לצפות. בלי token (אדמין/owner) הטופס (הערות, העלאת קובץ, חתימה, checkbox, כפתורי אשר/דחה) מוסתר לחלוטין ובמקומו פאנל מינימליסטי: "החלטה זו תתקבל ע״י [role]. הקישור לחתימה נשלח ל-[email]. ההחלטה תופיע כאן אוטומטית". הוסרה גם הלוגיקה של mint-token-on-the-fly לאדמין שלא בשימוש יותר. הכפתור ב-RequirementDetailPanel שונה ל-"פתח את מסך הבקשה" (במקום "תצוגת אדמין"). תזכורת ל-feature עתידי "הגדרת מורשי חתימה מראש לכל שלב" נוסף ל-CLAUDE.md priorities. |
 | 17.06 | **fix(tenders): resubmit חייב קובץ + כשלי upload לא נבלעים יותר**. באג חמור התגלה: כותב הבריף השיב 4 סבבים של "תיקנתי" ב-resubmit modal, אבל ה-DB הראה 0 מסמכים — לא ב-`tender_documents` ולא ב-`storage.objects`. הסיבה: ב-`ApprovalRequestModal` ה-dropzone היה ויזואלית רחוק מ-textarea של "תגובה לתיקונים", וה-Submit היה enabled גם בלי קובץ. במקביל, כשלי `storage.upload` ו-`tender_documents.insert` הודפסו רק ל-`console.warn` והבקשה נוצרה בכל מקרה. תיקון: (1) ב-resubmit mode ה-dropzone מוצמד מתחת ל-resubmitResponse עם label "קובץ מתוקן" required marker וצבע amber כל עוד 0 קבצים. (2) כפתור "המשך" disabled עד שיש לפחות קובץ אחד. (3) ה-dropzone האופציונלי המקורי מוסתר ב-resubmit כדי שלא יופיע פעמיים. (4) `handleSubmit` אוסף `uploadErrors[]` במקום לבלוע — כשל מציג שגיאה גלויה ועוצר. commit `6b53482`. |
+| 20.06 | **feat(tenders/signers): צוות מורשי חתימה פר-הליך (פיצ'ר חדש מלא, 9 משימות)**. פיצ'ר חדש שמאפשר להגדיר את המורשים לחתום ברמת ההליך, עם versioning גלוי בכרטיס Sidebar. **migration 029** — טבלת `tender_signers` עם `replaces_id` + `replaced_at` + 4 RPCs SECURITY DEFINER (`tender_signer_assign/replace/update/remove`) שכותבים ל-audit log. 5 תפקידים בקטלוג: **תקציבן** (T1), **משפטן** (T3/T7), **חשב** (חדש — `treasurer`, T3/T7), **סמנכ"ל** (T3/T7), **מנהלת ועדה** (חדש — `committee_head`, T2/T6). **breaking rename בקוד**: `SignatureRequestModal` עבור חתימת חשב T3/T7 עבר מ-`budget_officer` ל-`treasurer` חדש כדי להפריד מהתקציבן של T1. **שלב 4 חדש בוויזרד** (אופציונלי) ב-[TenderWizardSignersStep.tsx](digitek-platform/src/pages/TenderWizardSignersStep.tsx) — הוויזרד גדל ל-5 שלבים. **כרטיס Sidebar קבוע** ב-Tender 360 ([SignersSidebar.tsx](digitek-platform/src/modules/tenders/components/SignersSidebar.tsx)) שמציג active + history + אזהרות "חסר — נדרש לפני T#" (לפי `SIGNER_ROLE_USED_IN`). **SignersEditModal** ([כאן](digitek-platform/src/modules/tenders/components/modals/SignersEditModal.tsx)) — לכל תפקיד 3 כפתורי mode: עדכן פרטים / החלף אדם / 🗑 הסר. **pre-fill ב-ApprovalRequestModal** — `budget_approval→budget_officer`, `committee_*→committee_head`, `contract_signature→requestedRole`. `npx tsc --noEmit` עבר נקי. spec: [docs/superpowers/specs/2026-06-20-tender-signers-design.md](docs/superpowers/specs/2026-06-20-tender-signers-design.md), plan: [docs/superpowers/plans/2026-06-20-tender-signers.md](docs/superpowers/plans/2026-06-20-tender-signers.md). |
 | 20.06 | **refactor(tenders): שכתוב מלא של 12 שלבי FSM ל-9 שלבים (T0–T8)**. ה-12 שלבים הישנים שמומשו לפי תכ"ם 16.2.19 לא תאמו את הזרימה בפועל. המשתמש סיפק baseline חדש של 9 שלבים: 0 בריף+פרוטוקול → 1 אישור תקציבי → 2 ועדת יציאה → 3 חתימות (משפטן→חשב→סמנכ"ל) → 4 מינהל הרכש (black box + כפתור ידני) → 5 פרוטוקול זכייה → 6 ועדת זכייה → 7 חתימות → 8 התקשרות + אבני דרך. שלבי פינגפונג: 1, 2, 6 (גרסאות + revision_requested — תשתית 17.06 ממוחזרת). **migration 028** — TRUNCATE לכל tender_* (DB היה ריק), CHECK חדש על `current_stage` עם 9 קודי T, doc_type הורחב ב-`protocol_initial` + `winner_protocol`, `tender_advance` RPC נכתב מחדש עם FSM סדרתי (forward N→N+1 + return N→N-1, terminal=cancelled/closed). **TS**: `types.ts`, `stagesBaseline.ts` (ללא STAGE_GROUPS — flat), `stateMachine.ts`, `stageRequirements.ts`, `workflowEngine.ts`, `gateways.ts` (הסרת `shouldSkipStage`). **UI**: `StageMap.tsx` flat עם סמן ↺ pingpong, `TenderListPage` filter ל-9 שלבים, `TenderDetailPage` — modals חדשים: `MinhalRechesAdvanceModal` (שלב 4 manual advance עם שדות אופציונליים: ספק/סכום/הערות), `UploadDocumentModal` (T0/T5 uploads עם drag-drop), `SignatureRequestModal` (wrapper על `ApprovalRequestModal` עם `requestedRole`). `ApprovalRequestModal` הורחב ב-`customTitle` + `requestedRole`. `TendersDashboardPage` bar chart מעודכן ל-pingpong color. tab "ספקים" הוסר. הוסרו imports של `VendorPicker/Proposal/WinnerSelection/TenderNumber`. `npx tsc --noEmit` עבר נקי. שלב 4 מינהל הרכש מטופל כקופסה שחורה — תצוגה סטטית + כפתור "התקבל ספק זוכה" שמזיז לשלב 5 דרך RPC. |
 | 17.06 | **feat(tenders): ארכיון מסמכי ההליך + כפתור "↩ החזר לתיקונים" + הסרת SLA מה-UI**. שלושה שלבים בקומיטים נפרדים. **שלב 1** (`d143208`) — הוסרו 3 הצגות SLA: שורת "SLA יסתיים" מ-RequirementDetailPanel, מ-ApprovalPage, ומ-ApprovalDecisionModal. DB נשאר כמו שהוא (sla_due_at + sla_events ל-cron עתידי). **שלב 2** (`0183bcc`) — Feature 2 מלא: status `'returned'` הוצא מאיחוד עם `'rejected'` ב-stageRequirements.ts; pill כתום חדש `↩ הוחזר לתיקונים` ב-StageRequirementsTab; כפתור שלישי `↩ החזר לתיקונים` (amber) ב-ApprovalPage וב-InlineApprovalForm, עם ולידציה שהערות חובה גם בהחזרה; ApprovalRequestModal קיבל prop חדש `resubmitOf?: TenderApprovalRequest` שטוען subject/body/emails/amount מההיסטוריה, מציג באנר עם הערות המחזיר, ומוסיף `parent_request_id` + `resubmit_iteration` ל-metadata; ב-RequirementDetailPanel state=returned מציג כפתור CTA גדול "📤 שלח שוב לאחר תיקון". TenderDetailPage הוסיף state נפרד `resubmitRequest` + instance נוספת של ApprovalRequestModal. ה-RPCs ב-DB כבר תמכו ב-`'returned'` מאז פאזה 1. **שלב 3** (`b5f7583`) — Feature 1: ארכיון מסמכים (וריאציה B מבין 3 מוקאפים שהוצגו ב-HTML). כפתור `📚 תיקיית מסמכים (N)` ב-header של Tender 360 → DocumentArchive modal גדול עם sidebar שמאלי של 18 סוגי מסמכים (לפי סדר ההליך, עם count) + main area של גרסאות הסוג הנבחר ממוינות לפי created_at יורד. כל גרסה: ver badge, uploader email, זמן, גודל, status pill (✓ עדכני / ↩ התבקש שינוי / ממתין / superseded / נדחה), signed URL להורדה. אין שינוי DB — הכל על תשתית `tender_documents.metadata` הקיימת. helper חדש `lib/documentGrouping.ts` עם DOC_TYPE_ORDER + LABELS + ICONS. |
 | 16.06 | **feat(tenders): גישת admin/owner למסך המאשר ללא token**. עד עכשיו `/approve/:id` היה נגיש רק עם token תקף — אדמין/בעל הליך לא יכלו לצפות במה שהמאשר רואה. שודרג: אם אין token ב-URL, ApprovalPage קורא ל-`supabase.auth.getUser()` ואז שולף ישירות מ-`tender_approval_requests` (RLS הקיים מאפשר owner+admin בלבד). מסומן `adminMode=true` שמציג banner מודגש: "🔓 תצוגת אדמין/בעל הליך — ההחלטה תיחתם בשמך". ה-submit בmode זה מטביע token חדש דרך `mint_approval_token` (אדמין מורשה) ואז קורא לאותו `tender_approval_decide_by_token` — ככה כל ההחלטות עוברות באותו audit trail עם signature+attachments. נוסף כפתור "👁 פתח את מסך המאשר (תצוגת אדמין)" ב-RequirementDetailPanel עבור state=awaiting — פותח tab חדש ב-`/approve/:request_id` בלי token. |
@@ -278,6 +279,50 @@ CLAUDE_CODE_TOMER/
 ---
 
 ## 10. שיחה אחרונה
+
+> **תאריך**: 20–21.06.2026
+> **נושא**: צוות מורשי חתימה פר-הליך — פיצ'ר חדש מלא (9 משימות)
+
+### החלטות מקדימות
+- המשתמש העלה תקלה שכל הנמענים יכולים לחתום על בקשת אישור — צריך הבחנה בין "מורשי חתימה" אמיתיים לבין משתתפים אחרים
+- בוצע brainstorming מובנה (skill `superpowers:brainstorming`) עם 3 מוקאפים — נבחר **מוקאפ A**: שלב בוויזרד + כרטיס Sidebar
+- 5 תפקידים בקטלוג קבוע (תקציבן, משפטן, חשב, סמנכ"ל, מנהלת ועדה). המשתמש בוחר אילו רלוונטיים פר-הליך
+- הגדרה בוויזרד T0 (אופציונלי) + עריכה דרך כרטיס Sidebar בכל שלב
+- החלפה עם versions גלוי בכרטיס (replaces_id + replaced_at)
+- בקשות in-flight לא נוגעים — הטוקן הישן נשאר תקף
+- **breaking rename**: `SignatureRequestModal` של חתימת חשב T3/T7 עבר מ-`budget_officer` ל-`treasurer` חדש כדי להפריד מהתקציבן של T1
+- spec: [docs/superpowers/specs/2026-06-20-tender-signers-design.md](docs/superpowers/specs/2026-06-20-tender-signers-design.md)
+- plan: [docs/superpowers/plans/2026-06-20-tender-signers.md](docs/superpowers/plans/2026-06-20-tender-signers.md)
+
+### מה בוצע — 9 משימות בקומיטים נפרדים (SDD)
+תכנון וביצוע דרך skill `superpowers:writing-plans` + `superpowers:subagent-driven-development`. כל משימה: implementer → reviewer → progress ledger.
+
+| # | משימה | קומיט |
+|---|-------|--------|
+| 1 | Migration 029 + 4 RPCs (assign/replace/update/remove) | `99816b2` |
+| 2 | Types `SignerRole` + `TenderSigner` + `lib/signers.ts` (RPC wrappers) | `4e217f9` |
+| 3 | budget_officer → treasurer rename ב-T3/T7 חתימות (5 occurrences ב-3 קבצים) | `6736e8d` |
+| 4 | `useTender` extension (signers כשליפה 14 מקבילית) | `1b9bd82` |
+| 5 | SignersSidebar component + embed ב-Tender 360 | `e9894b7` |
+| 6 | SignersEditModal (assign/update/replace/remove ב-modal יחיד) | `0180f49` |
+| 7 | Wizard step 4 חדש (`TenderWizardSignersStep`) — 5 שלבים סה"כ | `0dd357d` |
+| 8 | ApprovalRequestModal + SignatureRequestModal pre-fill מ-active signer | `e78b998` |
+| 9 | CLAUDE.md update + סיכום הפיצ'ר | (זה) |
+
+### אימות
+- ✅ `npx tsc --noEmit` Exit 0 אחרי כל משימה (9/9 קומיטים)
+- ✅ Migration 029 הוחל בהצלחה ב-digitek-dev (`apply_migration` הצליח, `execute_sql` החזיר `table_exists=1, rpc_count=4`)
+- ✅ כל משימה עברה task-reviewer subagent — אישורים נקיים ב-1, 2, 3, 4, 7, 8; משימות 5+6 אושרו עם הערות UX polish שנשמרו ב-`.superpowers/sdd/progress.md` לסקירה הסופית
+- ⚠️ **QA ידני** עדיין לא בוצע ב-Vercel preview — דורש מהמשתמש
+
+### עוד לא בוצע
+- [ ] **QA ידני E2E**: יצור הליך עם 3 תפקידים בוויזרד → ודא Sidebar → ערוך → החלף → ודא history → pre-fill ב-T1 budget approval
+- [ ] **Polish (אופציונלי)**: extract של inline tab styles ב-`SignersEditModal` ל-CSS module; loading state פר-button במצב remove; styled confirm modal במקום `window.confirm`
+- [ ] **Final whole-branch review** (skill `superpowers:requesting-code-review`) לסקירה רחבה לפני merge ל-main
+
+---
+
+## (היסטוריית שיחה קודמת — שכתוב 12→9 שלבים)
 
 > **תאריך**: 20.06.2026
 > **נושא**: שכתוב מלא של 12 שלבי FSM ל-9 שלבים (T0–T8) — מתאים לזרימה האמיתית בארגון
