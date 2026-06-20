@@ -1,10 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { createTender } from '../modules/tenders/hooks/useTender'
 import { evaluateG1_Amount, evaluateG7_WinnerApproval, evaluateG9_ContractTemplate } from '../modules/tenders/data/gateways'
+import { safeFileName } from '../modules/tenders/lib/safeFileName'
 import type { SelectionType } from '../modules/tenders/types'
 import styles from './TenderWizardPage.module.css'
+
+const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB
+const ACCEPT_DOCS = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg'
+
+type BriefSource = 'existing' | 'upload'
 
 interface BriefOption {
   id: string
@@ -46,12 +52,17 @@ export function TenderWizardPage() {
   const [selectionType, setSelectionType] = useState<SelectionType>('quality_price')
   const [serviceCluster, setServiceCluster] = useState<string>('')
 
-  // Step 3 — קישור לבריף וחישוב מתוך הרשימות של המשתמש
+  // Step 3 — קישור / העלאה של בריף + פרוטוקול (שניהם חובה לפתיחה ב-T0)
+  const [briefSource, setBriefSource] = useState<BriefSource>('existing')
   const [briefId, setBriefId] = useState('')
+  const [briefFile, setBriefFile] = useState<File | null>(null)
+  const [protocolFile, setProtocolFile] = useState<File | null>(null)
   const [calculationId, setCalculationId] = useState('')
   const [briefs, setBriefs] = useState<BriefOption[]>([])
   const [calculations, setCalculations] = useState<CalcOption[]>([])
   const [loadingLinks, setLoadingLinks] = useState(false)
+  const briefFileInputRef = useRef<HTMLInputElement>(null)
+  const protocolFileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -74,11 +85,50 @@ export function TenderWizardPage() {
   const g7 = useMemo(() => evaluateG7_WinnerApproval(amount, selectionType), [amount, selectionType])
   const g9 = useMemo(() => evaluateG9_ContractTemplate(amount), [amount])
 
+  // בריף ופרוטוקול חובה לעבור משלב 3 — לא ניתן לפתוח הליך בלי שניהם.
+  const briefSatisfied = briefSource === 'existing' ? !!briefId : !!briefFile
+  const protocolSatisfied = !!protocolFile
+
   const canAdvance = useMemo(() => {
     if (step === 1) return title.trim().length >= 3 && ministry.trim().length >= 2
     if (step === 2) return amount > 0
+    if (step === 3) return briefSatisfied && protocolSatisfied
     return true
-  }, [step, title, ministry, amount])
+  }, [step, title, ministry, amount, briefSatisfied, protocolSatisfied])
+
+  function pickFile(target: 'brief' | 'protocol', f: File | null) {
+    if (!f) return
+    if (f.size > MAX_FILE_SIZE) {
+      setError(`קובץ גדול מדי (${(f.size / 1024 / 1024).toFixed(1)}MB). מקסימום 25MB.`)
+      return
+    }
+    setError(null)
+    if (target === 'brief') setBriefFile(f)
+    else setProtocolFile(f)
+  }
+
+  async function uploadDocument(tenderId: string, file: File, docType: 'brief' | 'protocol_initial'): Promise<string | null> {
+    const safeName = safeFileName(file.name)
+    const path = `${tenderId}/${docType}-${Date.now()}-${safeName}`
+    const { error: upErr } = await supabase.storage
+      .from('tender-documents')
+      .upload(path, file, { contentType: file.type, upsert: false })
+    if (upErr) return `כשל בהעלאת ${file.name}: ${upErr.message}`
+
+    const { error: docErr } = await supabase
+      .from('tender_documents')
+      .insert({
+        tender_id: tenderId,
+        doc_type: docType,
+        title: file.name,
+        file_ref: path,
+        file_size_bytes: file.size,
+        mime_type: file.type || 'application/octet-stream',
+        metadata: { source: 'tender_wizard' },
+      })
+    if (docErr) return `${file.name} הועלה ל-Storage אך לא נרשם ב-DB: ${docErr.message}`
+    return null
+  }
 
   async function handleSubmit() {
     setSubmitting(true)
@@ -90,14 +140,35 @@ export function TenderWizardPage() {
       selection_type: selectionType,
       service_cluster: serviceCluster || null,
       requires_tender_editor: serviceCluster === 'nimbus' || serviceCluster === 'product_mgmt',
-      brief_id: briefId.trim() || null,
+      brief_id: briefSource === 'existing' && briefId.trim() ? briefId.trim() : null,
       calculation_id: calculationId.trim() || null,
     })
-    setSubmitting(false)
+
     if (!result.ok || !result.id) {
+      setSubmitting(false)
       setError(result.error ?? 'שגיאה ביצירת ההליך')
       return
     }
+
+    // העלאת מסמכים אחרי שההליך נוצר (storage path מצריך tender_id).
+    const uploadErrors: string[] = []
+    if (briefSource === 'upload' && briefFile) {
+      const err = await uploadDocument(result.id, briefFile, 'brief')
+      if (err) uploadErrors.push(err)
+    }
+    if (protocolFile) {
+      const err = await uploadDocument(result.id, protocolFile, 'protocol_initial')
+      if (err) uploadErrors.push(err)
+    }
+
+    setSubmitting(false)
+
+    if (uploadErrors.length > 0) {
+      // ההליך נוצר אך חלק מהקבצים נכשל — מעדיפים להוביל את המשתמש לתיק ולתת לו להעלות
+      // ידנית את החסרים בלשונית "דרישות שלב" (T0 דרישות עדיין יציגו את הפערים).
+      setError(`ההליך נוצר אך חלק מהקבצים לא הועלו: ${uploadErrors.join(' · ')}. ניתן להעלות ידנית מתוך תיק ההליך.`)
+    }
+
     navigate(`/tenders/${result.id}`)
   }
 
@@ -239,35 +310,113 @@ export function TenderWizardPage() {
 
       {step === 3 && (
         <div className={styles.panel}>
-          <h2 className={styles.panelTitle}>קישור לבריף וחישוב תכ"ם</h2>
-          <p className={styles.panelSub}>קשר את הבריף הקיים שכתבת ואת חישוב התכ"ם — אופציונלי, אבל מומלץ. ניתן גם לקשר מאוחר יותר.</p>
+          <h2 className={styles.panelTitle}>בריף + פרוטוקול + חישוב</h2>
+          <p className={styles.panelSub}>
+            <strong>בריף ופרוטוקול חובה לפתיחה</strong> (שלב 0). חישוב תכ"ם אופציונלי.
+          </p>
 
           {loadingLinks && <div className={styles.hint}>טוען את הבריפים והחישובים שלך…</div>}
 
+          {/* --- בריף --- */}
           <div className={styles.formRow}>
-            <label className={styles.label}>בריף קיים</label>
-            <select
-              className={styles.select}
-              value={briefId}
-              onChange={e => setBriefId(e.target.value)}
-              disabled={loadingLinks}
+            <label className={`${styles.label} ${styles.required}`}>בריף ההליך</label>
+            <div className={styles.toggleRow}>
+              <button
+                type="button"
+                className={`${styles.toggleBtn} ${briefSource === 'existing' ? styles.active : ''}`}
+                onClick={() => setBriefSource('existing')}
+              >
+                בחירה ממודול הבריפים
+              </button>
+              <button
+                type="button"
+                className={`${styles.toggleBtn} ${briefSource === 'upload' ? styles.active : ''}`}
+                onClick={() => setBriefSource('upload')}
+              >
+                העלאה מהמחשב
+              </button>
+            </div>
+
+            {briefSource === 'existing' && (
+              <>
+                <select
+                  className={styles.select}
+                  value={briefId}
+                  onChange={e => setBriefId(e.target.value)}
+                  disabled={loadingLinks}
+                  style={{ marginTop: 10 }}
+                >
+                  <option value="">— בחר בריף —</option>
+                  {briefs.map(b => (
+                    <option key={b.id} value={b.id}>
+                      {b.title || '(ללא שם)'}{b.status ? ` · ${b.status}` : ''} · {new Date(b.created_at).toLocaleDateString('he-IL')}
+                    </option>
+                  ))}
+                </select>
+                <div className={styles.hint}>
+                  {briefs.length === 0 && !loadingLinks
+                    ? 'אין בריפים שמורים בחשבון שלך. עבור ל-"העלאה מהמחשב" או צור בריף ב-/briefs.'
+                    : `${briefs.length} בריפים זמינים`}
+                </div>
+              </>
+            )}
+
+            {briefSource === 'upload' && (
+              <>
+                <input
+                  ref={briefFileInputRef}
+                  type="file"
+                  accept={ACCEPT_DOCS}
+                  style={{ display: 'none' }}
+                  onChange={e => pickFile('brief', e.target.files?.[0] ?? null)}
+                />
+                <div
+                  className={styles.fileDrop}
+                  onClick={() => briefFileInputRef.current?.click()}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={e => { e.preventDefault(); pickFile('brief', e.dataTransfer.files[0] ?? null) }}
+                  style={{ marginTop: 10 }}
+                >
+                  <div className={styles.fileDropIcon}>📄</div>
+                  <div className={styles.fileDropText}>{briefFile ? briefFile.name : 'גרור קובץ בריף או לחץ לבחירה'}</div>
+                  <div className={styles.fileDropHint}>
+                    {briefFile ? `${(briefFile.size / 1024).toFixed(0)} KB` : 'PDF, Word, Excel, תמונות · עד 25MB'}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* --- פרוטוקול --- */}
+          <div className={styles.formRow}>
+            <label className={`${styles.label} ${styles.required}`}>פרוטוקול ראשוני</label>
+            <input
+              ref={protocolFileInputRef}
+              type="file"
+              accept={ACCEPT_DOCS}
+              style={{ display: 'none' }}
+              onChange={e => pickFile('protocol', e.target.files?.[0] ?? null)}
+            />
+            <div
+              className={styles.fileDrop}
+              onClick={() => protocolFileInputRef.current?.click()}
+              onDragOver={e => e.preventDefault()}
+              onDrop={e => { e.preventDefault(); pickFile('protocol', e.dataTransfer.files[0] ?? null) }}
             >
-              <option value="">— ללא קישור —</option>
-              {briefs.map(b => (
-                <option key={b.id} value={b.id}>
-                  {b.title || '(ללא שם)'}{b.status ? ` · ${b.status}` : ''} · {new Date(b.created_at).toLocaleDateString('he-IL')}
-                </option>
-              ))}
-            </select>
+              <div className={styles.fileDropIcon}>📋</div>
+              <div className={styles.fileDropText}>{protocolFile ? protocolFile.name : 'גרור קובץ פרוטוקול או לחץ לבחירה'}</div>
+              <div className={styles.fileDropHint}>
+                {protocolFile ? `${(protocolFile.size / 1024).toFixed(0)} KB` : 'PDF, Word, Excel, תמונות · עד 25MB'}
+              </div>
+            </div>
             <div className={styles.hint}>
-              {briefs.length === 0 && !loadingLinks
-                ? 'אין בריפים שמורים בחשבון שלך. תוכל לכתוב בריף ב-/briefs ולחזור.'
-                : `${briefs.length} בריפים זמינים`}
+              מודול פרוטוקולים יתווסף בעתיד. כרגע — העלאה ידנית.
             </div>
           </div>
 
+          {/* --- חישוב תכ"ם (אופציונלי) --- */}
           <div className={styles.formRow}>
-            <label className={styles.label}>חישוב תכ"ם קיים</label>
+            <label className={styles.label}>חישוב תכ"ם קיים (אופציונלי)</label>
             <select
               className={styles.select}
               value={calculationId}
@@ -290,9 +439,7 @@ export function TenderWizardPage() {
             </div>
           </div>
 
-          <div className={styles.gatewayInfo} style={{ marginTop: 16 }}>
-            💡 מודול פרוטוקולים יתווסף בקרוב — כאן תוכל גם לקשר פרוטוקול קיים. כרגע נסיים בלי קישור פרוטוקול.
-          </div>
+          {error && <div className={styles.errorBox}>{error}</div>}
         </div>
       )}
 
@@ -333,6 +480,18 @@ export function TenderWizardPage() {
             <div className={styles.summaryItem}>
               <span className={styles.summaryLabel}>מסלול פשוט</span>
               <span className={styles.summaryValue}>{g1.isSimplePath ? 'כן' : 'לא'}</span>
+            </div>
+            <div className={styles.summaryItem}>
+              <span className={styles.summaryLabel}>בריף</span>
+              <span className={styles.summaryValue}>
+                {briefSource === 'existing'
+                  ? (briefs.find(b => b.id === briefId)?.title ?? '—')
+                  : (briefFile?.name ?? '—')}
+              </span>
+            </div>
+            <div className={styles.summaryItem}>
+              <span className={styles.summaryLabel}>פרוטוקול ראשוני</span>
+              <span className={styles.summaryValue}>{protocolFile?.name ?? '—'}</span>
             </div>
           </div>
 

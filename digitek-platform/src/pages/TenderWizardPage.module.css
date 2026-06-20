@@ -51,6 +51,24 @@
 }
 .toggleBtn.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); font-weight: 700; }
 
+/* drag-drop file area — מועתק מ-Modal.module.css כדי לשמור שפה ויזואלית עקבית */
+.fileDrop {
+  border: 1.5px dashed var(--border2);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  background: var(--bg);
+}
+.fileDrop:hover {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+}
+.fileDropIcon { font-size: 26px; margin-bottom: 6px; opacity: 0.75; }
+.fileDropText { font-size: 14px; color: var(--text2); font-weight: 600; }
+.fileDropHint { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
 .gatewayInfo {
   background: var(--primary-bg); border-right: 4px solid var(--primary);
   padding: 12px 16px; border-radius: 8px; margin-top: 12px;
