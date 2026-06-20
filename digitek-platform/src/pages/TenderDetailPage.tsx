@@ -18,6 +18,7 @@ import { MinhalRechesAdvanceModal } from '../modules/tenders/components/modals/M
 import { UploadDocumentModal } from '../modules/tenders/components/modals/UploadDocumentModal'
 import { SignatureRequestModal } from '../modules/tenders/components/modals/SignatureRequestModal'
 import { DocumentArchive } from '../modules/tenders/components/DocumentArchive'
+import { SignersSidebar } from '../modules/tenders/components/SignersSidebar'
 import archiveStyles from '../modules/tenders/components/DocumentArchive.module.css'
 import styles from './TenderDetailPage.module.css'
 
@@ -55,8 +56,9 @@ export function TenderDetailPage() {
   const [activeAction, setActiveAction] = useState<ActionId | null>(null)
   const [resubmitRequest, setResubmitRequest] = useState<TenderApprovalRequest | null>(null)
   const [archiveOpen, setArchiveOpen] = useState(false)
+  const [signersEditOpen, setSignersEditOpen] = useState(false)
   const detail = useTender(id)
-  const { tender, budget, documents, contracts, milestones, protocols, personas, auditLog, approvalRequests, loading, error, refresh } = detail
+  const { tender, budget, documents, contracts, milestones, protocols, personas, auditLog, approvalRequests, signers, loading, error, refresh } = detail
   const [decisionModalOpen, setDecisionModalOpen] = useState(false)
   const pendingApprovals = approvalRequests.filter(a => a.status === 'pending' || a.status === 'in_review')
 
@@ -389,7 +391,14 @@ export function TenderDetailPage() {
           </div>
         </div>
 
-        <StageMap tender={tender} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <StageMap tender={tender} />
+          <SignersSidebar
+            tender={tender}
+            signers={signers}
+            onEdit={() => setSignersEditOpen(true)}
+          />
+        </div>
       </div>
 
       {/* Action modals — 9-stage flow */}
