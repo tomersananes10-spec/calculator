@@ -36,6 +36,8 @@ export type PersonaRole =
   | 'vendor'
   | 'professional_manager'
   | 'signatory'
+  | 'treasurer'         // חדש — חשב (חתימה ב-T3/T7)
+  | 'committee_head'    // חדש — מנהלת ועדת מכרזים
   | 'admin'
 
 export type CommitteeType = 'tenders' | 'exceptions' | 'subcommittee_quality'
@@ -551,3 +553,26 @@ export interface TenderStatsResult {
 }
 
 export type GatewayResult = Record<string, unknown>
+
+// ---------- Signers (מורשי חתימה פר-הליך) ----------
+
+export type SignerRole =
+  | 'budget_officer'      // תקציבן — T1
+  | 'legal_professional'  // משפטן — T3/T7
+  | 'treasurer'           // חשב — T3/T7 + ועדה
+  | 'signatory'           // סמנכ"ל אחראי תורן — T3/T7
+  | 'committee_head'      // מנהלת ועדת מכרזים — T2/T6
+
+export interface TenderSigner {
+  id: string
+  tender_id: string
+  role: SignerRole
+  display_name: string
+  email: string
+  added_by: string | null
+  added_at: string
+  replaced_at: string | null
+  replaced_by: string | null
+  replaces_id: string | null
+  active: boolean
+}
