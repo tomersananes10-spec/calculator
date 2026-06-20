@@ -13,7 +13,7 @@ interface Props {
 
 const ROLE_LABELS: Partial<Record<PersonaRole, string>> = {
   legal_professional: 'משפטן',
-  budget_officer: 'חשב',
+  treasurer: 'חשב',
   signatory: 'סמנכ"ל',
 }
 
