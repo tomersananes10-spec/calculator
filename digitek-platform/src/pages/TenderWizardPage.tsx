@@ -105,7 +105,7 @@ export function TenderWizardPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <h1 className={styles.title}>פתיחת הליך מכרז חדש</h1>
-        <p className={styles.sub}>4 שלבים — לאחר היצירה הליך עובר אוטומטית לשלב 1 (ייזום ותקצוב)</p>
+        <p className={styles.sub}>4 שלבים — לאחר היצירה ההליך נפתח בשלב 0 (העלאת בריף + פרוטוקול)</p>
       </div>
 
       <div className={styles.stepper}>

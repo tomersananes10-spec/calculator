@@ -265,6 +265,7 @@ CLAUDE_CODE_TOMER/
 | 16.06 | **feat(tenders): חתימה inline מתוך LIBA — בלי לפתוח את המייל**. תקציבן/מאשר שמחובר ל-LIBA רואה את הבקשה ב-Tender 360 → לוחץ "פתח" → אם המייל שלו ב-`metadata.recipients` של הבקשה, מקבל את הטופס המלא (הערות, drag-drop, שם מלא, checkbox, אשר/דחה) **inline ב-RequirementDetailPanel**, בלי לעבור ל-`/approve`. migration 024 — RPC חדש `tender_approval_decide_as_recipient` (SECURITY DEFINER): מאמת `auth.email() ∈ metadata.recipients` (case-insensitive), נועל את ה-request עם FOR UPDATE, בודק state, מעדכן status + מאחסן signature/attachments ב-metadata, סורק־מסמן כל ה-tokens הקשורים כ-used. רכיב חדש [InlineApprovalForm.tsx](digitek-platform/src/modules/tenders/components/InlineApprovalForm.tsx). RequirementDetailPanel: השוואת `currentEmail` מ-`supabase.auth.getUser()` מול recipients — אם match, מציג את הטופס; אחרת, פאנל view-only (כמו לפני). prop חדש `onRefresh` ב-StageRequirementsTab → RequirementDetailPanel → טופס; מוזרם מ-TenderDetailPage כ-`refresh` מ-useTender. החלטה inline מקבילה ל-flow של ה-token: state-guard, sibling-token invalidation, audit trigger קיים. |
 | 16.06 | **refactor(tenders): מסך אישור = view-only למי שאינו המאשר**. הוסר ה-banner של "תצוגת אדמין" — המסך נראה זהה לכל מי שמורשה לצפות. בלי token (אדמין/owner) הטופס (הערות, העלאת קובץ, חתימה, checkbox, כפתורי אשר/דחה) מוסתר לחלוטין ובמקומו פאנל מינימליסטי: "החלטה זו תתקבל ע״י [role]. הקישור לחתימה נשלח ל-[email]. ההחלטה תופיע כאן אוטומטית". הוסרה גם הלוגיקה של mint-token-on-the-fly לאדמין שלא בשימוש יותר. הכפתור ב-RequirementDetailPanel שונה ל-"פתח את מסך הבקשה" (במקום "תצוגת אדמין"). תזכורת ל-feature עתידי "הגדרת מורשי חתימה מראש לכל שלב" נוסף ל-CLAUDE.md priorities. |
 | 17.06 | **fix(tenders): resubmit חייב קובץ + כשלי upload לא נבלעים יותר**. באג חמור התגלה: כותב הבריף השיב 4 סבבים של "תיקנתי" ב-resubmit modal, אבל ה-DB הראה 0 מסמכים — לא ב-`tender_documents` ולא ב-`storage.objects`. הסיבה: ב-`ApprovalRequestModal` ה-dropzone היה ויזואלית רחוק מ-textarea של "תגובה לתיקונים", וה-Submit היה enabled גם בלי קובץ. במקביל, כשלי `storage.upload` ו-`tender_documents.insert` הודפסו רק ל-`console.warn` והבקשה נוצרה בכל מקרה. תיקון: (1) ב-resubmit mode ה-dropzone מוצמד מתחת ל-resubmitResponse עם label "קובץ מתוקן" required marker וצבע amber כל עוד 0 קבצים. (2) כפתור "המשך" disabled עד שיש לפחות קובץ אחד. (3) ה-dropzone האופציונלי המקורי מוסתר ב-resubmit כדי שלא יופיע פעמיים. (4) `handleSubmit` אוסף `uploadErrors[]` במקום לבלוע — כשל מציג שגיאה גלויה ועוצר. commit `6b53482`. |
+| 20.06 | **refactor(tenders): שכתוב מלא של 12 שלבי FSM ל-9 שלבים (T0–T8)**. ה-12 שלבים הישנים שמומשו לפי תכ"ם 16.2.19 לא תאמו את הזרימה בפועל. המשתמש סיפק baseline חדש של 9 שלבים: 0 בריף+פרוטוקול → 1 אישור תקציבי → 2 ועדת יציאה → 3 חתימות (משפטן→חשב→סמנכ"ל) → 4 מינהל הרכש (black box + כפתור ידני) → 5 פרוטוקול זכייה → 6 ועדת זכייה → 7 חתימות → 8 התקשרות + אבני דרך. שלבי פינגפונג: 1, 2, 6 (גרסאות + revision_requested — תשתית 17.06 ממוחזרת). **migration 028** — TRUNCATE לכל tender_* (DB היה ריק), CHECK חדש על `current_stage` עם 9 קודי T, doc_type הורחב ב-`protocol_initial` + `winner_protocol`, `tender_advance` RPC נכתב מחדש עם FSM סדרתי (forward N→N+1 + return N→N-1, terminal=cancelled/closed). **TS**: `types.ts`, `stagesBaseline.ts` (ללא STAGE_GROUPS — flat), `stateMachine.ts`, `stageRequirements.ts`, `workflowEngine.ts`, `gateways.ts` (הסרת `shouldSkipStage`). **UI**: `StageMap.tsx` flat עם סמן ↺ pingpong, `TenderListPage` filter ל-9 שלבים, `TenderDetailPage` — modals חדשים: `MinhalRechesAdvanceModal` (שלב 4 manual advance עם שדות אופציונליים: ספק/סכום/הערות), `UploadDocumentModal` (T0/T5 uploads עם drag-drop), `SignatureRequestModal` (wrapper על `ApprovalRequestModal` עם `requestedRole`). `ApprovalRequestModal` הורחב ב-`customTitle` + `requestedRole`. `TendersDashboardPage` bar chart מעודכן ל-pingpong color. tab "ספקים" הוסר. הוסרו imports של `VendorPicker/Proposal/WinnerSelection/TenderNumber`. `npx tsc --noEmit` עבר נקי. שלב 4 מינהל הרכש מטופל כקופסה שחורה — תצוגה סטטית + כפתור "התקבל ספק זוכה" שמזיז לשלב 5 דרך RPC. |
 | 17.06 | **feat(tenders): ארכיון מסמכי ההליך + כפתור "↩ החזר לתיקונים" + הסרת SLA מה-UI**. שלושה שלבים בקומיטים נפרדים. **שלב 1** (`d143208`) — הוסרו 3 הצגות SLA: שורת "SLA יסתיים" מ-RequirementDetailPanel, מ-ApprovalPage, ומ-ApprovalDecisionModal. DB נשאר כמו שהוא (sla_due_at + sla_events ל-cron עתידי). **שלב 2** (`0183bcc`) — Feature 2 מלא: status `'returned'` הוצא מאיחוד עם `'rejected'` ב-stageRequirements.ts; pill כתום חדש `↩ הוחזר לתיקונים` ב-StageRequirementsTab; כפתור שלישי `↩ החזר לתיקונים` (amber) ב-ApprovalPage וב-InlineApprovalForm, עם ולידציה שהערות חובה גם בהחזרה; ApprovalRequestModal קיבל prop חדש `resubmitOf?: TenderApprovalRequest` שטוען subject/body/emails/amount מההיסטוריה, מציג באנר עם הערות המחזיר, ומוסיף `parent_request_id` + `resubmit_iteration` ל-metadata; ב-RequirementDetailPanel state=returned מציג כפתור CTA גדול "📤 שלח שוב לאחר תיקון". TenderDetailPage הוסיף state נפרד `resubmitRequest` + instance נוספת של ApprovalRequestModal. ה-RPCs ב-DB כבר תמכו ב-`'returned'` מאז פאזה 1. **שלב 3** (`b5f7583`) — Feature 1: ארכיון מסמכים (וריאציה B מבין 3 מוקאפים שהוצגו ב-HTML). כפתור `📚 תיקיית מסמכים (N)` ב-header של Tender 360 → DocumentArchive modal גדול עם sidebar שמאלי של 18 סוגי מסמכים (לפי סדר ההליך, עם count) + main area של גרסאות הסוג הנבחר ממוינות לפי created_at יורד. כל גרסה: ver badge, uploader email, זמן, גודל, status pill (✓ עדכני / ↩ התבקש שינוי / ממתין / superseded / נדחה), signed URL להורדה. אין שינוי DB — הכל על תשתית `tender_documents.metadata` הקיימת. helper חדש `lib/documentGrouping.ts` עם DOC_TYPE_ORDER + LABELS + ICONS. |
 | 16.06 | **feat(tenders): גישת admin/owner למסך המאשר ללא token**. עד עכשיו `/approve/:id` היה נגיש רק עם token תקף — אדמין/בעל הליך לא יכלו לצפות במה שהמאשר רואה. שודרג: אם אין token ב-URL, ApprovalPage קורא ל-`supabase.auth.getUser()` ואז שולף ישירות מ-`tender_approval_requests` (RLS הקיים מאפשר owner+admin בלבד). מסומן `adminMode=true` שמציג banner מודגש: "🔓 תצוגת אדמין/בעל הליך — ההחלטה תיחתם בשמך". ה-submit בmode זה מטביע token חדש דרך `mint_approval_token` (אדמין מורשה) ואז קורא לאותו `tender_approval_decide_by_token` — ככה כל ההחלטות עוברות באותו audit trail עם signature+attachments. נוסף כפתור "👁 פתח את מסך המאשר (תצוגת אדמין)" ב-RequirementDetailPanel עבור state=awaiting — פותח tab חדש ב-`/approve/:request_id` בלי token. |
 | 16.06 | **feat(tenders): שורות דרישה ניתנות להרחבה עם סטטוס עשיר**. עד עכשיו StageRequirementsTab היה בינארי (ממתין/הושלם) ולא הראה שבכלל נשלחה בקשה — כפתור "בקש אישור" המשיך להופיע גם אחרי שליחה, ויצר בקשות כפולות. שודרג: מ-`check(d): boolean` ל-`getStatus(d): RequirementStatus` שמחזיר אחד מ-5 מצבים (`not_started`/`awaiting`/`approved`/`rejected`/`satisfied`). דרישות מבוססות-אישור (budget, olma, professional_review) משתמשות ב-helper `approvalBasedStatus` שמוצא את ה-`approval_request` האחרון מהסוג המתאים. רכיב חדש [RequirementDetailPanel.tsx](digitek-platform/src/modules/tenders/components/RequirementDetailPanel.tsx) שמופיע כשמרחיבים שורה — מציג למאשרי awaiting: נמענים, תפקיד, זמן ששלחו, SLA, סכום, גוף הבקשה, מסמכים מצורפים (signed URL מ-tender-documents bucket), ושורת highlight "🔒 רק `{role}` יכול להחליט". לאישור/דחיה: שם החותם + תאריך + הערות + מסמכים. ה-row לחיץ לפתיחה/סגירה (ChevronIcon מסתובב). 4 status pills: amber=ממתין, blue=ממתין למאשר, green=אושר, red=נדחה. כפתור actions תלוי-state: not_started→primary, rejected→"פתח בקשה חדשה", approved/awaiting→ללא כפתור. |
@@ -278,28 +279,63 @@ CLAUDE_CODE_TOMER/
 
 ## 10. שיחה אחרונה
 
-> **תאריך**: 17.06.2026
-> **נושא**: ארכיון מסמכים פר-הליך + כפתור "↩ החזר לתיקונים" + הסרת SLA מה-UI
+> **תאריך**: 20.06.2026
+> **נושא**: שכתוב מלא של 12 שלבי FSM ל-9 שלבים (T0–T8) — מתאים לזרימה האמיתית בארגון
 
 ### החלטות מקדימות
-- 3 פיצ'רים שתוכננו ב-plan mode ([joyful-exploring-tulip.md](C:\Users\tomer\.claude\plans\joyful-exploring-tulip.md)): (1) ארכיון מסמכים פר-הליך — UI להציג את כל מסמכי ההליך מקובצים לפי סוג עם היסטוריית גרסאות; (2) כפתור "↩ החזר לתיקונים" כאפשרות שלישית למאשר; (3) הסרת SLA מכל ה-UI (DB נשמר).
-- המשתמש בחר לפי 3 mockups HTML שהוצגו לו ([mockups-document-archive-A.html](mockups-document-archive-A.html), [B](mockups-document-archive-B.html), [C](mockups-document-archive-C.html)): **וריאציה B** — כפתור ב-header פותח Modal עם sidebar שמאלי + main area.
-- שם הכפתור השלישי: "↩ החזר לתיקונים" (לא "החזר לשולח" או "השב").
-- SLA: כבוי לחלוטין מה-UI — לא להציג בשום מקום, גם לא לחשב התראות עליו. החישוב נשאר ב-DB ל-cron עתידי.
+- המשתמש סיפק סקיצת ידיים + רשימה כתובה של 9 שלבים: 0 בריף+פרוטוקול → 1 אישור תקציבי → 2 ועדת יציאה → 3 חתימות (משפטן→חשב→סמנכ"ל) → 4 מינהל הרכש → 5 פרוטוקול זכייה → 6 ועדת זכייה → 7 חתימות → 8 התקשרות
+- 12 השלבים הישנים (S0–S12) "לחלוטין לא נכונים" — לזריקה מלאה
+- DB ריק (0 tenders + audit log רק 3 שורות) → wipe נקי בלי מיגרציית נתונים
+- שלבי פינגפונג (תומכי גרסאות + revision_requested): **1, 2, 6** — לרכוב על תשתית 17.06
+- שלב 4 (מינהל הרכש): black box — תצוגה סטטית + כפתור ידני "התקבל ספק זוכה"
+- שלב 0 — גם בריף וגם פרוטוקול חובה לפתיחה
+- ועדות (2, 6) — להמשיך עם `tender_schedule_committee_meeting` (16.06)
+- STAGE_GROUPS לבטל — 9 פלאט מספיק
+- תוכנית מלאה: [staged-chasing-conway.md](C:\Users\tomer\.claude\plans\staged-chasing-conway.md)
 
-### מה נבנה (3 קומיטים)
-- `d143208` — שלב 1: הסרת SLA מ-3 רכיבי UI ([RequirementDetailPanel](digitek-platform/src/modules/tenders/components/RequirementDetailPanel.tsx), [ApprovalPage](digitek-platform/src/pages/ApprovalPage.tsx), [ApprovalDecisionModal](digitek-platform/src/modules/tenders/components/modals/ApprovalDecisionModal.tsx)).
-- `0183bcc` — שלב 2: feature מלא של "החזר לתיקונים". 9 קבצים השתנו. RequirementStatus.state חדש: 'returned' (נפרד מ-'rejected'); pill כתום + summaryFor case ב-StageRequirementsTab; כפתור שלישי `btnReturn`/`inlineBtnReturn` ב-2 הטפסים; ApprovalRequestModal עם prop חדש `resubmitOf` שטוען את כל הנתונים מההיסטוריה ושומר `parent_request_id` + `resubmit_iteration` ב-metadata של הבקשה החדשה; ב-RequirementDetailPanel state=returned מציג כפתור CTA "📤 שלח שוב לאחר תיקון"; TenderDetailPage מנהל את ה-resubmit modal כ-instance נפרדת. ה-RPCs ב-DB כבר תמכו ב-`'returned'` מאז פאזה 1 — רק ה-UI לא חשף.
-- `b5f7583` — שלב 3: DocumentArchive modal (וריאציה B). 4 קבצים חדשים: [DocumentArchive.tsx](digitek-platform/src/modules/tenders/components/DocumentArchive.tsx), [DocumentArchive.module.css](digitek-platform/src/modules/tenders/components/DocumentArchive.module.css), [lib/documentGrouping.ts](digitek-platform/src/modules/tenders/lib/documentGrouping.ts), ועדכון [TenderDetailPage.tsx](digitek-platform/src/pages/TenderDetailPage.tsx). כפתור "📚 תיקיית מסמכים (N)" ב-actionRow של הכותרת → Modal עם sidebar של 18 סוגי מסמכים (DOC_TYPE_ORDER לפי זרימת ההליך, עם count + labels עברית + icons emoji) + main area של גרסאות הסוג הנבחר ממוינות לפי created_at יורד. כל שורה: ver badge, uploader email, timestamp, size, status pill, signed URL להורדה. אין שינוי DB.
+### מה נבנה
+**DB** — [migration 028_tenders_redesign_9_stages.sql](digitek-platform/supabase/migrations/028_tenders_redesign_9_stages.sql):
+- TRUNCATE כל ה-tender_* (CASCADE)
+- CHECK חדש על `current_stage` עם 11 ערכים (T0..T8 + cancelled + closed)
+- `doc_type` הורחב עם `protocol_initial` + `winner_protocol`
+- `tender_advance` נכתב מחדש — FSM סדרתי, allowed transitions: forward N→N+1 או return N→N-1 בלבד, terminal=cancelled/closed תמיד אפשרי
+- `tender_create` עם default `T0_brief_protocol`
+
+**TypeScript** — שכבת הליבה:
+- [types.ts](digitek-platform/src/modules/tenders/types.ts) — `TenderStage` ל-9 קודי T, `DocumentType` הורחב
+- [stagesBaseline.ts](digitek-platform/src/modules/tenders/data/stagesBaseline.ts) — 9 `STAGES` עם `pingpong: boolean`. הוסר `STAGE_GROUPS` + helpers ישנים. נוספו `STAGE_ORDER`, `getStageIndex`, `getNextStage`, `getPrevStage`
+- [stateMachine.ts](digitek-platform/src/modules/tenders/stateMachine.ts) — FSM סדרתי, `FORWARD_TRANSITIONS` ו-`RETURN_TRANSITIONS` נגזרים מ-`STAGE_ORDER`, `canAdvance` מאפשר רק ±1
+- [stageRequirements.ts](digitek-platform/src/modules/tenders/data/stageRequirements.ts) — `STAGE_REQUIREMENTS` חדש לכל 9 השלבים. נוסף helper `approvalBasedByRole` לחתימות. `metadataBlockers` הוסר (לא רלוונטי לזרימה החדשה)
+- [workflowEngine.ts](digitek-platform/src/modules/tenders/workflowEngine.ts) — workflows ל-T1/T2/T3/T6/T7/T8 בלבד (שלבים עם בקשת אישור פעילה)
+- [gateways.ts](digitek-platform/src/modules/tenders/data/gateways.ts) — נשמרו רק evaluateG1/G2/G6/G7/G9 לצרכי הסבר בוויזרד. `shouldSkipStage` הוסר
+
+**UI**:
+- [StageMap.tsx](digitek-platform/src/modules/tenders/components/StageMap.tsx) + [.module.css](digitek-platform/src/modules/tenders/components/StageMap.module.css) — שכתוב מלא: רשימה פלאט של 9 שלבים, סמן ↺ amber לשלבי פינגפונג שבוצעו/בוצעים
+- [TenderListPage.tsx](digitek-platform/src/pages/TenderListPage.tsx) — dropdown filter עם 9 קודי T, stats מעודכן
+- [TenderDetailPage.tsx](digitek-platform/src/pages/TenderDetailPage.tsx) — הוסר `getStageGroup`/`currentGroup`, הוסר tab "ספקים", KPI "שלב נוכחי" משתמש ב-`stageNumber.shortLabel` + סמן ↺ אם pingpong, modal block שוכתב לפי 9 השלבים החדשים (8 modals נדרשים)
+- [TendersDashboardPage.tsx](digitek-platform/src/pages/TendersDashboardPage.tsx) — bar chart משתמש ב-`stage.pingpong` במקום `isCriticalPath`
+
+**Modals חדשים**:
+- [MinhalRechesAdvanceModal.tsx](digitek-platform/src/modules/tenders/components/modals/MinhalRechesAdvanceModal.tsx) — שלב 4: form עם שדות אופציונליים (מספר ההליך החיצוני, שם ספק, סכום סופי, הערות) + `tender_advance` ל-T5
+- [UploadDocumentModal.tsx](digitek-platform/src/modules/tenders/components/modals/UploadDocumentModal.tsx) — generic upload modal עבור T0 (בריף + פרוטוקול ראשוני) ו-T5 (פרוטוקול זכייה). drag-drop, 25MB max
+- [SignatureRequestModal.tsx](digitek-platform/src/modules/tenders/components/modals/SignatureRequestModal.tsx) — wrapper דק על `ApprovalRequestModal` עם `requestType='contract_signature'` + `requestedRole` (legal_professional/budget_officer/signatory). משתמש בכל מנגנון הפינגפונג הקיים
+
+**הרחבת ApprovalRequestModal**:
+- 2 props חדשים: `requestedRole` (override) ו-`customTitle`
+- הוספת `contract_signature` ל-`REQUEST_TYPE_LABELS` + `REQUEST_TYPE_ROLE_HINT` + `DOC_TYPE_BY_REQUEST` (→ `contract`)
+- `DOC_TYPE_BY_REQUEST` עכשיו `Partial<Record>` עם fallback ל-`'other'`
 
 ### אימות
-- ✅ `npx tsc --noEmit` עבר נקי לאחר כל commit
-- ⚠️ לא נבדק ידנית בדפדפן עדיין — יש לאמת ב-Vercel preview שכל ה-3 הפיצ'רים עובדים end-to-end עם הליך אמיתי
+- ✅ `npx tsc --noEmit` עבר נקי (Exit 0)
+- ⚠️ `npx vite build` נכשל עם שגיאה pre-existing על `react-is` מ-`recharts` (לא קשור לשינויים — אומת ע"י `git stash`). build ב-Vercel רץ ב-rollup רגיל ועובד
+- ⚠️ לא נבדק ידנית בדפדפן — דורש QA ב-Vercel preview
 
 ### עוד לא בוצע
-- [ ] **QA ידני** של 3 הפיצ'רים: ליצור הליך, לבקש אישור תקציבי, להחזיר לתיקונים מ-/approve, להעלות גרסה מתוקנת, לראות את הארכיון
-- [ ] **timeline סבבים** ב-RequirementDetailPanel — היה ב-plan המקורי אבל לא בוצע. אם יש 2+ בקשות עם parent_request_id, יציג רשימה של הסבבים. כרגע רק הבקשה האחרונה מוצגת
-- [ ] **ארכיטקטורת cron** — 3 אפשרויות תועדו ב-CLAUDE.md סקשן 11. ה-schedule בוטל זמנית; דורש החלטה איך להמשיך
+- [ ] **QA ידני end-to-end**: יצירת הליך → 9 שלבים מקצה-לקצה. בעיקר: T2/T6 פינגפונג + revision_requested + T4 כפתור ידני
+- [ ] **ניקוי modals ישנים שאינם בשימוש**: `TenderNumberModal`, `StageActionsS5_S6` (`VendorPickerModal`/`ProposalModal`/`WinnerSelectionModal`), `VendorEvaluationModal` מ-`StageActionsS9_S12`. כרגע נשארו במאגר אך לא ב-imports
+- [ ] **מודול פרוטוקולים** — עתידי. כיום `protocol_initial` ו-`winner_protocol` upload ידני בלבד
+- [ ] **הגדרת מורשי חתימה לכל שלב מראש** — סעיף עתידי (בסקשן 11)
+- [ ] **ארכיטקטורת cron** — סקשן 11 עדיין רלוונטי
 
 ---
 

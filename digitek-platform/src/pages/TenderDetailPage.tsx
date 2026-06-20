@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useTender } from '../modules/tenders/hooks/useTender'
-import { getStage, getStageGroup } from '../modules/tenders/data/stagesBaseline'
+import { getStage } from '../modules/tenders/data/stagesBaseline'
 import { evaluateStageRequirements, type ActionId } from '../modules/tenders/data/stageRequirements'
 import type { TenderApprovalRequest, ApprovalRequestType } from '../modules/tenders/types'
 import { StageMap } from '../modules/tenders/components/StageMap'
@@ -10,12 +10,13 @@ import { StageRequirementsTab } from '../modules/tenders/components/StageRequire
 import { GateValidationModal } from '../modules/tenders/components/GateValidationModal'
 import { ApprovalRequestModal } from '../modules/tenders/components/modals/ApprovalRequestModal'
 import { ApprovalDecisionModal } from '../modules/tenders/components/modals/ApprovalDecisionModal'
-import { TenderNumberModal } from '../modules/tenders/components/modals/TenderNumberModal'
 import { CommitteeProtocolModal } from '../modules/tenders/components/modals/CommitteeProtocolModal'
-import { VendorPickerModal, ProposalModal, WinnerSelectionModal } from '../modules/tenders/components/modals/StageActionsS5_S6'
 import { ContractDraftModal, GuaranteeModal, InsuranceModal, SignatoryModal } from '../modules/tenders/components/modals/StageActionsS8'
-import { PurchaseOrderModal, MilestoneModal, VendorEvaluationModal } from '../modules/tenders/components/modals/StageActionsS9_S12'
+import { PurchaseOrderModal, MilestoneModal } from '../modules/tenders/components/modals/StageActionsS9_S12'
 import { CommitteeScheduleModal } from '../modules/tenders/components/modals/CommitteeScheduleModal'
+import { MinhalRechesAdvanceModal } from '../modules/tenders/components/modals/MinhalRechesAdvanceModal'
+import { UploadDocumentModal } from '../modules/tenders/components/modals/UploadDocumentModal'
+import { SignatureRequestModal } from '../modules/tenders/components/modals/SignatureRequestModal'
 import { DocumentArchive } from '../modules/tenders/components/DocumentArchive'
 import archiveStyles from '../modules/tenders/components/DocumentArchive.module.css'
 import styles from './TenderDetailPage.module.css'
@@ -30,7 +31,7 @@ interface CommitteeMeetingRow {
   attendees: unknown
 }
 
-type Tab = 'requirements' | 'overview' | 'documents' | 'committees' | 'vendors' | 'milestones' | 'audit'
+type Tab = 'requirements' | 'overview' | 'documents' | 'committees' | 'milestones' | 'audit'
 
 function formatAmount(n: number): string {
   return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(n)
@@ -55,7 +56,7 @@ export function TenderDetailPage() {
   const [resubmitRequest, setResubmitRequest] = useState<TenderApprovalRequest | null>(null)
   const [archiveOpen, setArchiveOpen] = useState(false)
   const detail = useTender(id)
-  const { tender, budget, documents, proposals, contracts, milestones, protocols, personas, auditLog, approvalRequests, vendors, loading, error, refresh } = detail
+  const { tender, budget, documents, contracts, milestones, protocols, personas, auditLog, approvalRequests, loading, error, refresh } = detail
   const [decisionModalOpen, setDecisionModalOpen] = useState(false)
   const pendingApprovals = approvalRequests.filter(a => a.status === 'pending' || a.status === 'in_review')
 
@@ -111,7 +112,6 @@ export function TenderDetailPage() {
   )
 
   const currentStageDef = getStage(tender.current_stage)
-  const currentGroup = getStageGroup(tender.current_stage)
 
   return (
     <div className={styles.page}>
@@ -122,7 +122,6 @@ export function TenderDetailPage() {
             {ownerName && <span><strong>כותב/ת:</strong> {ownerName}</span>}
             <span>נפתח: {formatDate(tender.created_at)}</span>
             <span>{formatAmount(tender.estimated_amount)}</span>
-            {tender.tender_number && <span><strong>מס׳ תיחור:</strong> {tender.tender_number}</span>}
             {tender.tender_number_external && <span><strong>מס׳ במערכת:</strong> {tender.tender_number_external}</span>}
           </div>
           {requirements.metadataBlockers.length > 0 && (
@@ -168,8 +167,8 @@ export function TenderDetailPage() {
             <div className={styles.kpiCard}>
               <div className={styles.kpiLabel}>שלב נוכחי</div>
               <div className={styles.kpiValue}>
-                {currentGroup?.shortLabel ?? '—'}
-                {currentStageDef && <span className={styles.kpiSub}> · {currentStageDef.label.slice(0, 24)}</span>}
+                {currentStageDef ? `${currentStageDef.stageNumber}. ${currentStageDef.shortLabel}` : '—'}
+                {currentStageDef?.pingpong && <span className={styles.kpiSub}> · תומך גרסאות</span>}
               </div>
             </div>
             <div className={styles.kpiCard}>
@@ -197,9 +196,6 @@ export function TenderDetailPage() {
             </button>
             <button className={`${styles.tab} ${tab === 'committees' ? styles.active : ''}`} onClick={() => setTab('committees')}>
               <span className={styles.tabCount}>{protocols.length}</span> ועדות
-            </button>
-            <button className={`${styles.tab} ${tab === 'vendors' ? styles.active : ''}`} onClick={() => setTab('vendors')}>
-              <span className={styles.tabCount}>{proposals.length}</span> ספקים
             </button>
             <button className={`${styles.tab} ${tab === 'milestones' ? styles.active : ''}`} onClick={() => setTab('milestones')}>
               <span className={styles.tabCount}>{milestones.length}</span> אבני דרך
@@ -335,24 +331,6 @@ export function TenderDetailPage() {
               </>
             )}
 
-            {tab === 'vendors' && (
-              proposals.length === 0 ? <div className={styles.emptyTab}>אין הצעות עדיין</div> : (
-                <div className={styles.list}>
-                  {proposals.map(p => (
-                    <div key={p.id} className={styles.listItem}>
-                      <div className={styles.listItemBody}>
-                        <div className={styles.listItemTitle}>ספק #{p.vendor_id.slice(0, 8)}</div>
-                        <div className={styles.listItemMeta}>
-                          {p.price ? formatAmount(p.price) : 'ללא מחיר'} · ניקוד {p.quality_score ?? '—'} · דירוג {p.rank ?? '—'}
-                        </div>
-                      </div>
-                      <span className={`${styles.statusPill} ${p.status === 'winner' ? styles.green : styles.gray}`}>{p.status}</span>
-                    </div>
-                  ))}
-                </div>
-              )
-            )}
-
             {tab === 'milestones' && (
               <>
                 {contracts.length > 0 && (
@@ -414,7 +392,27 @@ export function TenderDetailPage() {
         <StageMap tender={tender} />
       </div>
 
-      {/* Action modals */}
+      {/* Action modals — 9-stage flow */}
+
+      {/* T0 — uploads */}
+      <UploadDocumentModal
+        open={activeAction === 'upload_brief'}
+        onClose={closeAction}
+        tenderId={tender.id}
+        docType="brief"
+        title="העלאת בריף"
+        onSubmitted={onActionDone}
+      />
+      <UploadDocumentModal
+        open={activeAction === 'upload_initial_protocol'}
+        onClose={closeAction}
+        tenderId={tender.id}
+        docType="protocol_initial"
+        title="העלאת פרוטוקול ראשוני"
+        onSubmitted={onActionDone}
+      />
+
+      {/* T1 — אישור תקציבי (פינגפונג) */}
       <ApprovalRequestModal
         open={activeAction === 'create_budget_approval'}
         onClose={closeAction}
@@ -423,28 +421,8 @@ export function TenderDetailPage() {
         estimatedAmount={tender.estimated_amount}
         onSubmitted={onActionDone}
       />
-      <ApprovalRequestModal
-        open={activeAction === 'create_olma_approval'}
-        onClose={closeAction}
-        tenderId={tender.id}
-        requestType="olma_approval"
-        onSubmitted={onActionDone}
-      />
-      <ApprovalRequestModal
-        open={activeAction === 'create_professional_review'}
-        onClose={closeAction}
-        tenderId={tender.id}
-        requestType="professional_review"
-        onSubmitted={onActionDone}
-      />
-      <TenderNumberModal
-        open={activeAction === 'set_tender_number'}
-        onClose={closeAction}
-        tenderId={tender.id}
-        variant={tender.current_stage === 'S4_system_input_review' ? 'external' : 'internal'}
-        initialValue={tender.current_stage === 'S4_system_input_review' ? tender.tender_number_external : tender.tender_number}
-        onSaved={onActionDone}
-      />
+
+      {/* T2 + T6 — ועדה (תזמון + פרוטוקול) */}
       <CommitteeProtocolModal
         open={activeAction === 'create_committee_outbound_protocol'}
         onClose={closeAction}
@@ -459,50 +437,56 @@ export function TenderDetailPage() {
         protocolType="winner_approval"
         onSubmitted={onActionDone}
       />
-      <GateValidationModal
-        open={activeAction === 'advance_stage'}
-        onClose={closeAction}
-        tender={tender}
-        requirements={requirements}
-        onAdvanced={onActionDone}
-      />
-      <ApprovalDecisionModal
-        open={decisionModalOpen}
-        onClose={() => setDecisionModalOpen(false)}
-        approvals={approvalRequests}
-        onSubmitted={() => { setDecisionModalOpen(false); void refresh() }}
-      />
-      <VendorPickerModal
-        open={activeAction === 'distribute_to_vendors'}
+
+      {/* T3 + T7 — חתימות */}
+      <SignatureRequestModal
+        open={activeAction === 'request_signature_legal'}
         onClose={closeAction}
         tenderId={tender.id}
-        vendors={vendors}
-        existingProposals={proposals}
+        signerRole="legal_professional"
         onSubmitted={onActionDone}
       />
-      <ProposalModal
-        open={activeAction === 'register_proposal'}
+      <SignatureRequestModal
+        open={activeAction === 'request_signature_treasurer'}
         onClose={closeAction}
-        proposals={proposals}
-        vendors={vendors}
-        selectionType={tender.selection_type}
+        tenderId={tender.id}
+        signerRole="budget_officer"
         onSubmitted={onActionDone}
       />
-      <WinnerSelectionModal
-        open={activeAction === 'select_winner'}
+      <SignatureRequestModal
+        open={activeAction === 'request_signature_vp'}
         onClose={closeAction}
-        proposals={proposals}
-        vendors={vendors}
-        selectionType={tender.selection_type}
+        tenderId={tender.id}
+        signerRole="signatory"
         onSubmitted={onActionDone}
       />
+
+      {/* T4 — מעבר ידני אחרי מינהל הרכש */}
+      <MinhalRechesAdvanceModal
+        open={activeAction === 'minhal_rechesh_winner_received'}
+        onClose={closeAction}
+        tenderId={tender.id}
+        onSubmitted={onActionDone}
+      />
+
+      {/* T5 — פרוטוקול זכייה */}
+      <UploadDocumentModal
+        open={activeAction === 'upload_winner_protocol'}
+        onClose={closeAction}
+        tenderId={tender.id}
+        docType="winner_protocol"
+        title="העלאת פרוטוקול זכייה"
+        onSubmitted={onActionDone}
+      />
+
+      {/* T8 — התקשרות */}
       <ContractDraftModal
         open={activeAction === 'draft_contract'}
         onClose={closeAction}
         tenderId={tender.id}
         estimatedAmount={tender.estimated_amount}
-        proposals={proposals}
-        vendors={vendors}
+        proposals={[]}
+        vendors={[]}
         onSubmitted={onActionDone}
       />
       <GuaranteeModal
@@ -531,19 +515,26 @@ export function TenderDetailPage() {
         onSubmitted={onActionDone}
       />
       <MilestoneModal
-        open={activeAction === 'create_milestone' || activeAction === 'approve_milestone'}
+        open={activeAction === 'create_milestone'}
         onClose={closeAction}
         tenderId={tender.id}
         milestones={milestones}
         onSubmitted={onActionDone}
       />
-      <VendorEvaluationModal
-        open={activeAction === 'evaluate_vendor'}
+
+      {/* Generic */}
+      <GateValidationModal
+        open={activeAction === 'advance_stage'}
         onClose={closeAction}
-        tenderId={tender.id}
-        proposals={proposals}
-        vendors={vendors}
-        onSubmitted={onActionDone}
+        tender={tender}
+        requirements={requirements}
+        onAdvanced={onActionDone}
+      />
+      <ApprovalDecisionModal
+        open={decisionModalOpen}
+        onClose={() => setDecisionModalOpen(false)}
+        approvals={approvalRequests}
+        onSubmitted={() => { setDecisionModalOpen(false); void refresh() }}
       />
 
       <CommitteeScheduleModal

@@ -5,20 +5,18 @@
 
 // ---------- Enums ----------
 
+// 9-stage flow (T0..T8) — replaces the legacy 12-stage S-codes
+// אנו שומרים על השם TenderStage כדי לא לשבור imports קיימים.
 export type TenderStage =
-  | 'S0_preconditions'
-  | 'S1_initiation_budget'
-  | 'S2_olma_approval'
-  | 'S3_committee_outbound'
-  | 'S4_system_input_review'
-  | 'S5_distribution_response'
-  | 'S6_proposal_evaluation'
-  | 'S7_committee_winner'
-  | 'S8_contract'
-  | 'S9_purchase_order'
-  | 'S10_execution_m1'
-  | 'S11_execution_m2'
-  | 'S12_closure_evaluation'
+  | 'T0_brief_protocol'
+  | 'T1_budget_approval'
+  | 'T2_committee_outbound'
+  | 'T3_signatures_outbound'
+  | 'T4_minhal_rechesh'
+  | 'T5_winner_protocol_upload'
+  | 'T6_committee_winner'
+  | 'T7_signatures_winner'
+  | 'T8_engagement'
   | 'cancelled'
   | 'closed'
 
@@ -60,6 +58,8 @@ export type ProposalStatus =
 
 export type DocumentType =
   | 'brief'
+  | 'protocol_initial'           // T0 — פרוטוקול ראשוני המוטען בפתיחת ההליך
+  | 'winner_protocol'            // T5 — פרוטוקול זכייה שמועלה אחרי מינהל הרכש
   | 'budget_approval'
   | 'olma_approval'
   | 'committee_request'

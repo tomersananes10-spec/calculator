@@ -17,19 +17,15 @@ const BAND_LABELS: Record<AmountBand, string> = {
 
 const STAGE_FILTER_OPTIONS: { value: TenderStage | 'all'; label: string }[] = [
   { value: 'all', label: 'כל השלבים' },
-  { value: 'S0_preconditions', label: '0. מקדים' },
-  { value: 'S1_initiation_budget', label: '1. ייזום ותקצוב' },
-  { value: 'S2_olma_approval', label: '2. אישור מינהל הרכש' },
-  { value: 'S3_committee_outbound', label: '3. ועדה — יציאה' },
-  { value: 'S4_system_input_review', label: '4. בדיקה במערכת' },
-  { value: 'S5_distribution_response', label: '5. הפצה ומענה' },
-  { value: 'S6_proposal_evaluation', label: '6. בדיקת הצעות' },
-  { value: 'S7_committee_winner', label: '7. ועדה — זכיה' },
-  { value: 'S8_contract', label: '8. התקשרות' },
-  { value: 'S9_purchase_order', label: '9. הזמנת רכש' },
-  { value: 'S10_execution_m1', label: '10. ביצוע 1' },
-  { value: 'S11_execution_m2', label: '11. ביצוע 2' },
-  { value: 'S12_closure_evaluation', label: '12. סגירה והערכה' },
+  { value: 'T0_brief_protocol', label: '0. בריף ופרוטוקול' },
+  { value: 'T1_budget_approval', label: '1. אישור תקציבי' },
+  { value: 'T2_committee_outbound', label: '2. ועדת יציאה' },
+  { value: 'T3_signatures_outbound', label: '3. חתימות יציאה' },
+  { value: 'T4_minhal_rechesh', label: '4. מינהל הרכש' },
+  { value: 'T5_winner_protocol_upload', label: '5. פרוטוקול זכייה' },
+  { value: 'T6_committee_winner', label: '6. ועדת זכייה' },
+  { value: 'T7_signatures_winner', label: '7. חתימות זכייה' },
+  { value: 'T8_engagement', label: '8. התקשרות' },
   { value: 'closed', label: 'סגור' },
   { value: 'cancelled', label: 'מבוטל' },
 ]
@@ -128,8 +124,8 @@ export function TenderListPage() {
 
   const stats = useMemo(() => {
     const active = tenders.filter(t => t.current_stage !== 'closed' && t.current_stage !== 'cancelled').length
-    const pendingCommittee = tenders.filter(t => t.current_stage === 'S3_committee_outbound' || t.current_stage === 'S7_committee_winner').length
-    const inExecution = tenders.filter(t => t.current_stage === 'S10_execution_m1' || t.current_stage === 'S11_execution_m2').length
+    const pendingCommittee = tenders.filter(t => t.current_stage === 'T2_committee_outbound' || t.current_stage === 'T6_committee_winner').length
+    const inExecution = tenders.filter(t => t.current_stage === 'T8_engagement').length
     const closed = tenders.filter(t => t.current_stage === 'closed').length
     return { active, pendingCommittee, inExecution, closed }
   }, [tenders])

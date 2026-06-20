@@ -17,6 +17,17 @@ interface Props {
   tenderId: string
   /** סוג הבקשה מקבע את ה-SLA והמסך. */
   requestType: ApprovalRequestType
+  /**
+   * תפקיד המאשר (אופציונלי) — נשמר ב-requested_role.
+   * משמש למשל בחתימות (legal_professional/budget_officer/signatory) כדי שמערכת
+   * הדרישות תזהה מי חתם.
+   */
+  requestedRole?: string
+  /**
+   * תווית כותרת מותאמת אישית (מחליפה את REQUEST_TYPE_LABELS). שימושי כשמשתמשים
+   * ב-requestType כללי כמו 'contract_signature' אבל רוצים להציג "חתימת משפטן".
+   */
+  customTitle?: string
   /** סכום (לבקשת תקציב — יחושב גם budget). */
   estimatedAmount?: number
   onSubmitted: () => void
@@ -39,6 +50,7 @@ const REQUEST_TYPE_LABELS: Partial<Record<ApprovalRequestType, string>> = {
   professional_review: 'בקשת בדיקת גורם מקצועי',
   committee_outbound: 'בקשת ועדה ליציאה לתיחור',
   committee_winner: 'בקשת ועדה לאישור זוכה',
+  contract_signature: 'בקשת חתימה',
 }
 
 const REQUEST_TYPE_ROLE_HINT: Partial<Record<ApprovalRequestType, string>> = {
@@ -47,15 +59,17 @@ const REQUEST_TYPE_ROLE_HINT: Partial<Record<ApprovalRequestType, string>> = {
   professional_review: 'גורם מקצועי במינהל הרכש',
   committee_outbound: 'חברי ועדת מכרזים',
   committee_winner: 'חברי ועדת מכרזים',
+  contract_signature: 'מורשה חתימה',
 }
 
 // מיפוי סוג בקשה → doc_type ב-tender_documents (לפי CHECK constraint במיגרציה 006)
-const DOC_TYPE_BY_REQUEST: Record<ApprovalRequestType, string> = {
+const DOC_TYPE_BY_REQUEST: Partial<Record<ApprovalRequestType, string>> = {
   budget_approval: 'budget_approval',
   olma_approval: 'olma_approval',
   professional_review: 'other',
   committee_outbound: 'committee_request',
   committee_winner: 'committee_request',
+  contract_signature: 'contract',
 }
 
 function formatBytes(b: number): string {
@@ -73,7 +87,7 @@ function fileIcon(mime: string, name: string): string {
   return '📎'
 }
 
-export function ApprovalRequestModal({ open, onClose, tenderId, requestType, estimatedAmount, onSubmitted, resubmitOf, previousDocs }: Props) {
+export function ApprovalRequestModal({ open, onClose, tenderId, requestType, requestedRole, customTitle, estimatedAmount, onSubmitted, resubmitOf, previousDocs }: Props) {
   const isResubmit = !!resubmitOf
 
   // טעינה ראשונית של ערכי הטופס. כשמדובר ב-resubmit — שולפים מההיסטוריה של הבקשה הקודמת.
@@ -121,7 +135,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
   const [highlightedIdx, setHighlightedIdx] = useState(-1)
   const autocompleteRef = useRef<HTMLDivElement>(null)
 
-  const baseTitle = REQUEST_TYPE_LABELS[requestType] ?? 'בקשת אישור'
+  const baseTitle = customTitle ?? REQUEST_TYPE_LABELS[requestType] ?? 'בקשת אישור'
   const title = isResubmit ? `📤 גרסה מתוקנת — ${baseTitle}` : baseTitle
   const roleHint = REQUEST_TYPE_ROLE_HINT[requestType] ?? 'בעל תפקיד מתאים'
   const slaDueAt = computeDueAt(requestType)
@@ -334,7 +348,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
         tender_id: tenderId,
         request_type: requestType,
         requested_from: null,  // ניתוב לפי תפקיד; בעתיד dropdown של משתמשים
-        requested_role: roleHint,
+        requested_role: requestedRole ?? roleHint,
         status: 'pending',
         sla_due_at: slaDueAt.toISOString(),
         metadata,
@@ -400,7 +414,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, est
         .from('tender_documents')
         .insert({
           tender_id: tenderId,
-          doc_type: DOC_TYPE_BY_REQUEST[requestType],
+          doc_type: DOC_TYPE_BY_REQUEST[requestType] ?? 'other',
           title: file.name,
           file_ref: path,
           file_size_bytes: file.size,

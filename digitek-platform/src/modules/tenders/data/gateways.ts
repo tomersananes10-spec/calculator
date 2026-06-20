@@ -1,6 +1,7 @@
-// 11 Gateways (G1-G11) — נקודות החלטה לפי טבלת §5 באפיון
+// Pure helpers שנשארו מ-11 ה-Gateways הישנים — משמשים את TenderWizardPage להצגת
+// הסברים אינפורמטיביים בלבד. ה-FSM החדש (T0..T8) לא נסמך עליהם.
 
-import type { AmountBand, GatewayCode, SelectionType, TenderStage } from '../types'
+import type { AmountBand, GatewayCode, SelectionType } from '../types'
 
 export interface GatewayDefinition {
   code: GatewayCode
@@ -164,25 +165,5 @@ export function evaluateG9_ContractTemplate(amount: number): G9Result {
   return { requiresGuarantee: false, requiresInsurance: true, templateCode: 'under_1m_with_insurance' }
 }
 
-// ---------- Decision helpers for FSM ----------
-
-export function shouldSkipStage(
-  stage: TenderStage,
-  context: { amount: number; selection: SelectionType },
-): { skip: boolean; reason?: string } {
-  if (stage === 'S2_olma_approval') {
-    const g1 = evaluateG1_Amount(context.amount, context.selection)
-    if (!g1.requiresOlma) return { skip: true, reason: 'סכום מתחת ל-5M — אישור מינהל הרכש לא נדרש' }
-  }
-  if (stage === 'S3_committee_outbound' || stage === 'S7_committee_winner') {
-    const g1 = evaluateG1_Amount(context.amount, context.selection)
-    if (g1.skipCommittee) {
-      return { skip: true, reason: 'תרחיש פשוט (עד 200K + מחיר בלבד) — מדלגים על ועדה' }
-    }
-    if (stage === 'S7_committee_winner') {
-      const g7 = evaluateG7_WinnerApproval(context.amount, context.selection)
-      if (!g7.requiresWinnerCommittee) return { skip: true, reason: g7.reason }
-    }
-  }
-  return { skip: false }
-}
+// shouldSkipStage הוסר — ב-FSM החדש אין דילוגי שלב על בסיס Gateway.
+// הזרימה לינארית: T0 -> T1 -> ... -> T8 -> closed.

@@ -1,183 +1,96 @@
-// 12 שלבים + 10 אבני דרך (מבוסס על גליון "סיכום שלבים" + "גאנט מפורט")
+// 9 שלבים (T0..T8) — המודל שמשקף את הזרימה האמיתית של LIBA.
+// החליף את 12 השלבים הישנים (S0..S12) שהיו פירוט פרוצדורלי של תכ"ם 16.2.19
+// ולא תאמו את העבודה בפועל. אין יותר STAGE_GROUPS — 9 פלאט מספיק.
 
 import type { TenderStage } from '../types'
 
 export interface MilestoneDef {
-  code: string  // M1..M10
+  code: string
   label: string
 }
 
 export interface StageDefinition {
   code: TenderStage
-  stageNumber: number  // 0..12
+  stageNumber: number  // 0..8
   label: string
-  durationDays: number
-  primaryOwnerRole: string
-  endsWithMilestone?: MilestoneDef
-  isCriticalPath: boolean
-  isGate: boolean
-  isOptional: boolean
-  optionalReason?: string
+  shortLabel: string
+  /** האם השלב כולל "פינגפונג" — מעגל גרסאות/תיקונים עד אישור סופי */
+  pingpong: boolean
   description: string
 }
 
 export const STAGES: StageDefinition[] = [
   {
-    code: 'S0_preconditions',
+    code: 'T0_brief_protocol',
     stageNumber: 0,
-    label: 'שלב מקדים (חד-פעמי, מחוץ ל-Baseline)',
-    durationDays: 1,
-    primaryOwnerRole: 'admin',
-    isCriticalPath: false,
-    isGate: true,
-    isOptional: false,
-    description: 'תנאי סף לשימוש במערכת: הסכם מסגרת, רישום, כרטיס חכם, הדרכה. חסר כזה יחסום פתיחת הליך.',
+    label: 'העלאת בריף + פרוטוקול',
+    shortLabel: 'בריף ופרוטוקול',
+    pingpong: false,
+    description: 'פתיחת ההליך מצריכה בריף + פרוטוקול ראשוני. הבריף ניתן לבחירה מתוך /briefs או העלאה ידנית. הפרוטוקול מועלה ידנית עד שמודול הפרוטוקולים ייבנה.',
   },
   {
-    code: 'S1_initiation_budget',
+    code: 'T1_budget_approval',
     stageNumber: 1,
-    label: 'ייזום ותקצוב',
-    durationDays: 14,
-    primaryOwnerRole: 'process_manager',
-    endsWithMilestone: { code: 'M1', label: 'בריף ותקציב מאושרים' },
-    isCriticalPath: true,
-    isGate: false,
-    isOptional: false,
-    description: 'בקשת אישור תקציבי, מספר תיחור, כתיבת בריף, סקירה פנימית.',
+    label: 'בקשת אישור תקציבי',
+    shortLabel: 'אישור תקציבי',
+    pingpong: true,
+    description: 'בקשה לתקציבן המערך — אישור / דחייה / החזרה לתיקון. תומך בגרסאות ובסבבי בקשות שינוי עד אישור סופי.',
   },
   {
-    code: 'S2_olma_approval',
+    code: 'T2_committee_outbound',
     stageNumber: 2,
-    label: 'אישור מינהל הרכש (מעל 5M)',
-    durationDays: 8,
-    primaryOwnerRole: 'procurement_manager',
-    endsWithMilestone: { code: 'M2', label: 'אישור מינהל הרכש' },
-    isCriticalPath: true,
-    isGate: false,
-    isOptional: true,
-    optionalReason: 'רלוונטי רק לסכום > 5M (Gateway G1)',
-    description: 'אישור מנהל הרכש.',
+    label: 'קביעת ועדת מכרזים (יציאה)',
+    shortLabel: 'ועדת יציאה',
+    pingpong: true,
+    description: 'מנהלת ועדת מכרזים מזמנת. נוכחים: כותב הבריף + מי מטעמו, מחלקה משפטית, חשב, מנהלת הוועדה, סמנכ"ל אחראי תורן. מציגים פרוטוקול + בריף + אישור תקציבי. תומך בסבבי תיקונים.',
   },
   {
-    code: 'S3_committee_outbound',
+    code: 'T3_signatures_outbound',
     stageNumber: 3,
-    label: 'ועדת מכרזים — יציאה לתיחור',
-    durationDays: 16,
-    primaryOwnerRole: 'tender_committee_member',
-    endsWithMilestone: { code: 'M3', label: 'אישור יציאה לתיחור' },
-    isCriticalPath: true,
-    isGate: true,
-    isOptional: true,
-    optionalReason: 'מדלגים בתרחיש עד 200K + מחיר בלבד (Gateway G1)',
-    description: 'הכנת פרוטוקול, הגשה, דיון, החלטה (אישור/החזרה/דחיה).',
+    label: 'חתימה לפי סדר',
+    shortLabel: 'חתימות יציאה',
+    pingpong: false,
+    description: 'משפטן → חשב → סמנכ"ל. החתימות על הגרסה האחרונה של המסמכים שאושרו בוועדה.',
   },
   {
-    code: 'S4_system_input_review',
+    code: 'T4_minhal_rechesh',
     stageNumber: 4,
-    label: 'הזנה ובדיקה במערכת התיחורים',
-    durationDays: 7,
-    primaryOwnerRole: 'procurement_professional',
-    endsWithMilestone: { code: 'M4', label: 'אישור הגורם המקצועי' },
-    isCriticalPath: true,
-    isGate: true,
-    isOptional: false,
-    description: 'הזנת הפרויקט במערכת התיחורים, בדיקה ע"י גורם מקצועי (SLA 3 ימים).',
+    label: 'מינהל הרכש',
+    shortLabel: 'מינהל הרכש',
+    pingpong: false,
+    description: 'קופסה שחורה — ל-LIBA אין חלק. במינהל הרכש מערכת משלהם שמקבלת את המסמכים ובוחרת ספק זוכה. ה-UI מציג "ממתין" + כפתור ידני להתקדם כשבוחרים ספק.',
   },
   {
-    code: 'S5_distribution_response',
+    code: 'T5_winner_protocol_upload',
     stageNumber: 5,
-    label: 'הפצה ומענה לספקים',
-    durationDays: 25,
-    primaryOwnerRole: 'process_manager',
-    endsWithMilestone: { code: 'M5', label: 'סגירת תיבת מכרזים' },
-    isCriticalPath: true,
-    isGate: false,
-    isOptional: false,
-    description: 'הפצה לספקים, שאלות הבהרה, תקופת הגשה (14 ימי עבודה).',
+    label: 'פרוטוקול זכייה',
+    shortLabel: 'פרוטוקול זכייה',
+    pingpong: false,
+    description: 'לאחר שמינהל הרכש בחר ספק — מעלים פרוטוקול זכייה. כיום upload ידני; בעתיד מודול פרוטוקולים ייתן לבחור מהמערכת.',
   },
   {
-    code: 'S6_proposal_evaluation',
+    code: 'T6_committee_winner',
     stageNumber: 6,
-    label: 'בדיקת הצעות ובחירה',
-    durationDays: 13,
-    primaryOwnerRole: 'subcommittee_member',
-    endsWithMilestone: { code: 'M6', label: 'זוכה מועדף (טרם אישור ועדה)' },
-    isCriticalPath: true,
-    isGate: false,
-    isOptional: false,
-    description: 'פתיחת תיבה, בדיקת איכות, ראיונות, ניקוד, דירוג.',
+    label: 'כינוס ועדה לפרוטוקול זכייה',
+    shortLabel: 'ועדת זכייה',
+    pingpong: true,
+    description: 'אותו פורום של שלב 2: כותב הבריף + מטעמו, משפטי, חשב, מנהלת ועדה, סמנכ"ל. דנים בפרוטוקול הזכייה. תומך בסבבי תיקונים.',
   },
   {
-    code: 'S7_committee_winner',
+    code: 'T7_signatures_winner',
     stageNumber: 7,
-    label: 'ועדת מכרזים — אישור זכיה',
-    durationDays: 16,
-    primaryOwnerRole: 'tender_committee_member',
-    endsWithMilestone: { code: 'M7', label: 'זוכה רשמי' },
-    isCriticalPath: true,
-    isGate: true,
-    isOptional: true,
-    optionalReason: 'נדרש רק מעל 200K או באיכות+מחיר (Gateway G7)',
-    description: 'פרוטוקול, דיון, אישור זוכה במערכת התיחורים.',
+    label: 'חתימה על פרוטוקול זכייה',
+    shortLabel: 'חתימות זכייה',
+    pingpong: false,
+    description: 'משפטן → חשב → סמנכ"ל חותמים על פרוטוקול הזכייה הסופי.',
   },
   {
-    code: 'S8_contract',
+    code: 'T8_engagement',
     stageNumber: 8,
-    label: 'התקשרות והסכם',
-    durationDays: 22,
-    primaryOwnerRole: 'legal_professional',
-    endsWithMilestone: { code: 'M8', label: 'הסכם בתוקף' },
-    isCriticalPath: true,
-    isGate: true,
-    isOptional: false,
-    description: 'בחירת תבנית, שליחה לספק, חתימה, ערבות+ביטוח, חתימת מורשי חתימה.',
-  },
-  {
-    code: 'S9_purchase_order',
-    stageNumber: 9,
-    label: 'הקמת הזמנת רכש',
-    durationDays: 7,
-    primaryOwnerRole: 'procurement_team',
-    endsWithMilestone: { code: 'M9', label: 'Go-Live (הזמנה לספק)' },
-    isCriticalPath: true,
-    isGate: true,
-    isOptional: false,
-    description: 'דרישת רכש, הקמה ב-ERP, שליחה לפורטל ספקים.',
-  },
-  {
-    code: 'S10_execution_m1',
-    stageNumber: 10,
-    label: 'ביצוע אבן דרך 1',
-    durationDays: 39,
-    primaryOwnerRole: 'vendor',
-    isCriticalPath: true,
-    isGate: false,
-    isOptional: false,
-    description: 'ביצוע ע"י הספק, חשבונית, בדיקת תוצרים, אישור לתשלום.',
-  },
-  {
-    code: 'S11_execution_m2',
-    stageNumber: 11,
-    label: 'ביצוע אבן דרך 2',
-    durationDays: 38,
-    primaryOwnerRole: 'vendor',
-    isCriticalPath: false,
-    isGate: false,
-    isOptional: true,
-    optionalReason: 'יכול להתחיל במקביל אם הוגדר בבריף',
-    description: 'אבני דרך נוספות (אופציונלי במקביל).',
-  },
-  {
-    code: 'S12_closure_evaluation',
-    stageNumber: 12,
-    label: 'סגירה והערכה',
-    durationDays: 3,
-    primaryOwnerRole: 'process_manager',
-    endsWithMilestone: { code: 'M10', label: 'סגירת הליך' },
-    isCriticalPath: true,
-    isGate: true,
-    isOptional: false,
-    description: 'הזנת מועד סיום, הערכת ספק (חובה), סגירה.',
+    label: 'התקשרות + אבני דרך + תחילת עבודה',
+    shortLabel: 'התקשרות',
+    pingpong: false,
+    description: 'יצירת חוזה, ערבות, ביטוח, הזמנת רכש, הגדרת אבני דרך לתשלום. תחילת העבודה מול הספק.',
   },
 ]
 
@@ -190,69 +103,24 @@ export function getStage(code: TenderStage): StageDefinition | undefined {
   return STAGES_MAP[code]
 }
 
-// סה"כ ימי עבודה
-export const TOTAL_DAYS_GO_LIVE = 129  // עד M9
-export const TOTAL_DAYS_FULL = 209     // עד M10
+/** סדרת השלבים (ללא terminal states), לפי מספר השלב. */
+export const STAGE_ORDER: TenderStage[] = STAGES.map(s => s.code)
 
-// ───────── שלבי-על ─────────
-// 12 השלבים הרשמיים מקובצים ל-2 שלבי-על המשקפים את הזרימה האמיתית:
-//   שלב א' (pre-tender)  = ייזום + תקצוב + ועדה ליציאה + הזנה למינהל הרכש
-//   שלב ב' (execution)    = הפצה + בחירה + זכייה + חוזה + ביצוע + סגירה
-//
-// ה-DB ממשיך לעבוד עם 12 הקודים (S0..S12) — קיבוץ ויזואלי בלבד ל-UI.
-
-export type StageGroup = 'A_pre_tender' | 'B_execution'
-
-export interface StageGroupDef {
-  code: StageGroup
-  label: string
-  shortLabel: string
-  description: string
-  stageCodes: TenderStage[]
+/** האינדקס של שלב בתוך הזרימה. -1 ל-terminal/לא קיים. */
+export function getStageIndex(code: TenderStage): number {
+  return STAGE_ORDER.indexOf(code)
 }
 
-export const STAGE_GROUPS: StageGroupDef[] = [
-  {
-    code: 'A_pre_tender',
-    label: 'שלב א\' — הכנה והגשה למינהל הרכש',
-    shortLabel: 'שלב א\'',
-    description: 'בריף + פרוטוקול + אישור תקציבי + ועדת מכרזים + העברה למינהל הרכש',
-    // S0_preconditions בוטל מהזרימה הויזואלית — TenderWizard מחליף אותו בפועל.
-    stageCodes: [
-      'S1_initiation_budget',
-      'S2_olma_approval',
-      'S3_committee_outbound',
-      'S4_system_input_review',
-    ],
-  },
-  {
-    code: 'B_execution',
-    label: 'שלב ב\' — ביצוע התיחור',
-    shortLabel: 'שלב ב\'',
-    description: 'הפצה, בחירת ספק, חוזה, ביצוע אבני דרך, סגירה',
-    stageCodes: [
-      'S5_distribution_response',
-      'S6_proposal_evaluation',
-      'S7_committee_winner',
-      'S8_contract',
-      'S9_purchase_order',
-      'S10_execution_m1',
-      'S11_execution_m2',
-      'S12_closure_evaluation',
-    ],
-  },
-]
-
-export function getStageGroup(stage: TenderStage): StageGroupDef | null {
-  for (const g of STAGE_GROUPS) {
-    if (g.stageCodes.includes(stage)) return g
-  }
-  return null
+/** השלב הבא בזרימה. null כשמדובר בשלב האחרון או terminal. */
+export function getNextStage(code: TenderStage): TenderStage | null {
+  const idx = getStageIndex(code)
+  if (idx < 0 || idx >= STAGE_ORDER.length - 1) return null
+  return STAGE_ORDER[idx + 1]
 }
 
-/** מספר הסידורי של השלב בתוך השלב-העל שלו (1-based) */
-export function getStageIndexInGroup(stage: TenderStage): number {
-  const group = getStageGroup(stage)
-  if (!group) return 0
-  return group.stageCodes.indexOf(stage) + 1
+/** השלב הקודם בזרימה. null כשמדובר בשלב הראשון או terminal. */
+export function getPrevStage(code: TenderStage): TenderStage | null {
+  const idx = getStageIndex(code)
+  if (idx <= 0) return null
+  return STAGE_ORDER[idx - 1]
 }

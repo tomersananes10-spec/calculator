@@ -1,7 +1,10 @@
-// FSM — 12 שלבים + מעברים מותרים + ולידציות
+// FSM — 9 שלבים (T0..T8) עם מעברים סדרתיים בלבד.
+// קדימה: Tn -> Tn+1 (עם דרישות לכל שלב).
+// חזרה: Tn -> Tn-1 (מותר לכל פינגפונג).
+// אין יותר Gateway-based skip — הזרימה ישירה.
 
-import type { SelectionType, Tender, TenderStage } from './types'
-import { shouldSkipStage } from './data/gateways'
+import type { Tender, TenderStage } from './types'
+import { STAGE_ORDER, getStageIndex, getNextStage, getPrevStage } from './data/stagesBaseline'
 
 export interface TransitionRule {
   from: TenderStage
@@ -11,50 +14,46 @@ export interface TransitionRule {
 }
 
 export type TransitionRequirement =
-  | 'budget_approved'           // M1
-  | 'olma_approved'              // M2
-  | 'committee_outbound_approved' // M3
-  | 'professional_review_approved' // M4
-  | 'distribution_closed'         // M5
-  | 'winner_selected'             // M6
-  | 'winner_committee_approved'   // M7
-  | 'contract_signed'             // M8
-  | 'po_issued'                   // M9
-  | 'all_milestones_accepted'     // M10
-  | 'vendor_evaluated'            // closure blocker
+  | 'brief_and_protocol_uploaded'   // T0 -> T1
+  | 'budget_approved'               // T1 -> T2
+  | 'committee_outbound_approved'   // T2 -> T3
+  | 'outbound_signatures_complete'  // T3 -> T4
+  | 'minhal_rechesh_winner_received' // T4 -> T5 (manual click)
+  | 'winner_protocol_uploaded'      // T5 -> T6
+  | 'committee_winner_approved'     // T6 -> T7
+  | 'winner_signatures_complete'    // T7 -> T8
+  | 'engagement_started'            // T8 -> closed
 
-// המעברים העיקריים. מעברי "חזרה" (loops) נכתבים בנפרד.
-export const FORWARD_TRANSITIONS: TransitionRule[] = [
-  { from: 'S0_preconditions',       to: 'S1_initiation_budget' },
-  { from: 'S1_initiation_budget',   to: 'S2_olma_approval', requirements: ['budget_approved'] },
-  { from: 'S1_initiation_budget',   to: 'S3_committee_outbound', requirements: ['budget_approved'] }, // skip S2 if amount ≤ 5M
-  { from: 'S2_olma_approval',       to: 'S3_committee_outbound', requirements: ['olma_approved'] },
-  { from: 'S3_committee_outbound',  to: 'S4_system_input_review', requirements: ['committee_outbound_approved'] },
-  { from: 'S1_initiation_budget',   to: 'S4_system_input_review', requirements: ['budget_approved'] }, // simple path (G1)
-  { from: 'S4_system_input_review', to: 'S5_distribution_response', requirements: ['professional_review_approved'] },
-  { from: 'S5_distribution_response', to: 'S6_proposal_evaluation', requirements: ['distribution_closed'] },
-  { from: 'S6_proposal_evaluation', to: 'S7_committee_winner', requirements: ['winner_selected'] },
-  { from: 'S6_proposal_evaluation', to: 'S8_contract', requirements: ['winner_selected'] }, // skip S7 (G7)
-  { from: 'S7_committee_winner',    to: 'S8_contract', requirements: ['winner_committee_approved'] },
-  { from: 'S8_contract',            to: 'S9_purchase_order', requirements: ['contract_signed'] },
-  { from: 'S9_purchase_order',      to: 'S10_execution_m1', requirements: ['po_issued'] },
-  { from: 'S10_execution_m1',       to: 'S11_execution_m2' },
-  { from: 'S10_execution_m1',       to: 'S12_closure_evaluation', requirements: ['all_milestones_accepted'] },
-  { from: 'S11_execution_m2',       to: 'S12_closure_evaluation', requirements: ['all_milestones_accepted'] },
-  { from: 'S12_closure_evaluation', to: 'closed', requirements: ['vendor_evaluated'] },
-]
+const REQ_BY_FROM_STAGE: Partial<Record<TenderStage, TransitionRequirement>> = {
+  T0_brief_protocol:         'brief_and_protocol_uploaded',
+  T1_budget_approval:        'budget_approved',
+  T2_committee_outbound:     'committee_outbound_approved',
+  T3_signatures_outbound:    'outbound_signatures_complete',
+  T4_minhal_rechesh:         'minhal_rechesh_winner_received',
+  T5_winner_protocol_upload: 'winner_protocol_uploaded',
+  T6_committee_winner:       'committee_winner_approved',
+  T7_signatures_winner:      'winner_signatures_complete',
+  T8_engagement:             'engagement_started',
+}
 
-// מעברי חזרה — Gateway החזרות
-export const RETURN_TRANSITIONS: TransitionRule[] = [
-  { from: 'S3_committee_outbound',  to: 'S1_initiation_budget' }, // G3=returned
-  { from: 'S4_system_input_review', to: 'S4_system_input_review' }, // G4 corrections (loop)
-  { from: 'S7_committee_winner',    to: 'S6_proposal_evaluation' }, // G8=rejected
-  { from: 'S8_contract',            to: 'S8_contract' }, // G10 guarantee/insurance loop
-]
+// המעברים העיקריים — sequential forward.
+export const FORWARD_TRANSITIONS: TransitionRule[] = STAGE_ORDER.map((from, idx) => {
+  const to = STAGE_ORDER[idx + 1] ?? 'closed'
+  const requirement = REQ_BY_FROM_STAGE[from]
+  return {
+    from,
+    to,
+    requirements: requirement ? [requirement] : undefined,
+  }
+})
+
+// מעברי חזרה — pingpong loops.
+// כל שלב יכול לחזור שלב אחד אחורה (בקשת תיקון).
+export const RETURN_TRANSITIONS: TransitionRule[] = STAGE_ORDER
+  .map((from, idx) => idx === 0 ? null : { from, to: STAGE_ORDER[idx - 1] })
+  .filter((r): r is TransitionRule => r !== null)
 
 export interface AdvanceContext {
-  amount: number
-  selection: SelectionType
   satisfied: Set<TransitionRequirement>
 }
 
@@ -64,30 +63,36 @@ export interface AdvanceResult {
 }
 
 export function canAdvance(
-  tender: Pick<Tender, 'current_stage' | 'estimated_amount' | 'selection_type'>,
+  tender: Pick<Tender, 'current_stage'>,
   targetStage: TenderStage,
   satisfied: TransitionRequirement[] = [],
 ): AdvanceResult {
-  const ctx: AdvanceContext = {
-    amount: tender.estimated_amount,
-    selection: tender.selection_type,
-    satisfied: new Set(satisfied),
+  // Terminal targets always reachable.
+  if (targetStage === 'cancelled' || targetStage === 'closed') {
+    return { ok: true, reasons: [] }
+  }
+  if (tender.current_stage === 'closed' || tender.current_stage === 'cancelled') {
+    return { ok: false, reasons: ['ההליך כבר נסגר — לא ניתן להתקדם'] }
   }
 
+  const fromIdx = getStageIndex(tender.current_stage)
+  const toIdx = getStageIndex(targetStage)
+  if (fromIdx < 0 || toIdx < 0) {
+    return { ok: false, reasons: [`קוד שלב לא חוקי: ${targetStage}`] }
+  }
+
+  // רק מעבר ישיר קדימה או חזרה אחת.
+  if (toIdx === fromIdx - 1) {
+    return { ok: true, reasons: [] } // return loop — תמיד מותר
+  }
+  if (toIdx !== fromIdx + 1) {
+    return { ok: false, reasons: [`לא ניתן לקפוץ מ-${tender.current_stage} ל-${targetStage} — רק מעבר לשלב הסמוך`] }
+  }
+
+  const ctx: AdvanceContext = { satisfied: new Set(satisfied) }
   const rule = FORWARD_TRANSITIONS.find(t => t.from === tender.current_stage && t.to === targetStage)
-  if (!rule) {
-    return { ok: false, reasons: [`לא קיים מעבר ישיר מ-${tender.current_stage} ל-${targetStage}`] }
-  }
-
-  // Skip-rules (G1/G7) — אם השלב צריך להיות מדולג, מאפשרים את המעבר אליו עד השלב הבא
-  const skip = shouldSkipStage(targetStage, { amount: ctx.amount, selection: ctx.selection })
-  if (skip.skip) {
-    return { ok: false, reasons: [`שלב ${targetStage} מדולג: ${skip.reason}`] }
-  }
-
-  // Validate requirements
   const reasons: string[] = []
-  for (const req of rule.requirements ?? []) {
+  for (const req of rule?.requirements ?? []) {
     if (!ctx.satisfied.has(req)) reasons.push(`דרישה לא מולאה: ${req}`)
   }
 
@@ -95,7 +100,12 @@ export function canAdvance(
 }
 
 export function nextStages(currentStage: TenderStage): TenderStage[] {
-  return FORWARD_TRANSITIONS.filter(t => t.from === currentStage).map(t => t.to)
+  const next = getNextStage(currentStage)
+  return next ? [next] : []
+}
+
+export function previousStage(currentStage: TenderStage): TenderStage | null {
+  return getPrevStage(currentStage)
 }
 
 export function isTerminal(stage: TenderStage): boolean {

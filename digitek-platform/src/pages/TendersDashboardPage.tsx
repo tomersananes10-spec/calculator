@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { STAGES, getStage } from '../modules/tenders/data/stagesBaseline'
+import { STAGES } from '../modules/tenders/data/stagesBaseline'
 import { KPIS } from '../modules/tenders/data/kpis'
 import type { Tender, TenderApprovalRequest, TenderMilestone, TenderProtocol, TenderSlaEvent, TenderVendorEvaluation } from '../modules/tenders/types'
 import styles from './TendersDashboardPage.module.css'
@@ -178,7 +178,7 @@ export function TendersDashboardPage() {
           <div className={styles.stageList}>
             {stageDistribution.map(({ stage, count }) => {
               const widthPct = (count / maxStageCount) * 100
-              const barClass = stage.code === 'cancelled' ? styles.red : stage.isCriticalPath ? styles.amber : ''
+              const barClass = stage.pingpong ? styles.amber : ''
               return (
                 <div key={stage.code} className={styles.stageRow}>
                   <div className={styles.stageNum}>{stage.stageNumber}</div>

@@ -1,29 +1,38 @@
-// הגדרות דרישות (checklist) לכל שלב — מבוסס על workflowEngine + state machine
+// דרישות פר-שלב (9 שלבים T0..T8).
 // כל requirement מחזיר RequirementStatus עשיר (לא רק boolean) כדי שה-UI יוכל
-// להציג מצב פעיל של בקשה ממתינה: למי נשלחה, מתי, SLA, וכו'.
+// להציג מצב של בקשה ממתינה: למי נשלחה, מתי, וכו'.
 
 import type { TenderDetailData } from '../hooks/useTender'
 import type { ApprovalRequestType, TenderApprovalRequest, TenderStage } from '../types'
+import { getNextStage } from './stagesBaseline'
 
 export type ActionId =
+  // T0
+  | 'upload_brief'
+  | 'upload_initial_protocol'
+  // T1
   | 'create_budget_approval'
-  | 'set_tender_number'
-  | 'create_olma_approval'
+  // T2 + T6 — ועדה
+  | 'schedule_committee_outbound'
   | 'create_committee_outbound_protocol'
-  | 'create_professional_review'
+  | 'schedule_committee_winner'
   | 'create_committee_winner_protocol'
-  | 'distribute_to_vendors'
-  | 'register_proposal'
-  | 'select_winner'
+  // T3 + T7 — חתימות
+  | 'request_signature_legal'
+  | 'request_signature_treasurer'
+  | 'request_signature_vp'
+  // T4 — מינהל הרכש
+  | 'minhal_rechesh_winner_received'
+  // T5 — פרוטוקול זכייה
+  | 'upload_winner_protocol'
+  // T8 — התקשרות
   | 'draft_contract'
   | 'verify_guarantee'
   | 'verify_insurance'
   | 'sign_contract_internal'
   | 'create_purchase_order'
   | 'create_milestone'
-  | 'approve_milestone'
-  | 'approve_invoice'
-  | 'evaluate_vendor'
+  // generic
   | 'advance_stage'
 
 export type RequirementStatus =
@@ -41,7 +50,6 @@ export interface StageRequirement {
   getStatus: (detail: TenderDetailData) => RequirementStatus
   action?: ActionId
   blocker?: boolean
-  /** מיפוי תיעודי לסוג בקשת אישור — לרכיבי UI שצריכים לדעת לאיזה סוג בקשה היא קשורה. */
   approvalRequestType?: ApprovalRequestType
 }
 
@@ -53,7 +61,6 @@ export interface StageRequirementsDef {
 
 // ───────── helpers ─────────
 
-/** דרישה מבוססת approval_request — מחזירה state לפי הבקשה האחרונה מהסוג המבוקש. */
 function approvalBasedStatus(
   type: ApprovalRequestType,
   alreadySatisfied?: (d: TenderDetailData) => boolean,
@@ -72,186 +79,216 @@ function approvalBasedStatus(
     if (latest.status === 'rejected' || latest.status === 'cancelled') {
       return { state: 'rejected', request: latest }
     }
-    // pending / in_review / escalated
     return { state: 'awaiting', request: latest }
   }
 }
 
-/** דרישה מבוססת שדה ב-DB — בינארית: מולאה או לא. */
+function approvalBasedByRole(
+  type: ApprovalRequestType,
+  role: string,
+): (d: TenderDetailData) => RequirementStatus {
+  return (d) => {
+    const matching = d.approvalRequests
+      .filter(r => r.request_type === type && r.requested_role === role)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    const latest = matching[0]
+    if (!latest) return { state: 'not_started' }
+
+    if (latest.status === 'approved') return { state: 'approved', request: latest }
+    if (latest.status === 'returned') return { state: 'returned', request: latest }
+    if (latest.status === 'rejected' || latest.status === 'cancelled') {
+      return { state: 'rejected', request: latest }
+    }
+    return { state: 'awaiting', request: latest }
+  }
+}
+
 function fieldBasedStatus(check: (d: TenderDetailData) => boolean): (d: TenderDetailData) => RequirementStatus {
   return (d) => (check(d) ? { state: 'satisfied' } : { state: 'not_started' })
 }
+
+const hasDocument = (d: TenderDetailData, docType: string) =>
+  d.documents.some(doc => doc.doc_type === docType)
 
 const hasApprovedProtocol = (d: TenderDetailData, type: string) =>
   d.protocols.some(p => p.protocol_type === type && p.decision === 'approved')
 
 // ───────── requirement definitions ─────────
 
+// T0 — בריף + פרוטוקול ראשוני
+const REQ_BRIEF: StageRequirement = {
+  id: 'brief_uploaded',
+  label: 'בריף הליך',
+  description: 'בחירה ממודול הבריפים או העלאה ידנית',
+  getStatus: fieldBasedStatus(d => Boolean(d.tender?.brief_id) || hasDocument(d, 'brief')),
+  action: 'upload_brief',
+  blocker: true,
+}
+
+const REQ_INITIAL_PROTOCOL: StageRequirement = {
+  id: 'initial_protocol_uploaded',
+  label: 'פרוטוקול ראשוני',
+  description: 'העלאה ידנית. מודול פרוטוקולים ייבנה בעתיד.',
+  getStatus: fieldBasedStatus(d => hasDocument(d, 'protocol_initial')),
+  action: 'upload_initial_protocol',
+  blocker: true,
+}
+
+// T1 — אישור תקציבי (פינגפונג)
 const REQ_BUDGET_APPROVED: StageRequirement = {
   id: 'budget_approved',
   label: 'אישור תקציבי',
-  description: 'אישור תקציב ע"י תקציבן המערך',
+  description: 'אישור תקציב ע"י תקציבן המערך. תומך בסבבי תיקונים.',
   approvalRequestType: 'budget_approval',
   getStatus: approvalBasedStatus('budget_approval', d => d.budget?.status === 'approved'),
   action: 'create_budget_approval',
   blocker: true,
 }
 
-const REQ_TENDER_NUMBER: StageRequirement = {
-  id: 'tender_number',
-  label: 'מספר תיחור פנימי',
-  description: 'מספר ייחודי לזיהוי ההליך',
-  getStatus: fieldBasedStatus(d => Boolean(d.tender?.tender_number)),
-  action: 'set_tender_number',
-  blocker: true,
+// T2 — ועדת מכרזים (יציאה) — פינגפונג
+const REQ_COMMITTEE_OUTBOUND_SCHEDULED: StageRequirement = {
+  id: 'committee_outbound_scheduled',
+  label: 'דיון ועדת מכרזים נקבע',
+  description: 'מנהלת הוועדה מזמנת דיון עם הנוכחים הקבועים',
+  getStatus: fieldBasedStatus(d =>
+    d.protocols.some(p => p.protocol_type === 'outbound_request')
+  ),
+  action: 'schedule_committee_outbound',
+  blocker: false,
 }
 
-const REQ_OLMA_APPROVAL: StageRequirement = {
-  id: 'olma_approved',
-  label: 'אישור מינהל הרכש (מעל 5M)',
-  description: 'אישור מנהל הרכש',
-  approvalRequestType: 'olma_approval',
-  getStatus: approvalBasedStatus('olma_approval', d => !d.tender?.requires_olma),
-  action: 'create_olma_approval',
-  blocker: true,
-}
-
-const REQ_COMMITTEE_OUTBOUND: StageRequirement = {
+const REQ_COMMITTEE_OUTBOUND_APPROVED: StageRequirement = {
   id: 'committee_outbound_approved',
-  label: 'אישור ועדת מכרזים — יציאה לתיחור',
-  description: 'פרוטוקול חתום של ועדת מכרזים המאשר יציאה לתיחור (G3=approved)',
+  label: 'אישור ועדה — יציאה לתיחור',
+  description: 'פרוטוקול חתום של ועדת מכרזים. תומך בסבבי תיקונים עד אישור סופי.',
   getStatus: fieldBasedStatus(d => hasApprovedProtocol(d, 'outbound_request')),
   action: 'create_committee_outbound_protocol',
   blocker: true,
 }
 
-const REQ_TENDER_NUMBER_EXTERNAL: StageRequirement = {
-  id: 'tender_number_external',
-  label: 'מספר תיחור חיצוני',
-  description: 'מספר ההליך במערכת התיחורים הדיגיטלית',
+// T3 — חתימות (משפטן → חשב → סמנכ"ל)
+const REQ_SIGNATURE_LEGAL_OUTBOUND: StageRequirement = {
+  id: 'signature_legal_outbound',
+  label: 'חתימת משפטן',
+  description: 'משפטן חותם על הגרסה האחרונה של המסמכים שאושרו בוועדה',
+  approvalRequestType: 'contract_signature',
+  getStatus: approvalBasedByRole('contract_signature', 'legal_professional'),
+  action: 'request_signature_legal',
+  blocker: true,
+}
+
+const REQ_SIGNATURE_TREASURER_OUTBOUND: StageRequirement = {
+  id: 'signature_treasurer_outbound',
+  label: 'חתימת חשב',
+  description: 'חשב חותם אחרי המשפטן',
+  approvalRequestType: 'contract_signature',
+  getStatus: approvalBasedByRole('contract_signature', 'budget_officer'),
+  action: 'request_signature_treasurer',
+  blocker: true,
+}
+
+const REQ_SIGNATURE_VP_OUTBOUND: StageRequirement = {
+  id: 'signature_vp_outbound',
+  label: 'חתימת סמנכ"ל',
+  description: 'סמנכ"ל חותם אחרון על מסמכי היציאה',
+  approvalRequestType: 'contract_signature',
+  getStatus: approvalBasedByRole('contract_signature', 'signatory'),
+  action: 'request_signature_vp',
+  blocker: true,
+}
+
+// T4 — מינהל הרכש (קופסה שחורה)
+const REQ_MINHAL_RECHESH_DONE: StageRequirement = {
+  id: 'minhal_rechesh_done',
+  label: 'התקבל ספק זוכה ממינהל הרכש',
+  description: 'במינהל הרכש בחרו ספק. סמן כאן כדי להמשיך לפרוטוקול הזכייה.',
   getStatus: fieldBasedStatus(d => Boolean(d.tender?.tender_number_external)),
-  action: 'set_tender_number',
+  action: 'minhal_rechesh_winner_received',
   blocker: true,
 }
 
-const REQ_PROFESSIONAL_REVIEW: StageRequirement = {
-  id: 'professional_review_approved',
-  label: 'אישור גורם מקצועי במינהל הרכש',
-  description: 'בדיקה ואישור הפרויקט תוך SLA של 3 ימי עבודה',
-  approvalRequestType: 'professional_review',
-  getStatus: approvalBasedStatus('professional_review'),
-  action: 'create_professional_review',
+// T5 — פרוטוקול זכייה (upload ידני)
+const REQ_WINNER_PROTOCOL_UPLOADED: StageRequirement = {
+  id: 'winner_protocol_uploaded',
+  label: 'פרוטוקול זכייה הועלה',
+  description: 'העלאה ידנית של פרוטוקול הזכייה. בעתיד יישלף ממודול הפרוטוקולים.',
+  getStatus: fieldBasedStatus(d => hasDocument(d, 'winner_protocol')),
+  action: 'upload_winner_protocol',
   blocker: true,
 }
 
-// S5
-const REQ_DISTRIBUTION: StageRequirement = {
-  id: 'vendors_invited',
-  label: 'הפצת הפניה לספקים',
-  description: 'בחר לפחות 3 ספקים והפץ אליהם את הפניה',
-  getStatus: fieldBasedStatus(d => d.proposals.length >= 3 || d.proposals.some(p => p.status !== 'draft')),
-  action: 'distribute_to_vendors',
-  blocker: true,
+// T6 — ועדת זכייה (פינגפונג)
+const REQ_COMMITTEE_WINNER_SCHEDULED: StageRequirement = {
+  id: 'committee_winner_scheduled',
+  label: 'דיון ועדה לפרוטוקול זכייה',
+  description: 'אותו פורום של ועדת היציאה',
+  getStatus: fieldBasedStatus(d =>
+    d.protocols.some(p => p.protocol_type === 'winner_approval')
+  ),
+  action: 'schedule_committee_winner',
+  blocker: false,
 }
 
-const REQ_QA_CLOSED: StageRequirement = {
-  id: 'qa_closed',
-  label: 'תקופת הגשת ההצעות נסגרה',
-  description: 'יש לסגור את תיבת ההצעות לפני מעבר לשלב הבחירה',
-  getStatus: fieldBasedStatus(d => d.proposals.some(p => p.status === 'submitted' || p.status === 'qualified' || p.status === 'winner')),
-  action: 'register_proposal',
-  blocker: true,
-}
-
-// S6
-const REQ_PROPOSALS_REGISTERED: StageRequirement = {
-  id: 'proposals_registered',
-  label: 'הצעות נרשמו במערכת',
-  description: 'יש לרשום לפחות הצעה אחת',
-  getStatus: fieldBasedStatus(d => d.proposals.length > 0 && d.proposals.some(p => p.price != null)),
-  action: 'register_proposal',
-  blocker: true,
-}
-
-const REQ_WINNER_SELECTED: StageRequirement = {
-  id: 'winner_selected',
-  label: 'בחירת ספק מועדף',
-  description: 'יש לסמן ספק כ-"winner" לפני אישור הועדה',
-  getStatus: fieldBasedStatus(d => d.proposals.some(p => p.status === 'winner')),
-  action: 'select_winner',
-  blocker: true,
-}
-
-// S7
-const REQ_COMMITTEE_WINNER: StageRequirement = {
+const REQ_COMMITTEE_WINNER_APPROVED: StageRequirement = {
   id: 'committee_winner_approved',
-  label: 'אישור ועדת מכרזים — זכיה',
-  description: 'פרוטוקול חתום של ועדת מכרזים המאשר את הזוכה (G8=approved)',
+  label: 'אישור ועדה — זכייה',
+  description: 'פרוטוקול חתום שמאשר את הזוכה',
   getStatus: fieldBasedStatus(d => hasApprovedProtocol(d, 'winner_approval')),
   action: 'create_committee_winner_protocol',
   blocker: true,
 }
 
-// S8
+// T7 — חתימות זכייה
+const REQ_SIGNATURE_LEGAL_WINNER: StageRequirement = {
+  id: 'signature_legal_winner',
+  label: 'חתימת משפטן',
+  description: 'משפטן חותם על פרוטוקול הזכייה',
+  approvalRequestType: 'contract_signature',
+  getStatus: approvalBasedByRole('contract_signature', 'legal_professional'),
+  action: 'request_signature_legal',
+  blocker: true,
+}
+
+const REQ_SIGNATURE_TREASURER_WINNER: StageRequirement = {
+  id: 'signature_treasurer_winner',
+  label: 'חתימת חשב',
+  description: 'חשב חותם אחרי המשפטן',
+  approvalRequestType: 'contract_signature',
+  getStatus: approvalBasedByRole('contract_signature', 'budget_officer'),
+  action: 'request_signature_treasurer',
+  blocker: true,
+}
+
+const REQ_SIGNATURE_VP_WINNER: StageRequirement = {
+  id: 'signature_vp_winner',
+  label: 'חתימת סמנכ"ל',
+  description: 'סמנכ"ל חותם אחרון',
+  approvalRequestType: 'contract_signature',
+  getStatus: approvalBasedByRole('contract_signature', 'signatory'),
+  action: 'request_signature_vp',
+  blocker: true,
+}
+
+// T8 — התקשרות + אבני דרך
 const REQ_CONTRACT_DRAFTED: StageRequirement = {
   id: 'contract_drafted',
   label: 'טיוטת הסכם נוצרה',
-  description: 'בחירת תבנית הסכם וקישור לספק זוכה',
+  description: 'בחירת תבנית הסכם וקישור לספק הזוכה',
   getStatus: fieldBasedStatus(d => d.contracts.length > 0),
   action: 'draft_contract',
   blocker: true,
 }
 
-const REQ_VENDOR_SIGNED: StageRequirement = {
-  id: 'vendor_signed',
-  label: 'הספק חתם על ההסכם',
-  description: 'הסכם הוחזר חתום מהספק',
-  getStatus: fieldBasedStatus(d => d.contracts.some(c =>
-    c.signature_status === 'vendor_signed'
-    || c.signature_status === 'pending_internal_review'
-    || c.signature_status === 'pending_signatory'
-    || c.signature_status === 'fully_signed')),
-  action: 'sign_contract_internal',
-  blocker: true,
-}
-
-const REQ_GUARANTEE: StageRequirement = {
-  id: 'guarantee_verified',
-  label: 'ערבות אומתה',
-  description: 'נדרשת רק במכרזים מעל 1M (G9)',
-  getStatus: fieldBasedStatus(d => {
-    const needsGuarantee = (d.tender?.estimated_amount ?? 0) > 1000000
-    if (!needsGuarantee) return true
-    return d.guarantees.some(g => g.status === 'verified')
-  }),
-  action: 'verify_guarantee',
-  blocker: true,
-}
-
-const REQ_INSURANCE: StageRequirement = {
-  id: 'insurance_verified',
-  label: 'ביטוח אומת',
-  description: 'נדרש במרבית התבניות',
-  getStatus: fieldBasedStatus(d => {
-    const needsInsurance = (d.tender?.estimated_amount ?? 0) > 1000000
-    if (!needsInsurance) return true
-    return d.insurance.some(i => i.status === 'verified')
-  }),
-  action: 'verify_insurance',
-  blocker: true,
-}
-
-const REQ_SIGNATORY: StageRequirement = {
-  id: 'signatory_signed',
-  label: 'מורשי החתימה חתמו',
-  description: 'חתימת המזמין — שלב 8.5 באפיון. סוף שלב ההתקשרות.',
+const REQ_CONTRACT_SIGNED: StageRequirement = {
+  id: 'contract_signed',
+  label: 'הסכם נחתם סופית',
+  description: 'הספק חתם, ערבות וביטוח אומתו, מורשי החתימה חתמו',
   getStatus: fieldBasedStatus(d => d.contracts.some(c => c.signature_status === 'fully_signed')),
   action: 'sign_contract_internal',
   blocker: true,
 }
 
-// S9
-const REQ_PO: StageRequirement = {
+const REQ_PO_ISSUED: StageRequirement = {
   id: 'po_issued',
   label: 'הזמנת רכש (PO) הוקמה',
   description: 'הקמה ב-ERP ושליחה לפורטל הספקים',
@@ -260,139 +297,72 @@ const REQ_PO: StageRequirement = {
   blocker: true,
 }
 
-// S10
-const REQ_MILESTONE_DEFINED: StageRequirement = {
-  id: 'milestone1_defined',
-  label: 'אבן דרך 1 הוגדרה',
-  description: 'הגדרת אבן הדרך הראשונה לביצוע',
+const REQ_MILESTONES_DEFINED: StageRequirement = {
+  id: 'milestones_defined',
+  label: 'אבני דרך לתשלום הוגדרו',
+  description: 'לפחות אבן דרך אחת מוגדרת לתחילת העבודה',
   getStatus: fieldBasedStatus(d => d.milestones.length >= 1),
   action: 'create_milestone',
   blocker: true,
 }
 
-const REQ_MILESTONE1_ACCEPTED: StageRequirement = {
-  id: 'milestone1_accepted',
-  label: 'אבן דרך 1 התקבלה',
-  description: 'תוצרים אושרו ע"י המנהל המקצועי + חשבונית אושרה',
-  getStatus: fieldBasedStatus(d => {
-    const m1 = d.milestones.find(m => m.sequence_no === 1)
-    if (!m1) return false
-    return m1.status === 'accepted' || m1.status === 'partially_accepted'
-  }),
-  action: 'approve_milestone',
-  blocker: true,
-}
-
-// S11
-const REQ_MILESTONE2_ACCEPTED: StageRequirement = {
-  id: 'milestone2_accepted',
-  label: 'אבן דרך 2 התקבלה',
-  description: 'אבן הדרך השנייה התקבלה',
-  getStatus: fieldBasedStatus(d => {
-    const m2 = d.milestones.find(m => m.sequence_no === 2)
-    if (!m2) return true  // אם אין m2 — לא חוסם
-    return m2.status === 'accepted' || m2.status === 'partially_accepted'
-  }),
-  action: 'approve_milestone',
-  blocker: true,
-}
-
-// S12
-const REQ_VENDOR_EVALUATION: StageRequirement = {
-  id: 'vendor_evaluated',
-  label: 'הערכת ספק (חובה)',
-  description: 'סיכון #11: לא ניתן לסגור הליך ללא הערכת ספק',
-  getStatus: fieldBasedStatus(d => d.vendorEvaluations.length > 0),
-  action: 'evaluate_vendor',
-  blocker: true,
-}
+// ───────── per-stage map ─────────
 
 export const STAGE_REQUIREMENTS: Partial<Record<TenderStage, StageRequirementsDef>> = {
-  S0_preconditions: {
-    stage: 'S0_preconditions',
-    nextStage: 'S1_initiation_budget',
-    requirements: [],
+  T0_brief_protocol: {
+    stage: 'T0_brief_protocol',
+    nextStage: 'T1_budget_approval',
+    requirements: [REQ_BRIEF, REQ_INITIAL_PROTOCOL],
   },
-  S1_initiation_budget: {
-    stage: 'S1_initiation_budget',
-    nextStage: 'S2_olma_approval',
-    // מספר תיחור פנימי הוא שדה מטא-דאטה (לא פעולת checklist) — מוצג כבאנר צהוב
-    // בכותרת ההליך אם חסר, ונחסם דרך metadataBlockers ב-evaluateStageRequirements
+  T1_budget_approval: {
+    stage: 'T1_budget_approval',
+    nextStage: 'T2_committee_outbound',
     requirements: [REQ_BUDGET_APPROVED],
   },
-  S2_olma_approval: {
-    stage: 'S2_olma_approval',
-    nextStage: 'S3_committee_outbound',
-    requirements: [REQ_OLMA_APPROVAL],
+  T2_committee_outbound: {
+    stage: 'T2_committee_outbound',
+    nextStage: 'T3_signatures_outbound',
+    requirements: [REQ_COMMITTEE_OUTBOUND_SCHEDULED, REQ_COMMITTEE_OUTBOUND_APPROVED],
   },
-  S3_committee_outbound: {
-    stage: 'S3_committee_outbound',
-    nextStage: 'S4_system_input_review',
-    requirements: [REQ_COMMITTEE_OUTBOUND],
+  T3_signatures_outbound: {
+    stage: 'T3_signatures_outbound',
+    nextStage: 'T4_minhal_rechesh',
+    requirements: [REQ_SIGNATURE_LEGAL_OUTBOUND, REQ_SIGNATURE_TREASURER_OUTBOUND, REQ_SIGNATURE_VP_OUTBOUND],
   },
-  S4_system_input_review: {
-    stage: 'S4_system_input_review',
-    nextStage: 'S5_distribution_response',
-    // מספר תיחור חיצוני הוא שדה מטא-דאטה — מוצג כבאנר אם חסר
-    requirements: [REQ_PROFESSIONAL_REVIEW],
+  T4_minhal_rechesh: {
+    stage: 'T4_minhal_rechesh',
+    nextStage: 'T5_winner_protocol_upload',
+    requirements: [REQ_MINHAL_RECHESH_DONE],
   },
-  S5_distribution_response: {
-    stage: 'S5_distribution_response',
-    nextStage: 'S6_proposal_evaluation',
-    requirements: [REQ_DISTRIBUTION, REQ_QA_CLOSED],
+  T5_winner_protocol_upload: {
+    stage: 'T5_winner_protocol_upload',
+    nextStage: 'T6_committee_winner',
+    requirements: [REQ_WINNER_PROTOCOL_UPLOADED],
   },
-  S6_proposal_evaluation: {
-    stage: 'S6_proposal_evaluation',
-    nextStage: 'S7_committee_winner',
-    requirements: [REQ_PROPOSALS_REGISTERED, REQ_WINNER_SELECTED],
+  T6_committee_winner: {
+    stage: 'T6_committee_winner',
+    nextStage: 'T7_signatures_winner',
+    requirements: [REQ_COMMITTEE_WINNER_SCHEDULED, REQ_COMMITTEE_WINNER_APPROVED],
   },
-  S7_committee_winner: {
-    stage: 'S7_committee_winner',
-    nextStage: 'S8_contract',
-    requirements: [REQ_COMMITTEE_WINNER],
+  T7_signatures_winner: {
+    stage: 'T7_signatures_winner',
+    nextStage: 'T8_engagement',
+    requirements: [REQ_SIGNATURE_LEGAL_WINNER, REQ_SIGNATURE_TREASURER_WINNER, REQ_SIGNATURE_VP_WINNER],
   },
-  S8_contract: {
-    stage: 'S8_contract',
-    nextStage: 'S9_purchase_order',
-    requirements: [REQ_CONTRACT_DRAFTED, REQ_VENDOR_SIGNED, REQ_GUARANTEE, REQ_INSURANCE, REQ_SIGNATORY],
-  },
-  S9_purchase_order: {
-    stage: 'S9_purchase_order',
-    nextStage: 'S10_execution_m1',
-    requirements: [REQ_PO],
-  },
-  S10_execution_m1: {
-    stage: 'S10_execution_m1',
-    nextStage: 'S11_execution_m2',
-    requirements: [REQ_MILESTONE_DEFINED, REQ_MILESTONE1_ACCEPTED],
-  },
-  S11_execution_m2: {
-    stage: 'S11_execution_m2',
-    nextStage: 'S12_closure_evaluation',
-    requirements: [REQ_MILESTONE2_ACCEPTED],
-  },
-  S12_closure_evaluation: {
-    stage: 'S12_closure_evaluation',
+  T8_engagement: {
+    stage: 'T8_engagement',
     nextStage: 'closed',
-    requirements: [REQ_VENDOR_EVALUATION],
+    requirements: [REQ_CONTRACT_DRAFTED, REQ_CONTRACT_SIGNED, REQ_PO_ISSUED, REQ_MILESTONES_DEFINED],
   },
 }
 
-/** דרישה נחשבת "הושלמה" כשהיא satisfied או approved. */
 export function isRequirementDone(status: RequirementStatus): boolean {
   return status.state === 'satisfied' || status.state === 'approved'
 }
 
-/**
- * חוסם מטא-דאטה — שדה ב-tender שחסר ובלעדיו אי אפשר להתקדם, אבל לא ראוי להופיע
- * כשורה ב-checklist (זה לא "פעולה" — זה ערך שאמור היה להיכנס בזמן הפתיחה).
- * דוגמאות: מספר תיחור פנימי בשלב 1, מספר תיחור חיצוני בשלב 4.
- * ה-UI מציג אותם כבאנר אזהרה צהוב בכותרת ההליך, עם כפתור לפתיחת המודאל הרלוונטי.
- */
 export interface MetadataBlocker {
   id: string
   label: string
-  /** ActionId שיופעל כדי לפתוח את המודאל המתאים לעריכת השדה. */
   action: ActionId
 }
 
@@ -408,34 +378,25 @@ export interface StageRequirementsResult {
   progressPct: number
 }
 
-/** בדיקת מטא-דאטה חוסמת לפי השלב הנוכחי. נקראת מתוך evaluateStageRequirements. */
-function getMetadataBlockers(detail: TenderDetailData): MetadataBlocker[] {
-  const tender = detail.tender
-  if (!tender) return []
-  const blockers: MetadataBlocker[] = []
-
-  if (tender.current_stage === 'S1_initiation_budget' && !tender.tender_number) {
-    blockers.push({
-      id: 'tender_number',
-      label: 'מספר תיחור פנימי',
-      action: 'set_tender_number',
-    })
-  }
-  if (tender.current_stage === 'S4_system_input_review' && !tender.tender_number_external) {
-    blockers.push({
-      id: 'tender_number_external',
-      label: 'מספר תיחור חיצוני (במערכת התיחורים)',
-      action: 'set_tender_number',
-    })
-  }
-
-  return blockers
+// אין יותר metadata blockers — מספרי תיחור פנימי/חיצוני אינם חוסמים את הזרימה החדשה.
+function getMetadataBlockers(_detail: TenderDetailData): MetadataBlocker[] {
+  return []
 }
 
 export function evaluateStageRequirements(detail: TenderDetailData): StageRequirementsResult {
   const tender = detail.tender
   if (!tender) {
-    return { stage: 'S0_preconditions', nextStage: null, total: 0, done: 0, pending: [], blockingPending: [], metadataBlockers: [], canAdvance: false, progressPct: 0 }
+    return {
+      stage: 'T0_brief_protocol',
+      nextStage: null,
+      total: 0,
+      done: 0,
+      pending: [],
+      blockingPending: [],
+      metadataBlockers: [],
+      canAdvance: false,
+      progressPct: 0,
+    }
   }
 
   const metadataBlockers = getMetadataBlockers(detail)
@@ -443,7 +404,7 @@ export function evaluateStageRequirements(detail: TenderDetailData): StageRequir
   if (!def) {
     return {
       stage: tender.current_stage,
-      nextStage: null,
+      nextStage: getNextStage(tender.current_stage),
       total: 0,
       done: 0,
       pending: [],
