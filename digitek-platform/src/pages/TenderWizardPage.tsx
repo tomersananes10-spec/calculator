@@ -6,6 +6,8 @@ import { evaluateG1_Amount, evaluateG7_WinnerApproval, evaluateG9_ContractTempla
 import { safeFileName } from '../modules/tenders/lib/safeFileName'
 import type { SelectionType } from '../modules/tenders/types'
 import styles from './TenderWizardPage.module.css'
+import { TenderWizardSignersStep, emptySignerDrafts, type SignerDrafts } from './TenderWizardSignersStep'
+import { assignSigner, validateSignerInput, SIGNER_ROLES, SIGNER_ROLE_LABELS } from '../modules/tenders/lib/signers'
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB
 const ACCEPT_DOCS = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg'
@@ -29,8 +31,9 @@ interface CalcOption {
 const STEPS = [
   { num: 1, label: 'פרטים' },
   { num: 2, label: 'פיננסים' },
-  { num: 3, label: 'קישורים' },
-  { num: 4, label: 'סקירה' },
+  { num: 3, label: 'בריף ופרוטוקול' },
+  { num: 4, label: 'צוות חתימות' },
+  { num: 5, label: 'סקירה' },
 ]
 
 function formatAmount(n: number): string {
@@ -39,9 +42,10 @@ function formatAmount(n: number): string {
 
 export function TenderWizardPage() {
   const navigate = useNavigate()
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [signerDrafts, setSignerDrafts] = useState<SignerDrafts>(() => emptySignerDrafts())
 
   // Step 1
   const [title, setTitle] = useState('')
@@ -93,8 +97,17 @@ export function TenderWizardPage() {
     if (step === 1) return title.trim().length >= 3 && ministry.trim().length >= 2
     if (step === 2) return amount > 0
     if (step === 3) return briefSatisfied && protocolSatisfied
+    if (step === 4) {
+      // אסור שורה חלקית (שם בלי מייל / להיפך)
+      for (const role of SIGNER_ROLES) {
+        const d = signerDrafts[role]
+        const err = validateSignerInput(d.name, d.email)
+        if (err) return false
+      }
+      return true
+    }
     return true
-  }, [step, title, ministry, amount, briefSatisfied, protocolSatisfied])
+  }, [step, title, ministry, amount, briefSatisfied, protocolSatisfied, signerDrafts])
 
   function pickFile(target: 'brief' | 'protocol', f: File | null) {
     if (!f) return
@@ -161,6 +174,16 @@ export function TenderWizardPage() {
       if (err) uploadErrors.push(err)
     }
 
+    // שמירת צוות חתימות (אופציונלי — כשל לא חוסם)
+    for (const role of SIGNER_ROLES) {
+      const d = signerDrafts[role]
+      if (!d.name.trim() || !d.email.trim()) continue
+      const sigRes = await assignSigner(result.id, role, d.name, d.email)
+      if (!sigRes.ok) {
+        uploadErrors.push(`${SIGNER_ROLE_LABELS[role]}: ${sigRes.error}`)
+      }
+    }
+
     setSubmitting(false)
 
     if (uploadErrors.length > 0) {
@@ -176,7 +199,7 @@ export function TenderWizardPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <h1 className={styles.title}>פתיחת הליך מכרז חדש</h1>
-        <p className={styles.sub}>4 שלבים — לאחר היצירה ההליך נפתח בשלב 0 (העלאת בריף + פרוטוקול)</p>
+        <p className={styles.sub}>5 שלבים — לאחר היצירה ההליך נפתח בשלב 0 (העלאת בריף + פרוטוקול)</p>
       </div>
 
       <div className={styles.stepper}>
@@ -444,6 +467,10 @@ export function TenderWizardPage() {
       )}
 
       {step === 4 && (
+        <TenderWizardSignersStep drafts={signerDrafts} onChange={setSignerDrafts} />
+      )}
+
+      {step === 5 && (
         <div className={styles.panel}>
           <h2 className={styles.panelTitle}>סקירה ופתיחה</h2>
           <p className={styles.panelSub}>בדוק את הפרטים לפני יצירת ההליך</p>
@@ -493,6 +520,12 @@ export function TenderWizardPage() {
               <span className={styles.summaryLabel}>פרוטוקול ראשוני</span>
               <span className={styles.summaryValue}>{protocolFile?.name ?? '—'}</span>
             </div>
+            <div className={styles.summaryItem}>
+              <span className={styles.summaryLabel}>צוות חתימות</span>
+              <span className={styles.summaryValue}>
+                {SIGNER_ROLES.filter(r => signerDrafts[r].name.trim() && signerDrafts[r].email.trim()).length} תפקידים מוגדרים
+              </span>
+            </div>
           </div>
 
           {error && <div className={styles.errorBox}>{error}</div>}
@@ -505,20 +538,20 @@ export function TenderWizardPage() {
         </button>
         <div style={{ display: 'flex', gap: 12 }}>
           {step > 1 && (
-            <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setStep((step - 1) as 1 | 2 | 3 | 4)}>
+            <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setStep((step - 1) as 1 | 2 | 3 | 4 | 5)}>
               חזור
             </button>
           )}
-          {step < 4 && (
+          {step < 5 && (
             <button
               className={`${styles.btn} ${styles.btnPrimary}`}
               disabled={!canAdvance}
-              onClick={() => setStep((step + 1) as 1 | 2 | 3 | 4)}
+              onClick={() => setStep((step + 1) as 1 | 2 | 3 | 4 | 5)}
             >
               המשך
             </button>
           )}
-          {step === 4 && (
+          {step === 5 && (
             <button
               className={`${styles.btn} ${styles.btnPrimary}`}
               disabled={submitting || !canAdvance}

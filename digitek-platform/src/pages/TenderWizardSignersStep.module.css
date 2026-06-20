@@ -1,0 +1,52 @@
+.panel { padding: 4px; }
+.panelTitle {
+  font-size: 18px; font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--text);
+}
+.panelSub {
+  color: var(--text2);
+  font-size: 13px;
+  margin: 0 0 20px;
+  line-height: 1.6;
+}
+.panelSub strong { color: var(--text); }
+
+.roleCard {
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+.roleInfo {}
+.roleName { font-weight: 700; font-size: 14px; color: var(--text); }
+.roleDesc { color: var(--text3); font-size: 11.5px; margin-top: 2px; line-height: 1.5; }
+.roleInputs { display: flex; flex-direction: column; gap: 7px; }
+
+.input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.input:focus { border-color: var(--primary-light); }
+.input::placeholder { color: var(--text3); }
+
+.hint {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--primary-bg);
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--primary-dark);
+}
