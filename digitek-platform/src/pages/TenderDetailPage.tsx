@@ -17,6 +17,7 @@ import { CommitteeScheduleModal } from '../modules/tenders/components/modals/Com
 import { MinhalRechesAdvanceModal } from '../modules/tenders/components/modals/MinhalRechesAdvanceModal'
 import { UploadDocumentModal } from '../modules/tenders/components/modals/UploadDocumentModal'
 import { SignatureRequestModal } from '../modules/tenders/components/modals/SignatureRequestModal'
+import { SignersEditModal } from '../modules/tenders/components/modals/SignersEditModal'
 import { DocumentArchive } from '../modules/tenders/components/DocumentArchive'
 import { SignersSidebar } from '../modules/tenders/components/SignersSidebar'
 import archiveStyles from '../modules/tenders/components/DocumentArchive.module.css'
@@ -577,6 +578,14 @@ export function TenderDetailPage() {
         onClose={() => setArchiveOpen(false)}
         documents={documents}
         tenderTitle={tender.title}
+      />
+
+      <SignersEditModal
+        open={signersEditOpen}
+        onClose={() => setSignersEditOpen(false)}
+        tenderId={tender.id}
+        signers={signers}
+        onSubmitted={refresh}
       />
     </div>
   )
