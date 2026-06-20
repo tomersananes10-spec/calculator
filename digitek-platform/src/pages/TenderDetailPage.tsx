@@ -450,7 +450,7 @@ export function TenderDetailPage() {
         open={activeAction === 'request_signature_treasurer'}
         onClose={closeAction}
         tenderId={tender.id}
-        signerRole="budget_officer"
+        signerRole="treasurer"
         onSubmitted={onActionDone}
       />
       <SignatureRequestModal

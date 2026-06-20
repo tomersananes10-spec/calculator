@@ -182,7 +182,7 @@ const REQ_SIGNATURE_TREASURER_OUTBOUND: StageRequirement = {
   label: 'חתימת חשב',
   description: 'חשב חותם אחרי המשפטן',
   approvalRequestType: 'contract_signature',
-  getStatus: approvalBasedByRole('contract_signature', 'budget_officer'),
+  getStatus: approvalBasedByRole('contract_signature', 'treasurer'),
   action: 'request_signature_treasurer',
   blocker: true,
 }
@@ -254,7 +254,7 @@ const REQ_SIGNATURE_TREASURER_WINNER: StageRequirement = {
   label: 'חתימת חשב',
   description: 'חשב חותם אחרי המשפטן',
   approvalRequestType: 'contract_signature',
-  getStatus: approvalBasedByRole('contract_signature', 'budget_officer'),
+  getStatus: approvalBasedByRole('contract_signature', 'treasurer'),
   action: 'request_signature_treasurer',
   blocker: true,
 }
