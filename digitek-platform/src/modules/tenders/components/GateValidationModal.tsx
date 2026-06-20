@@ -16,7 +16,6 @@ interface Props {
 export function GateValidationModal({ open, onClose, tender, requirements, onAdvanced }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [notes, setNotes] = useState('')
 
   const nextStageDef = requirements.nextStage ? getStage(requirements.nextStage) : null
 
@@ -24,7 +23,7 @@ export function GateValidationModal({ open, onClose, tender, requirements, onAdv
     if (!requirements.nextStage) return
     setSubmitting(true)
     setError(null)
-    const result = await advanceTender(tender.id, requirements.nextStage, notes.trim() || undefined)
+    const result = await advanceTender(tender.id, requirements.nextStage)
     setSubmitting(false)
     if (!result.ok) {
       setError(result.error ?? 'שגיאה במעבר השלב')
@@ -41,15 +40,6 @@ export function GateValidationModal({ open, onClose, tender, requirements, onAdv
           <div className={s.info}>
             ✓ כל דרישות החובה מולאו. ניתן להעביר את ההליך
             {nextStageDef && <> לשלב <strong>{nextStageDef.stageNumber}. {nextStageDef.label}</strong></>}.
-          </div>
-          <div className={s.formGroup}>
-            <label className={s.label}>הערות (אופציונלי)</label>
-            <textarea
-              className={s.textarea}
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="הערה שתישמר ב-audit log"
-            />
           </div>
           {error && <div className={s.error}>{error}</div>}
           <div className={s.foot}>
