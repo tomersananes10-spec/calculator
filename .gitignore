@@ -1,3 +1,42 @@
 .worktrees/
 
 .vercel
+
+node_modules/
+
+# Claude Code & MCP tooling
+.claude/
+.playwright-mcp/
+.superpowers/
+
+# Environment files (sensitive)
+**/.env
+**/.env.local
+**/.env.*.local
+**/.env.vercel-import
+
+# Build caches
+**/.vite/
+
+# Root-level screenshots, mockups, scratch
+/*.png
+/*.pdf
+/mockup-*.html
+/mockups-*.html
+/home-mockups.html
+/roved5-mockups.html
+/takam-brainstorm.html
+/_plan_writer.js
+/BRIEF_WIZARD_INSTRUCTIONS.md
+/CALCULATOR.md
+/calculator-assets/
+
+# Separate projects (not LIBA)
+/COE/
+/Calculator - AI ML/
+/RUN OF MY LIFE/
+/Tender generator/
+/calculate-TAKAM/
+/liba-pitch/
+/אפיון/
+/מורשי חתימה/
