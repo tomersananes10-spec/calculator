@@ -1,10 +1,28 @@
 import { useState } from 'react'
-import { STAGE_REQUIREMENTS, isRequirementDone, type ActionId, type RequirementStatus } from '../data/stageRequirements'
+import { STAGE_REQUIREMENTS, isRequirementDone, type ActionId, type RequirementStatus, type StageRequirement } from '../data/stageRequirements'
 import { getStage } from '../data/stagesBaseline'
 import type { TenderDetailData } from '../hooks/useTender'
-import type { TenderApprovalRequest } from '../types'
+import type { DocumentType, TenderApprovalRequest } from '../types'
 import { RequirementDetailPanel } from './RequirementDetailPanel'
 import styles from './StageRequirementsTab.module.css'
+
+// דרישות מבוססות-העלאה: ה-id של ה-requirement → doc_type ב-DB.
+// כשהדרישה מסומנת כ"הושלם" — נציג את שם הקובץ והתאריך במקום ההסבר הסטטי.
+const UPLOAD_REQ_DOC_TYPE: Record<string, DocumentType> = {
+  brief_uploaded: 'brief',
+  initial_protocol_uploaded: 'protocol_initial',
+  winner_protocol_uploaded: 'winner_protocol',
+}
+
+function relativeDate(iso: string): string {
+  const d = new Date(iso)
+  const diffMs = Date.now() - d.getTime()
+  const days = Math.floor(diffMs / 86_400_000)
+  if (days < 1) return 'היום'
+  if (days === 1) return 'אתמול'
+  if (days < 7) return `לפני ${days} ימים`
+  return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
 
 interface Props {
   detail: TenderDetailData
@@ -50,6 +68,30 @@ function statusPillFor(state: RequirementStatus['state']) {
     default:
       return { label: 'ממתין', className: styles.statusPending }
   }
+}
+
+/**
+ * מחזיר תוכן UI לשורת ה-summary כשהדרישה הושלמה.
+ * - לדרישות העלאה: מחפש את הקובץ האחרון מהסוג המתאים ומציג שם + תאריך
+ * - אחרת: "הושלם בהצלחה" כללי
+ */
+function satisfiedSummaryEl(req: StageRequirement, detail: TenderDetailData): React.ReactNode {
+  const docType = UPLOAD_REQ_DOC_TYPE[req.id]
+  if (docType) {
+    const latest = detail.documents
+      .filter(d => d.doc_type === docType)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
+    if (latest) {
+      return (
+        <>
+          <span>📄</span>
+          <span className={styles.descriptionDoneFile}>{latest.title}</span>
+          <span>· הועלה {relativeDate(latest.created_at)}</span>
+        </>
+      )
+    }
+  }
+  return <span>✓ הושלם בהצלחה</span>
 }
 
 function summaryFor(status: RequirementStatus, fallbackDescription?: string): string | null {
@@ -173,7 +215,11 @@ export function StageRequirementsTab({ detail, onAction, onRefresh, onResubmit }
               <div className={`${styles.status} ${pill.className}`}>{pill.label}</div>
               <div className={styles.body}>
                 <div className={`${styles.label} ${done ? styles.done : ''}`}>{req.label}</div>
-                {summary && <div className={styles.description}>{summary}</div>}
+                {done ? (
+                  <div className={styles.descriptionDone}>{satisfiedSummaryEl(req, detail)}</div>
+                ) : (
+                  summary && <div className={styles.description}>{summary}</div>
+                )}
               </div>
               {actionEl}
               {canExpand && (

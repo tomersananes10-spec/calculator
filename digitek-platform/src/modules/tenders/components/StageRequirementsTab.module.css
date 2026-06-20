@@ -42,8 +42,17 @@
 
 .body { flex: 1; min-width: 0; }
 .label { font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
-.label.done { text-decoration: line-through; color: var(--green); }
+.label.done { color: var(--green); }
 .description { font-size: 12.5px; color: var(--text2); line-height: 1.5; }
+.descriptionDone {
+  font-size: 12.5px;
+  color: var(--green);
+  line-height: 1.5;
+  font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
+  word-break: break-word;
+}
+.descriptionDoneFile { color: var(--text); font-weight: 600; }
 
 .actionBtn {
   background: var(--primary); color: #fff;
