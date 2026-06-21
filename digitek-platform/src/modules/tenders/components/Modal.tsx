@@ -5,10 +5,12 @@ interface Props {
   open: boolean
   onClose: () => void
   title: string
+  /** טקסט קטן מתחת לכותרת — לדוגמה שם ההליך לקונטקסט. */
+  subtitle?: string
   children: ReactNode
 }
 
-export function Modal({ open, onClose, title, children }: Props) {
+export function Modal({ open, onClose, title, subtitle, children }: Props) {
   useEffect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -22,7 +24,10 @@ export function Modal({ open, onClose, title, children }: Props) {
     <div className={styles.overlay} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className={styles.content}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{title}</h2>
+          <div className={styles.titleWrap}>
+            <h2 className={styles.title}>{title}</h2>
+            {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
+          </div>
           <button className={styles.close} onClick={onClose} aria-label="סגור">✕</button>
         </div>
         {children}

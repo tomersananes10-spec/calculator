@@ -48,6 +48,8 @@ interface Props {
    * ב-requestType כללי כמו 'contract_signature' אבל רוצים להציג "חתימת משפטן".
    */
   customTitle?: string
+  /** שם ההליך — יוצג כ-subtitle לקונטקסט. */
+  tenderTitle?: string
   /** סכום (לבקשת תקציב — יחושב גם budget). */
   estimatedAmount?: number
   onSubmitted: () => void
@@ -121,7 +123,7 @@ function fileIcon(mime: string, name: string): string {
   return '📎'
 }
 
-export function ApprovalRequestModal({ open, onClose, tenderId, requestType, requestedRole, customTitle, estimatedAmount, onSubmitted, resubmitOf, previousDocs, signers }: Props) {
+export function ApprovalRequestModal({ open, onClose, tenderId, requestType, requestedRole, customTitle, tenderTitle, estimatedAmount, onSubmitted, resubmitOf, previousDocs, signers }: Props) {
   const isResubmit = !!resubmitOf
 
   // טעינה ראשונית של ערכי הטופס. כשמדובר ב-resubmit — שולפים מההיסטוריה של הבקשה הקודמת.
@@ -517,7 +519,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title={title}>
+    <Modal open={open} onClose={handleClose} title={title} subtitle={tenderTitle ? `עבור הליך: ${tenderTitle}` : undefined}>
       <StepDots total={3} current={step} label={
         step === 1 ? 'פרטי הבקשה' : step === 2 ? 'נמענים והודעה' : 'סקירה ושליחה'
       } />

@@ -515,6 +515,7 @@ export function TenderDetailPage() {
         open={activeAction === 'create_budget_approval'}
         onClose={closeAction}
         tenderId={tender.id}
+        tenderTitle={tender.title}
         requestType="budget_approval"
         estimatedAmount={tender.estimated_amount}
         signers={signers}
@@ -526,6 +527,7 @@ export function TenderDetailPage() {
         open={activeAction === 'create_committee_outbound_protocol'}
         onClose={closeAction}
         tenderId={tender.id}
+        tenderTitle={tender.title}
         requestType="committee_outbound"
         signers={signers}
         onSubmitted={onActionDone}
@@ -534,6 +536,7 @@ export function TenderDetailPage() {
         open={activeAction === 'create_committee_winner_protocol'}
         onClose={closeAction}
         tenderId={tender.id}
+        tenderTitle={tender.title}
         requestType="committee_winner"
         signers={signers}
         onSubmitted={onActionDone}
@@ -544,6 +547,7 @@ export function TenderDetailPage() {
         open={activeAction === 'request_signature_legal'}
         onClose={closeAction}
         tenderId={tender.id}
+        tenderTitle={tender.title}
         signerRole="legal_professional"
         signers={signers}
         onSubmitted={onActionDone}
@@ -552,6 +556,7 @@ export function TenderDetailPage() {
         open={activeAction === 'request_signature_treasurer'}
         onClose={closeAction}
         tenderId={tender.id}
+        tenderTitle={tender.title}
         signerRole="treasurer"
         signers={signers}
         onSubmitted={onActionDone}
@@ -560,6 +565,7 @@ export function TenderDetailPage() {
         open={activeAction === 'request_signature_vp'}
         onClose={closeAction}
         tenderId={tender.id}
+        tenderTitle={tender.title}
         signerRole="signatory"
         signers={signers}
         onSubmitted={onActionDone}
@@ -654,6 +660,7 @@ export function TenderDetailPage() {
         open={!!resubmitRequest}
         onClose={() => setResubmitRequest(null)}
         tenderId={tender.id}
+        tenderTitle={tender.title}
         requestType={(resubmitRequest?.request_type ?? 'budget_approval') as ApprovalRequestType}
         estimatedAmount={tender.estimated_amount}
         resubmitOf={resubmitRequest ?? undefined}

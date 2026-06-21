@@ -5,6 +5,7 @@ interface Props {
   open: boolean
   onClose: () => void
   tenderId: string
+  tenderTitle?: string
   /** התפקיד המבוקש לחתימה */
   signerRole: PersonaRole
   signers?: TenderSigner[]
@@ -25,7 +26,7 @@ const ROLE_LABELS: Partial<Record<PersonaRole, string>> = {
  *
  * משתמש בכל מנגנון הפינגפונג הקיים: גרסאות, החזרה לתיקונים, החלטה inline.
  */
-export function SignatureRequestModal({ open, onClose, tenderId, signerRole, signers, onSubmitted }: Props) {
+export function SignatureRequestModal({ open, onClose, tenderId, tenderTitle, signerRole, signers, onSubmitted }: Props) {
   const roleLabel = ROLE_LABELS[signerRole] ?? signerRole
 
   return (
@@ -33,6 +34,7 @@ export function SignatureRequestModal({ open, onClose, tenderId, signerRole, sig
       open={open}
       onClose={onClose}
       tenderId={tenderId}
+      tenderTitle={tenderTitle}
       requestType="contract_signature"
       requestedRole={signerRole}
       customTitle={`בקשת חתימה — ${roleLabel}`}
