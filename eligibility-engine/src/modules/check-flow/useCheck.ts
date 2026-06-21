@@ -1,5 +1,5 @@
 import { useReducer, useRef, useState } from 'react'
-import type { CheckWizardState, CheckResult, HumanDecision, CvSource } from '../engine/types'
+import type { CheckWizardState, CheckResult, HumanDecision, CvSource, Requirement, RoleTemplate } from '../engine/types'
 import { runEligibilityCheck, runEligibilityCheckWithAI } from '../engine/engine'
 import { ROLE_TEMPLATES } from '../../data/roleTemplates'
 import { useCheckHistory } from '../../hooks/useCheckHistory'
@@ -15,6 +15,7 @@ type Action =
   | { type: 'FILE_PARSE_ERROR'; payload: string }
   | { type: 'CLEAR_FILE' }
   | { type: 'TOGGLE_AI' }
+  | { type: 'UPDATE_REQUIREMENT'; payload: Requirement }
   | { type: 'RUN_CHECK' }
   | { type: 'CHECK_COMPLETE'; payload: CheckResult }
   | { type: 'CHECK_ERROR'; payload: string }
@@ -35,6 +36,7 @@ const initialState: CheckWizardState = {
   isParsing: false,
   useAI: false,
   checkResult: null,
+  requirementOverrides: {},
   decisions: {},
   decisionNotes: '',
   isRunning: false,
@@ -50,7 +52,7 @@ function reducer(state: CheckWizardState, action: Action): CheckWizardState {
     case 'SET_ROLE':
       return { ...state, roleTemplateId: action.payload }
     case 'SET_CV_TEXT':
-      return { ...state, cvText: action.payload, cvSource: 'text', cvFileName: null, cvPageCount: null }
+      return { ...state, cvText: action.payload, cvSource: 'text', cvFileName: null, cvPageCount: null, error: null }
     case 'FILE_PARSE_START':
       return { ...state, isParsing: true, error: null, cvFileName: action.payload }
     case 'FILE_PARSE_COMPLETE':
@@ -65,9 +67,17 @@ function reducer(state: CheckWizardState, action: Action): CheckWizardState {
     case 'FILE_PARSE_ERROR':
       return { ...state, isParsing: false, error: action.payload, cvFileName: null }
     case 'CLEAR_FILE':
-      return { ...state, cvText: '', cvSource: 'text', cvFileName: null, cvPageCount: null }
+      return { ...state, cvText: '', cvSource: 'text', cvFileName: null, cvPageCount: null, error: null }
     case 'TOGGLE_AI':
       return { ...state, useAI: !state.useAI }
+    case 'UPDATE_REQUIREMENT':
+      return {
+        ...state,
+        requirementOverrides: {
+          ...state.requirementOverrides,
+          [action.payload.id]: action.payload,
+        },
+      }
     case 'RUN_CHECK':
       return { ...state, isRunning: true, error: null }
     case 'CHECK_COMPLETE':
@@ -97,9 +107,19 @@ export function useCheck() {
   const { saveCheck, saveDecision } = useCheckHistory()
   const cvFileRef = useRef<File | null>(null)
 
+  function applyOverrides(template: RoleTemplate): RoleTemplate {
+    if (Object.keys(state.requirementOverrides).length === 0) return template
+    return {
+      ...template,
+      requirements: template.requirements.map(req =>
+        state.requirementOverrides[req.id] ?? req
+      ),
+    }
+  }
+
   async function runCheck() {
-    const template = ROLE_TEMPLATES[state.roleTemplateId]
-    if (!template) {
+    const baseTemplate = ROLE_TEMPLATES[state.roleTemplateId]
+    if (!baseTemplate) {
       dispatch({ type: 'CHECK_ERROR', payload: 'לא נבחר תפקיד' })
       return
     }
@@ -107,6 +127,7 @@ export function useCheck() {
       dispatch({ type: 'CHECK_ERROR', payload: 'יש להזין טקסט קורות חיים' })
       return
     }
+    const template = applyOverrides(baseTemplate)
     dispatch({ type: 'RUN_CHECK' })
     try {
       const result = state.useAI
@@ -118,7 +139,7 @@ export function useCheck() {
         candidateName: state.candidateName,
         candidateCompany: state.candidateCompany,
         roleTemplateId: state.roleTemplateId,
-        roleTemplateName: template.name,
+        roleTemplateName: baseTemplate.name,
         cvText: state.cvText,
         checkResult: result,
         cvFile: cvFileRef.current ?? undefined,
@@ -129,8 +150,31 @@ export function useCheck() {
     }
   }
 
+  async function reRunWithOverride(updatedReq: Requirement) {
+    dispatch({ type: 'UPDATE_REQUIREMENT', payload: updatedReq })
+    const baseTemplate = ROLE_TEMPLATES[state.roleTemplateId]
+    if (!baseTemplate || !state.cvText.trim()) return
+    const overrides = { ...state.requirementOverrides, [updatedReq.id]: updatedReq }
+    const template = {
+      ...baseTemplate,
+      requirements: baseTemplate.requirements.map(req => overrides[req.id] ?? req),
+    }
+    dispatch({ type: 'RUN_CHECK' })
+    try {
+      const result = state.useAI
+        ? await runEligibilityCheckWithAI(state.cvText, template)
+        : runEligibilityCheck(state.cvText, template)
+      dispatch({ type: 'CHECK_COMPLETE', payload: result })
+    } catch {
+      dispatch({ type: 'CHECK_ERROR', payload: 'שגיאה בהרצת הבדיקה מחדש' })
+    }
+  }
+
   async function submitDecision() {
-    if (!savedCheckId) return
+    if (!savedCheckId) {
+      alert('לא ניתן לשמור — הבדיקה לא נשמרה ב-DB. ייתכן שנדרשת הזדהות.')
+      return
+    }
     setSaving(true)
     try {
       await saveDecision({
@@ -138,8 +182,9 @@ export function useCheck() {
         decisions: state.decisions,
         notes: state.decisionNotes,
       })
+      alert('ההחלטה נשמרה בהצלחה')
     } catch {
-      // silent for now
+      alert('שגיאה בשמירת ההחלטה')
     }
     setSaving(false)
   }
@@ -191,5 +236,5 @@ export function useCheck() {
     }
   }
 
-  return { state, dispatch, runCheck, exportJson, submitDecision, saving, savedCheckId, handleFile }
+  return { state, dispatch, runCheck, reRunWithOverride, exportJson, submitDecision, saving, savedCheckId, handleFile }
 }
