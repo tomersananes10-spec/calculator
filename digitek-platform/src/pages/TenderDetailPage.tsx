@@ -97,6 +97,11 @@ export function TenderDetailPage() {
   useEffect(() => { void loadMeetings() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [tender?.id])
 
   function handleAction(action: ActionId) {
+    // תזמון ועדה משתמש ב-modal הגנרי הקיים, לא ב-activeAction.
+    if (action === 'schedule_committee_outbound' || action === 'schedule_committee_winner') {
+      setCommitteeModalOpen(true)
+      return
+    }
     setActiveAction(action)
   }
   function closeAction() { setActiveAction(null) }

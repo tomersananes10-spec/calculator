@@ -32,24 +32,32 @@ interface Props {
 }
 
 const ACTION_BUTTON_LABEL: Record<ActionId, string> = {
+  // T0
+  upload_brief: 'העלה בריף',
+  upload_initial_protocol: 'העלה פרוטוקול ראשוני',
+  // T1
   create_budget_approval: 'בקש אישור תקציבי',
-  set_tender_number: 'הזן מספר תיחור',
-  create_olma_approval: 'בקש אישור מינהל הרכש',
+  // T2 + T6 — ועדה
+  schedule_committee_outbound: 'קבע דיון ועדה',
   create_committee_outbound_protocol: 'הכן פרוטוקול ועדה',
-  create_professional_review: 'בקש בדיקת גורם מקצועי',
-  create_committee_winner_protocol: 'הכן פרוטוקול זכיה',
-  distribute_to_vendors: 'הפץ לספקים',
-  register_proposal: 'רשום הצעה',
-  select_winner: 'בחר זוכה',
+  schedule_committee_winner: 'קבע דיון ועדת זכייה',
+  create_committee_winner_protocol: 'הכן פרוטוקול זכייה',
+  // T3 + T7 — חתימות
+  request_signature_legal: 'בקש חתימת משפטן',
+  request_signature_treasurer: 'בקש חתימת חשב',
+  request_signature_vp: 'בקש חתימת סמנכ"ל',
+  // T4
+  minhal_rechesh_winner_received: 'התקבל ספק זוכה',
+  // T5
+  upload_winner_protocol: 'העלה פרוטוקול זכייה',
+  // T8
   draft_contract: 'צור חוזה',
   verify_guarantee: 'אמת ערבות',
   verify_insurance: 'אמת ביטוח',
   sign_contract_internal: 'חתום פנימית',
   create_purchase_order: 'הקם PO',
   create_milestone: 'הגדר אבן דרך',
-  approve_milestone: 'אשר אבן דרך',
-  approve_invoice: 'אשר חשבונית',
-  evaluate_vendor: 'הערך ספק',
+  // generic
   advance_stage: 'המשך לשלב הבא',
 }
 
