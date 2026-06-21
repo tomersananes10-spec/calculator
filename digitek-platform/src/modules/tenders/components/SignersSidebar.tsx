@@ -6,7 +6,7 @@ import {
   activeByRole,
   historyByRole,
 } from '../lib/signers'
-import { getStageIndex } from '../data/stagesBaseline'
+import { getStageIndex, getStage } from '../data/stagesBaseline'
 import type { Tender, TenderSigner, TenderStage } from '../types'
 import styles from './SignersSidebar.module.css'
 
@@ -34,18 +34,17 @@ function relativeDate(iso: string): string {
 function isRoleNeededBefore(
   usedIn: string[],
   currentStage: TenderStage,
-): { needed: boolean; nextStageCode?: string } {
+): { needed: boolean; nextStageLabel?: string } {
   const currentIdx = getStageIndex(currentStage)
   if (currentIdx < 0) return { needed: false }
 
-  // הופך 'T1' ל-'T1_budget_approval' לחיפוש ב-STAGE_ORDER
   for (const code of usedIn) {
-    // 'T1' → מצא שלב שמתחיל ב-'T1_'
     const stageCode = SIGNER_ROLE_USED_IN_TO_STAGE_PREFIX[code]
     if (!stageCode) continue
     const stageIdx = getStageIndex(stageCode)
     if (stageIdx >= 0 && stageIdx >= currentIdx) {
-      return { needed: true, nextStageCode: code }
+      const stageDef = getStage(stageCode)
+      return { needed: true, nextStageLabel: stageDef?.shortLabel ?? stageCode }
     }
   }
   return { needed: false }
@@ -105,7 +104,7 @@ export function SignersSidebar({ tender, signers, onEdit }: Props) {
                 <div className={styles.nameMissing}>לא הוגדר</div>
                 <div className={styles.roleLabel}>{SIGNER_ROLE_LABELS[role]}</div>
                 {need.needed && (
-                  <div className={styles.warning}>חסר — נדרש לפני {need.nextStageCode}</div>
+                  <div className={styles.warning}>חסר — נדרש לפני שלב {need.nextStageLabel}</div>
                 )}
               </div>
             </div>

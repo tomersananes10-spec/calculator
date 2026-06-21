@@ -20,11 +20,11 @@ export const SIGNER_ROLE_LABELS: Record<SignerRole, string> = {
 }
 
 export const SIGNER_ROLE_DESCRIPTIONS: Record<SignerRole, string> = {
-  budget_officer:    'מאשר את התקציב בשלב 1',
-  legal_professional: 'חותם ראשון בשלבי חתימה (T3 ו-T7)',
-  treasurer:         'חותם שני בשלבי חתימה + נוכח בוועדה',
-  signatory:         'חותם אחרון בשלבי חתימה (T3 ו-T7)',
-  committee_head:    'מזמנת ועדת מכרזים בשלבים T2 ו-T6',
+  budget_officer:    'מאשר תקציב',
+  legal_professional: 'חתימה משפטית',
+  treasurer:         'חותם חשב + חבר ועדה',
+  signatory:         'חתימה סופית',
+  committee_head:    'מזמנת ועדות',
 }
 
 /** השלבים בהם תפקיד זה משמש (לתצוגת "חסר — נדרש לפני T#"). */
