@@ -210,10 +210,6 @@ export function SignersEditModal({ open, onClose, tenderId, signers, onSubmitted
               className={s.input}
               value={draft.email}
               onChange={(email) => setDraft(role, { email, error: null })}
-              excludeEmails={SIGNER_ROLES
-                .filter(r => r !== role)
-                .map(r => drafts[r].email.trim().toLowerCase())
-                .filter(Boolean)}
             />
             {draft.error && (
               <div style={{ fontSize: 11.5, color: 'var(--red)', marginTop: 4 }}>{draft.error}</div>

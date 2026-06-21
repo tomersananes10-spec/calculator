@@ -30,10 +30,9 @@ export function TenderWizardSignersStep({ drafts, onChange }: Props) {
     onChange({ ...drafts, [role]: { ...drafts[role], ...partial } })
   }
 
-  // המיילים שכבר נבחרו ב-drafts אחרים — מסונן מההצעות
-  const allDraftEmails = SIGNER_ROLES
-    .map(r => drafts[r].email.trim().toLowerCase())
-    .filter(Boolean)
+  // הערה: אנו לא מסננים את ה-autocomplete לפי מיילים שכבר נבחרו בתפקידים
+  // אחרים — אדם אחד יכול לתפוס מספר תפקידים, ולפעמים אותו אדם משמש
+  // כתקציבן וגם משפטן (במיוחד בהליכים קטנים).
 
   return (
     <div className={styles.panel}>
@@ -44,7 +43,6 @@ export function TenderWizardSignersStep({ drafts, onChange }: Props) {
 
       {SIGNER_ROLES.map(role => {
         const draft = drafts[role]
-        const exclude = allDraftEmails.filter(e => e !== draft.email.trim().toLowerCase())
         return (
           <div key={role} className={styles.roleCard}>
             <div className={styles.roleInfo}>
@@ -62,7 +60,6 @@ export function TenderWizardSignersStep({ drafts, onChange }: Props) {
                 className={styles.input}
                 value={draft.email}
                 onChange={(email) => setDraft(role, { email })}
-                excludeEmails={exclude}
               />
             </div>
           </div>
