@@ -91,8 +91,8 @@ const REQUEST_TYPE_ROLE_HINT: Partial<Record<ApprovalRequestType, string>> = {
   budget_approval: 'תקציבן המערך',
   olma_approval: 'מנהל הרכש',
   professional_review: 'גורם מקצועי במינהל הרכש',
-  committee_outbound: 'חברי ועדת מכרזים',
-  committee_winner: 'חברי ועדת מכרזים',
+  committee_outbound: 'מנהלת ועדת מכרזים',
+  committee_winner: 'מנהלת ועדת מכרזים',
   contract_signature: 'מורשה חתימה',
 }
 

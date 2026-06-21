@@ -39,9 +39,9 @@ const ACTION_BUTTON_LABEL: Record<ActionId, string> = {
   create_budget_approval: 'בקש אישור תקציבי',
   // T2 + T6 — ועדה
   schedule_committee_outbound: 'קבע דיון ועדה',
-  create_committee_outbound_protocol: 'הכן פרוטוקול ועדה',
+  create_committee_outbound_protocol: 'שלח לאישור ועדה',
   schedule_committee_winner: 'קבע דיון ועדת זכייה',
-  create_committee_winner_protocol: 'הכן פרוטוקול זכייה',
+  create_committee_winner_protocol: 'שלח לאישור ועדת זכייה',
   // T3 + T7 — חתימות
   request_signature_legal: 'בקש חתימת משפטן',
   request_signature_treasurer: 'בקש חתימת חשב',

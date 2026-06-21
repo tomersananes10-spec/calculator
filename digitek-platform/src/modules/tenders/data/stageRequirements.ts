@@ -159,8 +159,9 @@ const REQ_COMMITTEE_OUTBOUND_SCHEDULED: StageRequirement = {
 const REQ_COMMITTEE_OUTBOUND_APPROVED: StageRequirement = {
   id: 'committee_outbound_approved',
   label: 'אישור ועדה — יציאה לתיחור',
-  description: 'פרוטוקול חתום של ועדת מכרזים. תומך בסבבי תיקונים עד אישור סופי.',
-  getStatus: fieldBasedStatus(d => hasApprovedProtocol(d, 'outbound_request')),
+  description: 'בקשה נשלחת למנהלת הוועדה. תומך בסבבי תיקונים עד אישור סופי.',
+  approvalRequestType: 'committee_outbound',
+  getStatus: approvalBasedStatus('committee_outbound', d => hasApprovedProtocol(d, 'outbound_request')),
   action: 'create_committee_outbound_protocol',
   blocker: true,
 }
@@ -230,8 +231,9 @@ const REQ_COMMITTEE_WINNER_SCHEDULED: StageRequirement = {
 const REQ_COMMITTEE_WINNER_APPROVED: StageRequirement = {
   id: 'committee_winner_approved',
   label: 'אישור ועדה — זכייה',
-  description: 'פרוטוקול חתום שמאשר את הזוכה',
-  getStatus: fieldBasedStatus(d => hasApprovedProtocol(d, 'winner_approval')),
+  description: 'בקשה למנהלת הוועדה לאשר את הזוכה. תומך בסבבי תיקונים.',
+  approvalRequestType: 'committee_winner',
+  getStatus: approvalBasedStatus('committee_winner', d => hasApprovedProtocol(d, 'winner_approval')),
   action: 'create_committee_winner_protocol',
   blocker: true,
 }

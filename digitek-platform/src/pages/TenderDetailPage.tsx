@@ -13,7 +13,6 @@ import { StageRequirementsTab } from '../modules/tenders/components/StageRequire
 import { GateValidationModal } from '../modules/tenders/components/GateValidationModal'
 import { ApprovalRequestModal } from '../modules/tenders/components/modals/ApprovalRequestModal'
 import { ApprovalDecisionModal } from '../modules/tenders/components/modals/ApprovalDecisionModal'
-import { CommitteeProtocolModal } from '../modules/tenders/components/modals/CommitteeProtocolModal'
 import { ContractDraftModal, GuaranteeModal, InsuranceModal, SignatoryModal } from '../modules/tenders/components/modals/StageActionsS8'
 import { PurchaseOrderModal, MilestoneModal } from '../modules/tenders/components/modals/StageActionsS9_S12'
 import { CommitteeScheduleModal } from '../modules/tenders/components/modals/CommitteeScheduleModal'
@@ -522,19 +521,21 @@ export function TenderDetailPage() {
         onSubmitted={onActionDone}
       />
 
-      {/* T2 + T6 — ועדה (תזמון + פרוטוקול) */}
-      <CommitteeProtocolModal
+      {/* T2 + T6 — אישור ועדה (פינגפונג עם מנהלת הוועדה) */}
+      <ApprovalRequestModal
         open={activeAction === 'create_committee_outbound_protocol'}
         onClose={closeAction}
         tenderId={tender.id}
-        protocolType="outbound_request"
+        requestType="committee_outbound"
+        signers={signers}
         onSubmitted={onActionDone}
       />
-      <CommitteeProtocolModal
+      <ApprovalRequestModal
         open={activeAction === 'create_committee_winner_protocol'}
         onClose={closeAction}
         tenderId={tender.id}
-        protocolType="winner_approval"
+        requestType="committee_winner"
+        signers={signers}
         onSubmitted={onActionDone}
       />
 
