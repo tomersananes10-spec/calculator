@@ -143,8 +143,15 @@ export function RequirementDetailPanel({ status, detail, onRefresh, onResubmit }
   // האם המשתמש המחובר הוא נמען של הבקשה? אם כן — נציג לו טופס פעולה.
   const isRecipient = !!currentEmail && recipients.some(r => r.toLowerCase() === currentEmail)
 
-  // אם הגרסה האחרונה נמצאת במצב "התבקש שינוי", אסור לאשר עד שהוגשה גרסה חדשה.
-  const latestVersion = attachments
+  // אם הגרסה האחרונה של **הבקשה הנוכחית** נמצאת במצב "התבקש שינוי",
+  // אסור לאשר עד שהוגשה גרסה חדשה. חשוב לסנן את הקבצים לפי request.id
+  // ולא לפי כל השרשרת — אחרת קבצי revision_requested מסבבים קודמים נספרים
+  // כ"latest" וטופס האישור נחבא כשלא צריך.
+  const currentRequestAttachments = attachments.filter(d => {
+    const rid = (d.metadata as Record<string, unknown> | undefined)?.approval_request_id
+    return rid === request.id
+  })
+  const latestVersion = currentRequestAttachments
     .slice()
     .sort((a, b) => (b.version ?? 0) - (a.version ?? 0))[0]
   const latestStatusRaw = (latestVersion?.metadata as Record<string, unknown> | undefined)?.version_status
