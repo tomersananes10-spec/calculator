@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useTender } from '../modules/tenders/hooks/useTender'
+import type { TenderAuditLog } from '../modules/tenders/types'
+import { SIGNER_ROLE_LABELS } from '../modules/tenders/lib/signers'
+import type { SignerRole } from '../modules/tenders/types'
 import { getStage } from '../modules/tenders/data/stagesBaseline'
 import { evaluateStageRequirements, type ActionId } from '../modules/tenders/data/stageRequirements'
 import type { TenderApprovalRequest, ApprovalRequestType } from '../modules/tenders/types'
@@ -48,6 +51,102 @@ function formatDate(s: string | null): string {
 function formatDateTime(s: string): string {
   const d = new Date(s)
   return d.toLocaleString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+// ───────── audit log translation ─────────
+// ממיר entity/action טכניים לתיאור עברי + אייקון + פירוט קצר. הכל נגזר
+// מ-before_state/after_state של ה-RPCs (ראה migrations 010, 028, 029).
+const AUDIT_ICON: Record<string, string> = {
+  tender: '📋',
+  signer: '🖊',
+  approval_request: '✅',
+  committee_meeting: '📅',
+  contract: '📑',
+  guarantee: '🛡',
+  milestone: '🏁',
+}
+
+interface AuditDisplay { icon: string; title: string; detail: string | null }
+
+function formatAuditEntry(a: TenderAuditLog): AuditDisplay {
+  const after = (a.after_state ?? {}) as Record<string, unknown>
+  const before = (a.before_state ?? {}) as Record<string, unknown>
+  const icon = AUDIT_ICON[a.entity_type] ?? '•'
+  const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v : null)
+  const signerRoleLabel = (r: unknown): string => {
+    const role = str(r) as SignerRole | null
+    return role && role in SIGNER_ROLE_LABELS ? SIGNER_ROLE_LABELS[role] : (role ?? 'תפקיד')
+  }
+  const stageLabel = (s: unknown): string => {
+    const code = str(s)
+    if (!code) return '—'
+    const stg = getStage(code)
+    return stg?.shortLabel ?? stg?.label ?? code
+  }
+
+  // tender
+  if (a.entity_type === 'tender' && a.action === 'created') {
+    return { icon, title: 'ההליך נפתח', detail: a.notes ?? null }
+  }
+  if (a.entity_type === 'tender' && a.action === 'stage_change') {
+    return {
+      icon,
+      title: `מעבר שלב: ${stageLabel(before.stage)} → ${stageLabel(after.stage)}`,
+      detail: a.notes,
+    }
+  }
+  // signer
+  if (a.entity_type === 'signer' && a.action === 'assigned') {
+    return {
+      icon,
+      title: `מורשה חתימה הוקצה — ${signerRoleLabel(after.role)}`,
+      detail: str(after.name) ? `${after.name} · ${after.email ?? ''}` : null,
+    }
+  }
+  if (a.entity_type === 'signer' && a.action === 'replaced') {
+    return {
+      icon,
+      title: `החלפת חותם — ${signerRoleLabel(after.role)}`,
+      detail: `${before.old_name ?? '—'} ← ${after.new_name ?? '—'}`,
+    }
+  }
+  if (a.entity_type === 'signer' && a.action === 'updated') {
+    return {
+      icon,
+      title: 'עדכון פרטי חותם',
+      detail: str(after.name) ? `${after.name} · ${after.email ?? ''}` : null,
+    }
+  }
+  if (a.entity_type === 'signer' && a.action === 'removed') {
+    return {
+      icon,
+      title: `הסרת חותם — ${signerRoleLabel(before.role)}`,
+      detail: str(before.name),
+    }
+  }
+  // approval_request
+  if (a.entity_type === 'approval_request' && a.action === 'decided') {
+    const decision = str(after.decision) ?? 'התקבלה'
+    const decisionHe = decision === 'approved' ? 'אושרה' : decision === 'rejected' ? 'נדחתה' : decision === 'returned' ? 'הוחזרה לתיקונים' : decision
+    return { icon, title: `בקשת אישור ${decisionHe}`, detail: str(after.comments) }
+  }
+  // committee_meeting
+  if (a.entity_type === 'committee_meeting' && a.action === 'scheduled') {
+    return { icon, title: 'תוזמן דיון ועדה', detail: a.notes }
+  }
+  // contract / guarantee / milestone (status triggers)
+  if (a.entity_type === 'contract') {
+    return { icon, title: `עדכון חוזה — ${str(after.signature_status) ?? a.action}`, detail: a.notes }
+  }
+  if (a.entity_type === 'guarantee') {
+    return { icon, title: `עדכון ערבות — ${str(after.status) ?? a.action}`, detail: a.notes }
+  }
+  if (a.entity_type === 'milestone') {
+    return { icon, title: `אבן דרך — ${str(after.status) ?? a.action}`, detail: a.notes }
+  }
+
+  // fallback — מציג את הטכני אבל בלי הצרוף המכוער
+  return { icon, title: `${a.action} · ${a.entity_type}`, detail: a.notes }
 }
 
 export function TenderDetailPage() {
@@ -382,15 +481,20 @@ export function TenderDetailPage() {
 
             {tab === 'audit' && (
               auditLog.length === 0 ? <div className={styles.emptyTab}>אין רישומי תיעוד</div> : (
-                <div className={styles.list}>
-                  {auditLog.map(a => (
-                    <div key={a.id} className={styles.listItem}>
-                      <div className={styles.listItemBody}>
-                        <div className={styles.listItemTitle}>{a.action} · {a.entity_type}</div>
-                        <div className={styles.listItemMeta}>{formatDateTime(a.occurred_at)} {a.notes ? `· ${a.notes}` : ''}</div>
+                <div className={styles.auditList}>
+                  {auditLog.map(a => {
+                    const d = formatAuditEntry(a)
+                    return (
+                      <div key={a.id} className={styles.auditItem}>
+                        <div className={styles.auditIcon} aria-hidden="true">{d.icon}</div>
+                        <div className={styles.auditBody}>
+                          <div className={styles.auditTitle}>{d.title}</div>
+                          {d.detail && <div className={styles.auditDetail}>{d.detail}</div>}
+                        </div>
+                        <div className={styles.auditTime}>{formatDateTime(a.occurred_at)}</div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )
             )}

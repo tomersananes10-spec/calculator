@@ -61,24 +61,70 @@
 .kpiSub { font-size: 11px; color: var(--text3); margin-top: 2px; }
 
 .tabs {
-  display: flex; gap: 4px; border-bottom: 2px solid var(--border);
+  display: flex; gap: 6px;
+  padding: 6px; background: var(--bg);
+  border: 1.5px solid var(--border); border-radius: 12px;
   margin-bottom: 20px; overflow-x: auto;
 }
 .tab {
-  padding: 10px 18px; border: none; background: transparent;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 16px; border: 1px solid transparent; background: transparent;
   font-family: inherit; font-size: 13.5px; font-weight: 600;
-  color: var(--text3); cursor: pointer;
-  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  color: var(--text2); cursor: pointer;
+  border-radius: 8px;
   transition: all 0.15s; white-space: nowrap;
 }
-.tab:hover { color: var(--primary); }
-.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
-.tabCount {
-  display: inline-block; background: var(--bg);
-  border-radius: 10px; padding: 1px 7px;
-  font-size: 11px; margin-right: 4px;
+.tab:hover {
+  color: var(--primary); background: var(--surface);
+  border-color: var(--border);
 }
-.tab.active .tabCount { background: var(--primary-bg); color: var(--primary); }
+.tab.active {
+  color: var(--primary); background: var(--surface);
+  border-color: var(--primary);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.tabCount {
+  display: inline-block; background: var(--border);
+  color: var(--text2);
+  border-radius: 10px; padding: 1px 8px;
+  font-size: 11px; font-weight: 700;
+  min-width: 18px; text-align: center;
+}
+.tab.active .tabCount { background: var(--primary); color: #fff; }
+
+/* ───────── audit log items ───────── */
+.auditList { display: flex; flex-direction: column; gap: 8px; }
+.auditItem {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color 0.15s;
+}
+.auditItem:hover { border-color: var(--border2); }
+.auditIcon {
+  flex-shrink: 0;
+  font-size: 18px;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); border-radius: 8px;
+}
+.auditBody { flex: 1; min-width: 0; }
+.auditTitle {
+  font-weight: 600; font-size: 13.5px;
+  color: var(--text); line-height: 1.4;
+}
+.auditDetail {
+  font-size: 12.5px; color: var(--text2);
+  margin-top: 3px; line-height: 1.45;
+  word-break: break-word;
+}
+.auditTime {
+  flex-shrink: 0;
+  font-size: 11.5px; color: var(--text3);
+  white-space: nowrap;
+}
 
 .tabPanel {
   background: var(--surface); border: 1.5px solid var(--border);
