@@ -12,10 +12,17 @@ interface Props {
 }
 
 const PROTOCOL_TYPE_LABELS: Record<ProtocolType, string> = {
-  outbound_request: 'פרוטוקול בקשה ליציאה לתיחור (G3)',
-  winner_approval: 'פרוטוקול אישור זוכה (G8)',
+  outbound_request: 'פרוטוקול ועדה — יציאה לתיחור',
+  winner_approval: 'פרוטוקול ועדה — אישור זוכה',
   exceptions: 'פרוטוקול ועדת חריגים',
   subcommittee_scoring: 'פרוטוקול ניקוד ועדת משנה',
+}
+
+const DECISION_LABELS: Record<ProtocolDecision, string> = {
+  approved: 'אושר',
+  returned_for_correction: 'הוחזר לתיקון',
+  completion_required: 'נדרשת השלמה',
+  rejected: 'נדחה',
 }
 
 export function CommitteeProtocolModal({ open, onClose, tenderId, protocolType, onSubmitted }: Props) {
@@ -68,10 +75,10 @@ export function CommitteeProtocolModal({ open, onClose, tenderId, protocolType, 
               className={s.textarea}
               value={rationale}
               onChange={e => setRationale(e.target.value)}
-              placeholder="רקע לבקשה, הצדקה לסכום, נימוקי הבחירה (חובה לאישור תקין — סיכון #10)"
+              placeholder="רקע לבקשה, הצדקה לסכום, נימוקי הבחירה"
               rows={6}
             />
-            <div className={s.hint}>סיכון #10: חוסר תיעוד בהחלטות ועדה — שדה זה משמש כתיעוד החובה</div>
+            <div className={s.hint}>תיעוד הנימוקים חיוני — זהו ההסבר הפורמלי שמלווה את החלטת הוועדה.</div>
           </div>
           <div className={s.foot}>
             <button className={`${s.btn} ${s.btnSecondary}`} onClick={handleClose}>ביטול</button>
@@ -108,10 +115,10 @@ export function CommitteeProtocolModal({ open, onClose, tenderId, protocolType, 
             </div>
           </div>
           {decision === 'approved' && (
-            <div className={s.info}>החלטה זו תאפשר את המעבר לשלב הבא ב-FSM</div>
+            <div className={s.info}>החלטה זו תאפשר את המעבר לשלב הבא בהליך.</div>
           )}
           {decision !== 'approved' && (
-            <div className={s.warn}>החלטה זו לא תעביר את ההליך לשלב הבא. נדרש פרוטוקול נוסף לאחר תיקון.</div>
+            <div className={s.warn}>החלטה זו לא תעביר את ההליך לשלב הבא. יידרש פרוטוקול נוסף לאחר התיקון.</div>
           )}
           <div className={s.foot}>
             <button className={`${s.btn} ${s.btnSecondary}`} onClick={() => setStep(1)}>חזור</button>
@@ -124,7 +131,7 @@ export function CommitteeProtocolModal({ open, onClose, tenderId, protocolType, 
         <>
           <div className={s.summary}>
             <div><strong>סוג פרוטוקול:</strong> {title}</div>
-            <div><strong>החלטה:</strong> {decision}</div>
+            <div><strong>החלטה:</strong> {DECISION_LABELS[decision]}</div>
             <div><strong>נימוקים:</strong> {rationale || '(ריק)'}</div>
           </div>
           <div className={s.formGroup}>
@@ -134,9 +141,8 @@ export function CommitteeProtocolModal({ open, onClose, tenderId, protocolType, 
                 checked={signedNow}
                 onChange={e => setSignedNow(e.target.checked)}
               />
-              <span style={{ fontSize: 13 }}>סמן כפרוטוקול חתום (signed_at = עכשיו)</span>
+              <span style={{ fontSize: 13 }}>סמן כפרוטוקול חתום במעמד זה</span>
             </label>
-            <div className={s.hint}>חתימה דיגיטלית אמיתית תחובר בפאזה 5 (Comsign/DocuSign)</div>
           </div>
           {error && <div className={s.error}>{error}</div>}
           <div className={s.foot}>
