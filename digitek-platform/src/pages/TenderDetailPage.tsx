@@ -569,9 +569,24 @@ export function TenderDetailPage() {
         resubmitOf={resubmitRequest ?? undefined}
         signers={signers}
         previousDocs={resubmitRequest
-          ? documents
-              .filter(d => (d.metadata as Record<string, unknown> | undefined)?.approval_request_id === resubmitRequest.id)
-              .map(d => ({ id: d.id, title: d.title, file_ref: d.file_ref, file_size_bytes: d.file_size_bytes }))
+          ? (() => {
+              // רק הגרסה האחרונה מוצגת — אם המאשר העלה v2, נשלח אותה.
+              // היסטוריה מלאה זמינה ב-DocumentArchive.
+              const docs = documents
+                .filter(d => (d.metadata as Record<string, unknown> | undefined)?.approval_request_id === resubmitRequest.id)
+                .sort((a, b) => (b.version ?? 0) - (a.version ?? 0))
+              const latest = docs[0]
+              if (!latest) return undefined
+              const meta = (latest.metadata as Record<string, unknown> | undefined) ?? {}
+              return [{
+                id: latest.id,
+                title: latest.title,
+                file_ref: latest.file_ref,
+                file_size_bytes: latest.file_size_bytes,
+                source: typeof meta.source === 'string' ? meta.source : undefined,
+                uploaded_by_email: typeof meta.uploaded_by_email === 'string' ? meta.uploaded_by_email : undefined,
+              }]
+            })()
           : undefined
         }
         onSubmitted={async () => { setResubmitRequest(null); await onActionDone() }}

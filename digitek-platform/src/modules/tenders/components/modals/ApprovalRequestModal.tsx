@@ -61,7 +61,16 @@ interface Props {
    * מסמכים מהבקשה הקודמת (כשמדובר ב-resubmit) — מוצגים כקריאה-בלבד בשלב 1
    * כדי שהמשתמש יראה מה היה צמוד קודם ויוכל להעלות גרסה מעודכנת.
    */
-  previousDocs?: { id: string; title: string; file_ref: string | null; file_size_bytes: number | null }[]
+  previousDocs?: {
+    id: string
+    title: string
+    file_ref: string | null
+    file_size_bytes: number | null
+    /** מקור הקובץ: 'approver_returned' = הקובץ שהמאשר ערך והחזיר; אחרת הוא של כותב הבקשה */
+    source?: string
+    /** מייל המעלה (משמש כ-fallback אם signature_name חסר) */
+    uploaded_by_email?: string
+  }[]
   /**
    * רשימת חתמים מוגדרים להליך — משמשת לפרה-פיל של כתובת המייל לנמען לפי requestType.
    * אופציונלי; אם לא מועבר, הנמענים מתחילים ריקים (התנהגות קיימת).
@@ -538,29 +547,7 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
             </div>
           )}
           {isResubmit && previousDocs && previousDocs.length > 0 && (
-            <div style={{
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 10,
-              padding: '10px 14px',
-              marginBottom: 14,
-              fontSize: 12.5,
-            }}>
-              <div style={{ fontWeight: 700, color: 'var(--text2)', marginBottom: 6 }}>
-                📎 מסמכים מהבקשה הקודמת:
-              </div>
-              <ul style={{ margin: 0, paddingInlineStart: 18, color: 'var(--text2)' }}>
-                {previousDocs.map(d => (
-                  <li key={d.id}>
-                    {d.title}
-                    {d.file_size_bytes ? <span style={{ color: 'var(--text3)' }}> · {formatBytes(d.file_size_bytes)}</span> : null}
-                  </li>
-                ))}
-              </ul>
-              <div style={{ marginTop: 6, fontSize: 11.5, color: 'var(--text3)' }}>
-                הם נשמרים בארכיון. העלה למטה את הגרסה המעודכנת.
-              </div>
-            </div>
+            <PreviousDocCard doc={previousDocs[0]} returnerName={returnerName} />
           )}
           {isResubmit && (
             <>
@@ -858,5 +845,104 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
         </>
       )}
     </Modal>
+  )
+}
+
+// ───────── PreviousDocCard ─────────
+// מציג את הגרסה האחרונה של המסמך מהבקשה הקודמת — בדר"כ הקובץ שהמאשר ערך
+// והחזיר לתיקונים. כפתור הורדה נותן signed URL ל-bucket tender-documents.
+interface PreviousDocCardProps {
+  doc: {
+    id: string
+    title: string
+    file_ref: string | null
+    file_size_bytes: number | null
+    source?: string
+    uploaded_by_email?: string
+  }
+  returnerName: string | null
+}
+
+function PreviousDocCard({ doc, returnerName }: PreviousDocCardProps) {
+  const [downloading, setDownloading] = useState(false)
+  const isApproverFile = doc.source === 'approver_returned'
+
+  // שם המציג: סדר עדיפויות — signature_name של המאשר → אימייל המעלה → "המאשר"
+  const displayName = returnerName ?? doc.uploaded_by_email ?? 'המאשר'
+
+  async function handleDownload() {
+    if (!doc.file_ref) return
+    setDownloading(true)
+    const { data, error } = await supabase.storage
+      .from('tender-documents')
+      .createSignedUrl(doc.file_ref, 3600)
+    setDownloading(false)
+    if (error || !data?.signedUrl) {
+      alert(`כשל בהורדה: ${error?.message ?? 'לא ידוע'}`)
+      return
+    }
+    window.open(data.signedUrl, '_blank', 'noopener')
+  }
+
+  return (
+    <div style={{
+      background: isApproverFile ? 'var(--amber-bg)' : 'var(--bg)',
+      border: `1.5px solid ${isApproverFile ? 'var(--amber)' : 'var(--border)'}`,
+      borderRadius: 10,
+      padding: '12px 14px',
+      marginBottom: 14,
+      fontSize: 12.5,
+    }}>
+      <div style={{ fontWeight: 700, color: isApproverFile ? '#78350f' : 'var(--text2)', marginBottom: 8, fontSize: 13 }}>
+        {isApproverFile
+          ? `📥 הקובץ ש${displayName} ערך והחזיר לתיקונים`
+          : '📎 מסמך מהבקשה הקודמת'}
+      </div>
+
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 8,
+        padding: '8px 12px',
+      }}>
+        <span style={{ fontSize: 16 }}>📄</span>
+        <span style={{ flex: 1, fontWeight: 600, color: 'var(--text)', wordBreak: 'break-word' }}>
+          {doc.title}
+        </span>
+        {doc.file_size_bytes ? (
+          <span style={{ color: 'var(--text3)', fontSize: 11.5 }}>
+            {formatBytes(doc.file_size_bytes)}
+          </span>
+        ) : null}
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={!doc.file_ref || downloading}
+          style={{
+            background: 'var(--primary)',
+            color: '#fff',
+            border: 'none',
+            padding: '6px 14px',
+            borderRadius: 7,
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            opacity: !doc.file_ref || downloading ? 0.5 : 1,
+          }}
+        >
+          {downloading ? 'מוריד…' : '⬇ הורד'}
+        </button>
+      </div>
+
+      {isApproverFile && (
+        <div style={{ marginTop: 8, fontSize: 11.5, color: '#78350f' }}>
+          הורד את הקובץ, תקן לפי ההערות וההסימונים, ולאחר מכן העלה למטה את הגרסה המעודכנת.
+        </div>
+      )}
+    </div>
   )
 }
