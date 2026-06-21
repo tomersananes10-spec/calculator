@@ -8,6 +8,7 @@ import type { SelectionType } from '../modules/tenders/types'
 import styles from './TenderWizardPage.module.css'
 import { TenderWizardSignersStep, emptySignerDrafts, type SignerDrafts } from './TenderWizardSignersStep'
 import { assignSigner, validateSignerInput, SIGNER_ROLES, SIGNER_ROLE_LABELS } from '../modules/tenders/lib/signers'
+import { recordEmailContact } from '../modules/tenders/lib/emailContacts'
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB
 const ACCEPT_DOCS = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg'
@@ -181,6 +182,9 @@ export function TenderWizardPage() {
       const sigRes = await assignSigner(result.id, role, d.name, d.email)
       if (!sigRes.ok) {
         uploadErrors.push(`${SIGNER_ROLE_LABELS[role]}: ${sigRes.error}`)
+      } else {
+        // רישום המייל ל-pool המשותף לטובת autocomplete בעתיד
+        void recordEmailContact(d.email.trim().toLowerCase())
       }
     }
 

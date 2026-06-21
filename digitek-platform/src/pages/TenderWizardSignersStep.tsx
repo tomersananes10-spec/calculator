@@ -3,6 +3,7 @@ import {
   SIGNER_ROLE_LABELS,
   SIGNER_ROLE_DESCRIPTIONS,
 } from '../modules/tenders/lib/signers'
+import { EmailAutocompleteInput } from '../modules/tenders/components/EmailAutocompleteInput'
 import type { SignerRole } from '../modules/tenders/types'
 import styles from './TenderWizardSignersStep.module.css'
 
@@ -29,6 +30,11 @@ export function TenderWizardSignersStep({ drafts, onChange }: Props) {
     onChange({ ...drafts, [role]: { ...drafts[role], ...partial } })
   }
 
+  // המיילים שכבר נבחרו ב-drafts אחרים — מסונן מההצעות
+  const allDraftEmails = SIGNER_ROLES
+    .map(r => drafts[r].email.trim().toLowerCase())
+    .filter(Boolean)
+
   return (
     <div className={styles.panel}>
       <h2 className={styles.panelTitle}>צוות חתימות</h2>
@@ -38,6 +44,7 @@ export function TenderWizardSignersStep({ drafts, onChange }: Props) {
 
       {SIGNER_ROLES.map(role => {
         const draft = drafts[role]
+        const exclude = allDraftEmails.filter(e => e !== draft.email.trim().toLowerCase())
         return (
           <div key={role} className={styles.roleCard}>
             <div className={styles.roleInfo}>
@@ -51,12 +58,11 @@ export function TenderWizardSignersStep({ drafts, onChange }: Props) {
                 value={draft.name}
                 onChange={e => setDraft(role, { name: e.target.value })}
               />
-              <input
+              <EmailAutocompleteInput
                 className={styles.input}
-                placeholder="מייל"
                 value={draft.email}
-                onChange={e => setDraft(role, { email: e.target.value })}
-                style={{ direction: 'ltr', textAlign: 'right' }}
+                onChange={(email) => setDraft(role, { email })}
+                excludeEmails={exclude}
               />
             </div>
           </div>

@@ -11,6 +11,8 @@ import {
   updateSigner,
   removeSigner,
 } from '../../lib/signers'
+import { recordEmailContact } from '../../lib/emailContacts'
+import { EmailAutocompleteInput } from '../EmailAutocompleteInput'
 import type { SignerRole, TenderSigner } from '../../types'
 
 interface Props {
@@ -72,9 +74,11 @@ export function SignersEditModal({ open, onClose, tenderId, signers, onSubmitted
       }
 
       // יש קלט מלא — שלח לפי mode
+      let saved = false
       if (!active) {
         const res = await assignSigner(tenderId, role, draft.name, draft.email)
         if (!res.ok) errors.push(`${SIGNER_ROLE_LABELS[role]}: ${res.error}`)
+        else saved = true
       } else if (draft.mode === 'update') {
         // אם הקלט לא השתנה — אל תשלח (חיסכון ב-RPC)
         if (active.display_name === draft.name.trim() && active.email === draft.email.trim().toLowerCase()) {
@@ -82,9 +86,16 @@ export function SignersEditModal({ open, onClose, tenderId, signers, onSubmitted
         }
         const res = await updateSigner(active.id, draft.name, draft.email)
         if (!res.ok) errors.push(`${SIGNER_ROLE_LABELS[role]}: ${res.error}`)
+        else saved = true
       } else if (draft.mode === 'replace') {
         const res = await replaceSigner(active.id, draft.name, draft.email)
         if (!res.ok) errors.push(`${SIGNER_ROLE_LABELS[role]}: ${res.error}`)
+        else saved = true
+      }
+
+      // רישום המייל ל-pool המשותף לטובת autocomplete בעתיד
+      if (saved) {
+        void recordEmailContact(draft.email.trim().toLowerCase())
       }
     }
 
@@ -195,12 +206,14 @@ export function SignersEditModal({ open, onClose, tenderId, signers, onSubmitted
               onChange={e => setDraft(role, { name: e.target.value, error: null })}
               style={{ marginBottom: 6 }}
             />
-            <input
+            <EmailAutocompleteInput
               className={s.input}
-              placeholder="מייל"
               value={draft.email}
-              onChange={e => setDraft(role, { email: e.target.value, error: null })}
-              style={{ direction: 'ltr', textAlign: 'right' }}
+              onChange={(email) => setDraft(role, { email, error: null })}
+              excludeEmails={SIGNER_ROLES
+                .filter(r => r !== role)
+                .map(r => drafts[r].email.trim().toLowerCase())
+                .filter(Boolean)}
             />
             {draft.error && (
               <div style={{ fontSize: 11.5, color: 'var(--red)', marginTop: 4 }}>{draft.error}</div>
