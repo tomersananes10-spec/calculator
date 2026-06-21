@@ -227,8 +227,22 @@ export function CommitteeScheduleModal({ open, onClose, detail, onScheduled }: P
             <button className={`${s.btn} ${s.btnSecondary}`} onClick={handleClose}>ביטול</button>
             <button
               className={`${s.btn} ${s.btnPrimary}`}
-              disabled={agenda.trim().length < 4}
-              onClick={() => { setError(null); setStep(2) }}
+              onClick={() => {
+                if (!scheduledAt) {
+                  setError('יש לבחור תאריך ושעת דיון')
+                  return
+                }
+                if (new Date(scheduledAt).getTime() <= Date.now()) {
+                  setError('תאריך הדיון חייב להיות בעתיד')
+                  return
+                }
+                if (agenda.trim().length < 4) {
+                  setError('יש לכתוב את אגנדת הדיון (לפחות 4 תווים)')
+                  return
+                }
+                setError(null)
+                setStep(2)
+              }}
             >המשך</button>
           </div>
         </>
