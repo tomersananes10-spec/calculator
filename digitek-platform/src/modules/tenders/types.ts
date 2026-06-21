@@ -480,6 +480,26 @@ export interface TenderApprovalRequest {
   updated_at: string
 }
 
+/**
+ * שורת חתימה פר-חותם נדרש לבקשת אישור. כשבקשה דורשת כמה חותמים (AND),
+ * כל אחד מקבל שורה כזו ומחליט בנפרד. הסטטוס של ה-parent נגזר אגרגטיבית.
+ */
+export interface TenderApprovalSignature {
+  id: string
+  request_id: string
+  signer_id: string | null
+  signer_email: string
+  signer_role: string
+  signer_display_name: string
+  status: 'pending' | 'approved' | 'rejected' | 'returned'
+  decision_comments: string | null
+  signature_name: string | null
+  signature_image_path: string | null
+  attachment_paths: string[] | null
+  decided_at: string | null
+  created_at: string
+}
+
 export interface TenderSlaEvent {
   id: string
   tender_id: string | null

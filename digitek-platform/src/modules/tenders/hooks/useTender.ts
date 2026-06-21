@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase'
 import type {
   Tender,
   TenderApprovalRequest,
+  TenderApprovalSignature,
   TenderAuditLog,
   TenderBudget,
   TenderCommitteeMeeting,
@@ -42,6 +43,7 @@ export interface TenderDetailData {
   vendorEvaluations: TenderVendorEvaluation[]
   signers: TenderSigner[]
   committeeMeetings: TenderCommitteeMeeting[]
+  approvalSignatures: TenderApprovalSignature[]
 }
 
 export interface UseTenderResult extends TenderDetailData {
@@ -69,6 +71,7 @@ const EMPTY: TenderDetailData = {
   vendorEvaluations: [],
   signers: [],
   committeeMeetings: [],
+  approvalSignatures: [],
 }
 
 export function useTender(tenderId: string | undefined): UseTenderResult {
@@ -137,6 +140,12 @@ export function useTender(tenderId: string | undefined): UseTenderResult {
           supabase.from('tender_invoices').select('*').in('milestone_id', ((milestonesRes.data ?? []) as TenderMilestone[]).map(m => m.id).concat(['00000000-0000-0000-0000-000000000000'])),
         ])
 
+    // Fetch approval signatures based on the approval requests we just loaded
+    const approvalIds = ((approvalsRes.data ?? []) as TenderApprovalRequest[]).map(a => a.id)
+    const signaturesRes = approvalIds.length === 0
+      ? { data: [], error: null }
+      : await supabase.from('tender_approval_signatures').select('*').in('request_id', approvalIds).order('created_at', { ascending: true })
+
     setData({
       tender: (tenderRes.data as Tender | null) ?? null,
       budget: (budgetRes.data as TenderBudget | null) ?? null,
@@ -156,6 +165,7 @@ export function useTender(tenderId: string | undefined): UseTenderResult {
       vendorEvaluations: (evalsRes.data ?? []) as TenderVendorEvaluation[],
       signers: (signersRes.data as TenderSigner[] | null) ?? [],
       committeeMeetings: (meetingsRes.data as TenderCommitteeMeeting[] | null) ?? [],
+      approvalSignatures: (signaturesRes.data as TenderApprovalSignature[] | null) ?? [],
     })
     setLoading(false)
   }, [tenderId])
