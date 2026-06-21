@@ -150,9 +150,8 @@ const REQ_COMMITTEE_OUTBOUND_SCHEDULED: StageRequirement = {
   id: 'committee_outbound_scheduled',
   label: 'דיון ועדת מכרזים נקבע',
   description: 'מנהלת הוועדה מזמנת דיון עם הנוכחים הקבועים',
-  getStatus: fieldBasedStatus(d =>
-    d.protocols.some(p => p.protocol_type === 'outbound_request')
-  ),
+  // "נקבע" = יש לפחות דיון אחד בטבלת ועדות. דיון נוסף לסבב פינגפונג עדיין יעבור את הבדיקה.
+  getStatus: fieldBasedStatus(d => d.committeeMeetings.length >= 1),
   action: 'schedule_committee_outbound',
   blocker: false,
 }
@@ -222,9 +221,8 @@ const REQ_COMMITTEE_WINNER_SCHEDULED: StageRequirement = {
   id: 'committee_winner_scheduled',
   label: 'דיון ועדה לפרוטוקול זכייה',
   description: 'אותו פורום של ועדת היציאה',
-  getStatus: fieldBasedStatus(d =>
-    d.protocols.some(p => p.protocol_type === 'winner_approval')
-  ),
+  // הוועדה של היציאה כבר תוזמנה ב-T2 (לפחות אחת). הזכייה דורשת דיון נוסף — סה"כ >= 2.
+  getStatus: fieldBasedStatus(d => d.committeeMeetings.length >= 2),
   action: 'schedule_committee_winner',
   blocker: false,
 }

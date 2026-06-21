@@ -26,16 +26,6 @@ import { SignersSidebar } from '../modules/tenders/components/SignersSidebar'
 import archiveStyles from '../modules/tenders/components/DocumentArchive.module.css'
 import styles from './TenderDetailPage.module.css'
 
-interface CommitteeMeetingRow {
-  id: string
-  committee_id: string
-  scheduled_at: string
-  duration_minutes: number
-  agenda: unknown
-  status: string
-  attendees: unknown
-}
-
 type Tab = 'requirements' | 'overview' | 'documents' | 'committees' | 'milestones' | 'audit'
 
 function formatAmount(n: number): string {
@@ -181,19 +171,9 @@ export function TenderDetailPage() {
     return () => { cancelled = true }
   }, [tender?.owner_id])
 
-  // Committee meetings — נטענים בנפרד (useTender לא טוען אותם כי הם רב-tender)
-  const [committeeMeetings, setCommitteeMeetings] = useState<CommitteeMeetingRow[]>([])
+  // Committee meetings נטענים מתוך detail (useTender) — מקור אחד.
+  const committeeMeetings = detail.committeeMeetings
   const [committeeModalOpen, setCommitteeModalOpen] = useState(false)
-  const loadMeetings = async () => {
-    if (!tender?.id) return
-    const { data } = await supabase
-      .from('tender_committee_meetings')
-      .select('id, committee_id, scheduled_at, duration_minutes, agenda, status, attendees')
-      .contains('tender_refs', [tender.id])
-      .order('scheduled_at', { ascending: false })
-    setCommitteeMeetings((data as CommitteeMeetingRow[] | null) ?? [])
-  }
-  useEffect(() => { void loadMeetings() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [tender?.id])
 
   function handleAction(action: ActionId) {
     // תזמון ועדה משתמש ב-modal הגנרי הקיים, לא ב-activeAction.
@@ -664,7 +644,7 @@ export function TenderDetailPage() {
         open={committeeModalOpen}
         onClose={() => setCommitteeModalOpen(false)}
         detail={detail}
-        onScheduled={async () => { await loadMeetings(); await refresh() }}
+        onScheduled={async () => { await refresh() }}
       />
 
       {/* Resubmit modal — נפתח כשבעל ההליך לוחץ "שלח שוב לאחר תיקון" על בקשה שהוחזרה.

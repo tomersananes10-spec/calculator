@@ -7,6 +7,7 @@ import type {
   TenderApprovalRequest,
   TenderAuditLog,
   TenderBudget,
+  TenderCommitteeMeeting,
   TenderContract,
   TenderDocument,
   TenderGuarantee,
@@ -40,6 +41,7 @@ export interface TenderDetailData {
   invoices: TenderInvoice[]
   vendorEvaluations: TenderVendorEvaluation[]
   signers: TenderSigner[]
+  committeeMeetings: TenderCommitteeMeeting[]
 }
 
 export interface UseTenderResult extends TenderDetailData {
@@ -66,6 +68,7 @@ const EMPTY: TenderDetailData = {
   invoices: [],
   vendorEvaluations: [],
   signers: [],
+  committeeMeetings: [],
 }
 
 export function useTender(tenderId: string | undefined): UseTenderResult {
@@ -97,6 +100,7 @@ export function useTender(tenderId: string | undefined): UseTenderResult {
       poRes,
       evalsRes,
       signersRes,
+      meetingsRes,
     ] = await Promise.all([
       supabase.from('tenders').select('*').eq('id', tenderId).maybeSingle(),
       supabase.from('tender_budgets').select('*').eq('tender_id', tenderId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
@@ -112,9 +116,10 @@ export function useTender(tenderId: string | undefined): UseTenderResult {
       supabase.from('tender_purchase_orders').select('*').eq('tender_id', tenderId).order('created_at', { ascending: false }),
       supabase.from('tender_vendor_evaluations').select('*').eq('tender_id', tenderId),
       supabase.from('tender_signers').select('*').eq('tender_id', tenderId).order('added_at', { ascending: false }),
+      supabase.from('tender_committee_meetings').select('*').contains('tender_refs', [tenderId]).order('scheduled_at', { ascending: false }),
     ])
 
-    const firstError = [tenderRes, budgetRes, docsRes, proposalsRes, contractsRes, milestonesRes, protocolsRes, personasRes, auditRes, approvalsRes, vendorsRes, poRes, evalsRes, signersRes]
+    const firstError = [tenderRes, budgetRes, docsRes, proposalsRes, contractsRes, milestonesRes, protocolsRes, personasRes, auditRes, approvalsRes, vendorsRes, poRes, evalsRes, signersRes, meetingsRes]
       .find(r => r.error)?.error
     if (firstError) {
       setError(firstError.message)
@@ -150,6 +155,7 @@ export function useTender(tenderId: string | undefined): UseTenderResult {
       invoices: (invoicesRes.data ?? []) as TenderInvoice[],
       vendorEvaluations: (evalsRes.data ?? []) as TenderVendorEvaluation[],
       signers: (signersRes.data as TenderSigner[] | null) ?? [],
+      committeeMeetings: (meetingsRes.data as TenderCommitteeMeeting[] | null) ?? [],
     })
     setLoading(false)
   }, [tenderId])
