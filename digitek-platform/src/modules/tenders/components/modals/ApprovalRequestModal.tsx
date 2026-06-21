@@ -82,8 +82,8 @@ const REQUEST_TYPE_LABELS: Partial<Record<ApprovalRequestType, string>> = {
   budget_approval: 'בקשת אישור תקציבי',
   olma_approval: 'בקשת אישור מינהל הרכש',
   professional_review: 'בקשת בדיקת גורם מקצועי',
-  committee_outbound: 'בקשת ועדה ליציאה לתיחור',
-  committee_winner: 'בקשת ועדה לאישור זוכה',
+  committee_outbound: 'בקשת פרוטוקול ועדה — יציאה לתיחור',
+  committee_winner: 'בקשת פרוטוקול ועדה — אישור זוכה',
   contract_signature: 'בקשת חתימה',
 }
 
