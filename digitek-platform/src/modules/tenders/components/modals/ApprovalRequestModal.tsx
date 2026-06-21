@@ -5,7 +5,8 @@ import { computeDueAt } from '../../slaEngine'
 import { enqueueNotification } from '../../lib/notifications'
 import { searchEmailContacts, recordEmailContact, type EmailContact } from '../../lib/emailContacts'
 import { safeFileName } from '../../lib/safeFileName'
-import { activeByRole } from '../../lib/signers'
+import { activeByRole, SIGNER_ROLE_LABELS } from '../../lib/signers'
+import type { SignerRole } from '../../types'
 import type { ApprovalRequestType, TenderApprovalRequest, TenderSigner, SignerRole } from '../../types'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -161,6 +162,22 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
     return estimatedAmount ?? 0
   }
 
+  // רשימת מורשי החתימה הפעילים של ההליך, ממוינים לפי תפקיד.
+  const activeSigners = (signers ?? []).filter(s => !s.replaced_at)
+  // ברירת מחדל: אם requestType ממופה לתפקיד signer מוגדר, נסמן אותו אוטומטית.
+  const initialAuthorizedIds = (): string[] => {
+    if (resubmitOf) {
+      const prev = (resubmitOf.metadata as Record<string, unknown> | null)?.authorized_signer_ids
+      if (Array.isArray(prev)) return prev.filter((x): x is string => typeof x === 'string')
+    }
+    const targetRole = resolveSignerRole(requestType, requestedRole)
+    if (targetRole) {
+      const active = activeByRole(activeSigners, targetRole)
+      if (active) return [active.id]
+    }
+    return []
+  }
+
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [amount, setAmount] = useState<number>(initialAmount())
   const [resubmitResponse, setResubmitResponse] = useState('')
@@ -173,6 +190,9 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // מורשי חתימה שצריכים לחתום (AND) — חובה לפחות אחד.
+  const [authorizedSignerIds, setAuthorizedSignerIds] = useState<string[]>(initialAuthorizedIds())
+  const [showSignerPicker, setShowSignerPicker] = useState(false)
 
   // Autocomplete state
   const [suggestions, setSuggestions] = useState<EmailContact[]>([])
@@ -185,6 +205,10 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
   const roleHint = REQUEST_TYPE_ROLE_HINT[requestType] ?? 'בעל תפקיד מתאים'
   const slaDueAt = computeDueAt(requestType)
   const isBudgetReq = requestType === 'budget_approval'
+
+  // נגזרות לפיקר מורשי החתימה
+  const selectedSignersForUI = activeSigners.filter(s => authorizedSignerIds.includes(s.id))
+  const availableSignersForUI = activeSigners.filter(s => !authorizedSignerIds.includes(s.id))
 
   // הערות המאשר שהחזיר את הבקשה הקודמת לתיקונים — מוצגות כבאנר בראש שלב 1.
   const returnerComments = resubmitOf?.comments?.trim() ?? null
@@ -209,6 +233,8 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
     setSuggestions([])
     setShowSuggestions(false)
     setHighlightedIdx(-1)
+    setAuthorizedSignerIds(initialAuthorizedIds())
+    setShowSignerPicker(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, resubmitOf?.id])
 
@@ -225,6 +251,8 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
     setSuggestions([])
     setShowSuggestions(false)
     setHighlightedIdx(-1)
+    setAuthorizedSignerIds([])
+    setShowSignerPicker(false)
   }
 
   // טוען הצעות autocomplete בעת הקלדה/פוקוס (debounced).
@@ -372,10 +400,19 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
     // ב-resubmit ה"תגובה לתיקונים" משמשת גם כגוף המייל (אין שדה תיאור נפרד).
     const effectiveBody = isResubmit ? resubmitResponse.trim() : body.trim()
 
+    // מורשי החתימה שנבחרו (AND). אם אף אחד — שגיאה.
+    const selectedSigners = activeSigners.filter(s => authorizedSignerIds.includes(s.id))
+    if (selectedSigners.length === 0) {
+      setSubmitting(false)
+      setError('יש לבחור לפחות מורשה חתימה אחד לבקשה')
+      return
+    }
+
     const metadata: Record<string, unknown> = {}
     if (emails.length) metadata.recipients = emails
     if (subject.trim()) metadata.subject = subject.trim()
     if (effectiveBody) metadata.body = effectiveBody
+    metadata.authorized_signer_ids = authorizedSignerIds
     if (isResubmit && resubmitOf) {
       metadata.parent_request_id = resubmitOf.id
       const prevIter = (resubmitOf.metadata as Record<string, unknown> | null)?.resubmit_iteration
@@ -405,6 +442,29 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
       return
     }
 
+    // 1.5 רישום שורות חתימה — שורה לכל מורשה חתימה (AND).
+    const signatureRows = selectedSigners.map(sg => ({
+      request_id: approvalRow.id,
+      signer_id: sg.id,
+      signer_email: sg.email.toLowerCase(),
+      signer_role: sg.role,
+      signer_display_name: sg.display_name,
+      status: 'pending' as const,
+    }))
+    const { error: sigErr } = await supabase
+      .from('tender_approval_signatures')
+      .insert(signatureRows)
+    if (sigErr) {
+      setSubmitting(false)
+      setError(`בקשה נוצרה אבל רישום מורשי החתימה נכשל: ${sigErr.message}`)
+      return
+    }
+
+    // איחוד אוטומטי: כל מורשה חתימה חייב לקבל מייל. נוסיף את המיילים שלהם
+    // לרשימת הנמענים (אם לא כבר שם) כדי שה-dispatcher ישלח אליהם.
+    const signerEmails = selectedSigners.map(s => s.email.toLowerCase())
+    const allRecipientEmails = Array.from(new Set([...emails.map(e => e.toLowerCase()), ...signerEmails]))
+
     // 2. אם בקשת תקציב — צור גם budget pending
     if (isBudgetReq && amount > 0) {
       const { error: budgetErr } = await supabase
@@ -422,10 +482,10 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
       }
     }
 
-    // 3. הטבעת approval token לכל נמען — נצרך ע"י ה-dispatcher כדי לבנות לינק ייעודי במייל.
+    // 3. הטבעת approval token לכל נמען — כולל מורשי חתימה (חייבים לחתום) ו-CC.
     //    מפה: email → token. מי שאין לו token לא יקבל לינק עם t=... (אבל עדיין יקבל מייל).
     const tokensByEmail: Record<string, string> = {}
-    for (const recipientEmail of emails) {
+    for (const recipientEmail of allRecipientEmails) {
       const { data: token, error: tokenErr } = await supabase.rpc('mint_approval_token', {
         p_request_id: approvalRow.id,
         p_recipient_email: recipientEmail,
@@ -483,12 +543,12 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
     }
 
     // 5. שמירת המיילים למאגר Autofill (non-blocking — לא חוסם את שליחת ההתראות)
-    for (const recipientEmail of emails) {
+    for (const recipientEmail of allRecipientEmails) {
       void recordEmailContact(recipientEmail)
     }
 
-    // 6. הזנת תור התראות — מייל לכל נמען עם token ייעודי וקבצי attachments ב-payload
-    for (const recipientEmail of emails) {
+    // 6. הזנת תור התראות — מייל לכל נמען (חותמים + CCs) עם token ייעודי וקבצי attachments ב-payload
+    for (const recipientEmail of allRecipientEmails) {
       const enqRes = await enqueueNotification({
         recipientEmail,
         subject: effectiveSubject,
@@ -691,16 +751,134 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
       {step === 2 && (
         <>
           <div className={s.formGroup}>
-            <label className={s.label}>תפקיד נמען</label>
-            <input className={s.input} value={roleHint} disabled />
+            <label className={`${s.label} ${authorizedSignerIds.length === 0 ? s.required : ''}`}>
+              מי מורשי החתימה בתהליך?
+            </label>
+            {selectedSignersForUI.length === 0 ? (
+              <div style={{
+                padding: '12px 14px', background: 'var(--amber-bg)', border: '1px dashed var(--amber)',
+                borderRadius: 10, fontSize: 13, color: '#78350f',
+              }}>
+                ⚠ עדיין לא נבחרו מורשי חתימה. לחץ "+ הוסף" למטה כדי לבחור מתוך צוות החתימות של ההליך.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {selectedSignersForUI.map(sg => (
+                  <div key={sg.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 14px',
+                    background: 'var(--surface)',
+                    border: '1.5px solid var(--primary)',
+                    borderRadius: 10,
+                  }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: '50%',
+                      background: 'var(--primary-bg)', color: 'var(--primary-dark)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontWeight: 700, fontSize: 14, flexShrink: 0,
+                    }}>{sg.display_name.charAt(0)}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--text)' }}>
+                        {SIGNER_ROLE_LABELS[sg.role as SignerRole] ?? sg.role} · {sg.display_name}
+                      </div>
+                      <div style={{ fontSize: 11.5, color: 'var(--text3)', direction: 'ltr', textAlign: 'right' }}>
+                        {sg.email}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAuthorizedSignerIds(ids => ids.filter(id => id !== sg.id))}
+                      style={{
+                        border: 'none', background: 'transparent', cursor: 'pointer',
+                        color: 'var(--text3)', fontSize: 18, padding: '0 4px',
+                      }}
+                      aria-label={`הסר ${sg.display_name}`}
+                    >×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {availableSignersForUI.length > 0 && !showSignerPicker && (
+              <button
+                type="button"
+                onClick={() => setShowSignerPicker(true)}
+                style={{
+                  marginTop: 8, padding: '8px 14px',
+                  background: 'var(--primary-bg)', color: 'var(--primary-dark)',
+                  border: '1px dashed var(--primary)', borderRadius: 8,
+                  fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                }}
+              >+ הוסף מורשה חתימה</button>
+            )}
+
+            {showSignerPicker && availableSignersForUI.length > 0 && (
+              <div style={{
+                marginTop: 8, padding: 8,
+                background: 'var(--bg)', border: '1.5px solid var(--border)',
+                borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 4,
+              }}>
+                <div style={{ fontSize: 11.5, color: 'var(--text3)', padding: '4px 8px', fontWeight: 600 }}>
+                  בחר מתוך צוות החתימות של ההליך:
+                </div>
+                {availableSignersForUI.map(sg => (
+                  <button
+                    type="button"
+                    key={sg.id}
+                    onClick={() => {
+                      setAuthorizedSignerIds(ids => [...ids, sg.id])
+                      // אם נשאר חותם נוסף לבחור — להשאיר את הפיקר פתוח. אחרת לסגור.
+                      if (availableSignersForUI.length === 1) setShowSignerPicker(false)
+                    }}
+                    style={{
+                      textAlign: 'right',
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '8px 10px',
+                      background: 'var(--surface)', border: '1px solid transparent',
+                      borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent' }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0, textAlign: 'right' }}>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>
+                        {SIGNER_ROLE_LABELS[sg.role as SignerRole] ?? sg.role} · {sg.display_name}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text3)', direction: 'ltr', textAlign: 'right' }}>
+                        {sg.email}
+                      </div>
+                    </div>
+                    <span style={{ color: 'var(--primary)', fontSize: 16, fontWeight: 700 }}>+</span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setShowSignerPicker(false)}
+                  style={{
+                    marginTop: 4, padding: '4px 8px',
+                    background: 'transparent', border: 'none',
+                    color: 'var(--text3)', fontSize: 11.5, cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >סגור</button>
+              </div>
+            )}
+
+            {activeSigners.length === 0 && (
+              <div style={{ marginTop: 8, padding: '10px 12px', background: 'var(--red-bg)', borderRadius: 8, fontSize: 12, color: 'var(--red)' }}>
+                לא הוגדרו מורשי חתימה להליך. סגור את הבקשה והגדר תחילה ב"צוות חתימות" (Sidebar).
+              </div>
+            )}
+
             <div className={s.hint}>
-              הבקשה תופיע ב"תור האישורים" של כל בעל תפקיד זה במשרד.
+              💡 הבקשה תאושר רק אחרי שכל מורשי החתימה שנבחרו יאשרו (AND).
+              אחד דוחה → הבקשה נדחית. אחד מחזיר לתיקונים → חוזרת אליך.
             </div>
           </div>
 
           <div className={s.formGroup}>
-            <label className={`${s.label} ${emails.length === 0 ? s.required : ''}`}>
-              כתובות מייל לנמענים
+            <label className={`${s.label}`}>
+              נמענים נוספים (CC) — אופציונלי
             </label>
             <div className={s.autocompleteWrap} ref={autocompleteRef}>
               <div className={s.chipsField} onClick={() => setShowSuggestions(true)}>
@@ -787,14 +965,15 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
             <button className={`${s.btn} ${s.btnSecondary}`} onClick={() => setStep(1)}>חזור</button>
             <button
               className={`${s.btn} ${s.btnPrimary}`}
-              disabled={emails.length === 0 && emailDraft.trim() === ''}
               onClick={() => {
-                const finalList = commitEmailDraft()
-                if (finalList === null) return
-                if (finalList.length === 0) {
-                  setError('יש להוסיף לפחות נמען אחד')
+                if (authorizedSignerIds.length === 0) {
+                  setError('יש לבחור לפחות מורשה חתימה אחד לבקשה')
                   return
                 }
+                // commit אם נשארה טיוטה ב-CC
+                const finalList = commitEmailDraft()
+                if (finalList === null) return
+                setError(null)
                 setStep(3)
               }}
             >המשך</button>
@@ -806,8 +985,13 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
         <>
           <div className={s.summary}>
             <div><strong>סוג בקשה:</strong> {title}</div>
-            <div><strong>תפקיד נמען:</strong> {roleHint}</div>
-            <div><strong>נמענים במייל ({emails.length}):</strong> <span style={{ direction: 'ltr', display: 'inline-block' }}>{emails.join(', ')}</span></div>
+            <div>
+              <strong>מורשי חתימה ({selectedSignersForUI.length}):</strong>{' '}
+              {selectedSignersForUI.map(sg => `${SIGNER_ROLE_LABELS[sg.role as SignerRole] ?? sg.role} (${sg.display_name})`).join(' · ')}
+            </div>
+            {emails.length > 0 && (
+              <div><strong>CC נוסף ({emails.length}):</strong> <span style={{ direction: 'ltr', display: 'inline-block' }}>{emails.join(', ')}</span></div>
+            )}
             <div><strong>נושא:</strong> {subject.trim() || title}</div>
             {isResubmit
               ? resubmitResponse.trim() && <div><strong>תגובה לתיקונים:</strong> {resubmitResponse.trim()}</div>
