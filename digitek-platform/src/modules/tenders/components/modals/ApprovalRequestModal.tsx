@@ -161,7 +161,6 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
 
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [amount, setAmount] = useState<number>(initialAmount())
-  const [notes, setNotes] = useState('')
   const [resubmitResponse, setResubmitResponse] = useState('')
   const [emails, setEmails] = useState<string[]>(initialEmails())
   const [emailDraft, setEmailDraft] = useState('')
@@ -203,7 +202,6 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
     setBody(initialBody())
     setAmount(initialAmount())
     setEmailDraft('')
-    setNotes('')
     setResubmitResponse('')
     setFiles([])
     setSuggestions([])
@@ -219,7 +217,6 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
     setEmailDraft('')
     setSubject('')
     setBody('')
-    setNotes('')
     setFiles([])
     setDragActive(false)
     setAmount(estimatedAmount ?? 0)
@@ -373,7 +370,6 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
     const effectiveBody = body.trim()
 
     const metadata: Record<string, unknown> = {}
-    if (notes.trim()) metadata.notes = notes.trim()
     if (emails.length) metadata.recipients = emails
     if (subject.trim()) metadata.subject = subject.trim()
     if (effectiveBody) metadata.body = effectiveBody
@@ -623,15 +619,6 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
               <div className={s.hint}>הסכום שעבורו מבוקש האישור התקציבי</div>
             </div>
           )}
-          <div className={s.formGroup}>
-            <label className={s.label}>הערות לבקשה</label>
-            <textarea
-              className={s.textarea}
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="פרטים נוספים שיוצגו למאשר"
-            />
-          </div>
 
           {!isResubmit && (
             <div className={s.formGroup}>
@@ -819,7 +806,6 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
             <div><strong>נושא:</strong> {subject.trim() || title}</div>
             {body.trim() && <div><strong>תיאור:</strong> {body.trim()}</div>}
             {isBudgetReq && <div><strong>סכום:</strong> {new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)}</div>}
-            {notes && <div><strong>הערות פנימיות:</strong> {notes}</div>}
             {files.length > 0 && (
               <div>
                 <strong>מסמכים מצורפים ({files.length}):</strong>
