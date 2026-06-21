@@ -6,8 +6,7 @@ import { enqueueNotification } from '../../lib/notifications'
 import { searchEmailContacts, recordEmailContact, type EmailContact } from '../../lib/emailContacts'
 import { safeFileName } from '../../lib/safeFileName'
 import { activeByRole, SIGNER_ROLE_LABELS } from '../../lib/signers'
-import type { SignerRole } from '../../types'
-import type { ApprovalRequestType, TenderApprovalRequest, TenderSigner, SignerRole } from '../../types'
+import type { ApprovalRequestType, SignerRole, TenderApprovalRequest, TenderSigner } from '../../types'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -983,6 +982,18 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
 
       {step === 3 && (
         <>
+          <div style={{
+            marginBottom: 14, padding: '12px 14px',
+            background: 'var(--primary-bg)',
+            border: '1px solid var(--primary)',
+            borderRadius: 10,
+            fontSize: 13, lineHeight: 1.55, color: 'var(--text)',
+          }}>
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>✉ סקירה אחרונה לפני שליחה</div>
+            ברגע שתלחץ <strong>"שלח בקשה"</strong>, יישלח מייל לכל מורשי החתימה (ול-CC אם קיים) עם
+            לינק להחלטה. כל אחד יוכל לאשר / להחזיר לתיקונים / לדחות. <strong>הבקשה תאושר רק
+            אחרי שכולם יחתמו</strong> (AND).
+          </div>
           <div className={s.summary}>
             <div><strong>סוג בקשה:</strong> {title}</div>
             <div>
