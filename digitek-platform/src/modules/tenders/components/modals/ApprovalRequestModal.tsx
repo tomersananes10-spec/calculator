@@ -367,7 +367,8 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
     setError(null)
 
     const effectiveSubject = subject.trim() || baseTitle
-    const effectiveBody = body.trim()
+    // ב-resubmit ה"תגובה לתיקונים" משמשת גם כגוף המייל (אין שדה תיאור נפרד).
+    const effectiveBody = isResubmit ? resubmitResponse.trim() : body.trim()
 
     const metadata: Record<string, unknown> = {}
     if (emails.length) metadata.recipients = emails
@@ -553,9 +554,9 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
                   className={s.textarea}
                   value={resubmitResponse}
                   onChange={e => setResubmitResponse(e.target.value)}
-                  placeholder='הסבר בקצרה מה תוקן בעקבות הערות המאשר — לדוגמה: "צירפתי חתימת ראש האגף", "עדכנתי את הטבלה בעמ׳ 3" וכו׳'
+                  placeholder='הסבר בקצרה מה תוקן — לדוגמה: "צירפתי חתימת ראש האגף", "עדכנתי את הטבלה בעמ׳ 3" וכו׳'
                 />
-                <div className={s.hint}>יישמר ב-audit log ויוצג למאשר ככיוון לתיקון.</div>
+                <div className={s.hint}>ישמש גם כגוף המייל שיישלח למאשר.</div>
               </div>
               <div className={s.formGroup}>
                 <label className={`${s.label} ${s.required}`}>
@@ -766,15 +767,17 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
             <div className={s.hint}>אם לא מולא, ייעשה שימוש בכותרת ברירת המחדל: "{title}".</div>
           </div>
 
-          <div className={s.formGroup}>
-            <label className={s.label}>תיאור</label>
-            <textarea
-              className={s.textarea}
-              value={body}
-              onChange={e => setBody(e.target.value)}
-              placeholder="גוף ההודעה שיישלח לנמענים — פרטי הבקשה, קישור להליך, מועדי SLA וכו'."
-            />
-          </div>
+          {!isResubmit && (
+            <div className={s.formGroup}>
+              <label className={s.label}>תיאור</label>
+              <textarea
+                className={s.textarea}
+                value={body}
+                onChange={e => setBody(e.target.value)}
+                placeholder="גוף ההודעה שיישלח לנמענים — פרטי הבקשה, קישור להליך, מועדי SLA וכו'."
+              />
+            </div>
+          )}
 
           {error && <div className={s.error}>{error}</div>}
 
@@ -804,7 +807,9 @@ export function ApprovalRequestModal({ open, onClose, tenderId, requestType, req
             <div><strong>תפקיד נמען:</strong> {roleHint}</div>
             <div><strong>נמענים במייל ({emails.length}):</strong> <span style={{ direction: 'ltr', display: 'inline-block' }}>{emails.join(', ')}</span></div>
             <div><strong>נושא:</strong> {subject.trim() || title}</div>
-            {body.trim() && <div><strong>תיאור:</strong> {body.trim()}</div>}
+            {isResubmit
+              ? resubmitResponse.trim() && <div><strong>תגובה לתיקונים:</strong> {resubmitResponse.trim()}</div>
+              : body.trim() && <div><strong>תיאור:</strong> {body.trim()}</div>}
             {isBudgetReq && <div><strong>סכום:</strong> {new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(amount)}</div>}
             {files.length > 0 && (
               <div>
