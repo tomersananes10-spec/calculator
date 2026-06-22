@@ -30,15 +30,6 @@ const CAT_ICONS: Record<ServiceCategory, string> = {
   analytics: '📊',
 }
 
-const CAT_STYLE: Record<ServiceCategory, string> = {
-  security:  'catSecurity',
-  database:  'catDatabase',
-  storage:   'catStorage',
-  compute:   'catCompute',
-  ai_ml:     'catAiMl',
-  analytics: 'catAnalytics',
-}
-
 const PAGE_SIZE = 24
 
 export function Roved5() {
@@ -47,6 +38,7 @@ export function Roved5() {
   const [cloudFilter,    setCloudFilter]    = useState<CloudFilter>('all')
   const [typeFilter,     setTypeFilter]     = useState<TypeFilter>('all')
   const [catFilter,      setCatFilter]      = useState<CatFilter>('all')
+  const [showAdvanced,   setShowAdvanced]   = useState(false)
   const [aiResults,      setAiResults]      = useState<AISearchResult[] | null>(null)
   const [aiLoading,      setAiLoading]      = useState(false)
   const [aiError,        setAiError]        = useState<string | null>(null)
@@ -129,36 +121,38 @@ export function Roved5() {
   return (
     <div className={styles.page}>
       <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>קטלוג רובד 5</h1>
+        <h1 className={styles.pageTitle}>רובד 5</h1>
         <p className={styles.pageSub}>
-          {services.length.toLocaleString()} שירותים &middot; GCP: {gcpCount} &middot; AWS: {awsCount}
+          {services.length.toLocaleString()} שירותי ענן מאושרים לרכישה
         </p>
       </div>
 
       <div className={styles.searchBar}>
-        <div className={styles.searchInputWrap}>
-          <span className={styles.searchIcon}>🔍</span>
-          <input
-            ref={inputRef}
-            className={styles.searchInput}
-            type="text"
-            placeholder='חיפוש חופשי — למשל: "גיבוי", "אבטחה", "AI"...'
-            value={query}
-            onChange={e => { setQuery(e.target.value); setAiResults(null); setAiError(null) }}
-            onKeyDown={e => { if (e.key === 'Enter') handleAiClick() }}
-          />
-          {aiLoading && <span className={styles.spinner} />}
-          {query && !aiLoading && <button className={styles.clearBtn} onClick={reset}>✕</button>}
+        <div className={styles.searchPill}>
+          <div className={styles.searchInputWrap}>
+            <span className={styles.searchIcon}>🔍</span>
+            <input
+              ref={inputRef}
+              className={styles.searchInput}
+              type="text"
+              placeholder='חיפוש חופשי — למשל: "גיבוי", "אבטחה", "AI"...'
+              value={query}
+              onChange={e => { setQuery(e.target.value); setAiResults(null); setAiError(null) }}
+              onKeyDown={e => { if (e.key === 'Enter') handleAiClick() }}
+            />
+            {aiLoading && <span className={styles.spinner} />}
+            {query && !aiLoading && <button className={styles.clearBtn} onClick={reset}>✕</button>}
+          </div>
+          <button className={styles.aiBtn} onClick={handleAiClick} disabled={aiLoading}>
+            {aiLoading ? '⏳ מחפש...' : '✨ חיפוש חכם'}
+          </button>
         </div>
-        <button className={styles.aiBtn} onClick={handleAiClick} disabled={aiLoading}>
-          {aiLoading ? '⏳ מחפש...' : '✨ חיפוש חכם'}
-        </button>
       </div>
 
       {aiError && <div className={styles.aiErrorBar}>{aiError}</div>}
 
       <div className={styles.filterRow}>
-        {(['all', 'GCP', 'AWS'] as CloudFilter[]).map(f => (
+        {(['all', 'AWS', 'GCP'] as CloudFilter[]).map(f => (
           <button
             key={f}
             className={`${styles.chip} ${cloudFilter === f ? styles.chipActive : ''}`}
@@ -167,7 +161,12 @@ export function Roved5() {
             {f === 'all' ? `הכל (${services.length})` : f === 'AWS' ? `AWS (${awsCount})` : `GCP (${gcpCount})`}
           </button>
         ))}
-        <span className={styles.chipDivider} />
+        <button
+          className={`${styles.chip} ${typeFilter === 'all' ? styles.chipActive : ''}`}
+          onClick={() => setTypeFilter('all')}
+        >
+          כל הסוגים
+        </button>
         {(['SaaS', 'non-SaaS'] as TypeFilter[]).map(f => (
           <button
             key={f}
@@ -177,23 +176,39 @@ export function Roved5() {
             {f}
           </button>
         ))}
-        <span className={styles.chipDivider} />
-        {(Object.keys(CAT_LABELS) as ServiceCategory[]).map(f => (
-          <button
-            key={f}
-            className={`${styles.chip} ${catFilter === f ? styles.chipActive : ''}`}
-            onClick={() => setCatFilter(prev => prev === f ? 'all' : f)}
-          >
-            {CAT_ICONS[f]} {CAT_LABELS[f]} ({catCounts[f]})
-          </button>
-        ))}
+        <button
+          className={`${styles.advancedToggle} ${(showAdvanced || catFilter !== 'all') ? styles.advancedToggleActive : ''}`}
+          onClick={() => setShowAdvanced(s => !s)}
+        >
+          ⚙️ פילטרים מתקדמים{catFilter !== 'all' ? ` · ${CAT_LABELS[catFilter as ServiceCategory]}` : ''}
+        </button>
       </div>
 
+      {showAdvanced && (
+        <div className={styles.advancedPanel}>
+          <button
+            className={`${styles.chip} ${catFilter === 'all' ? styles.chipActive : ''}`}
+            onClick={() => setCatFilter('all')}
+          >
+            כל הקטגוריות
+          </button>
+          {(Object.keys(CAT_LABELS) as ServiceCategory[]).map(f => (
+            <button
+              key={f}
+              className={`${styles.chip} ${catFilter === f ? styles.chipActive : ''}`}
+              onClick={() => setCatFilter(prev => prev === f ? 'all' : f)}
+            >
+              {CAT_ICONS[f]} {CAT_LABELS[f]} ({catCounts[f]})
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className={styles.resultsInfo}>
-        {isAIMode && <span className={styles.aiBadge}>✨ תוצאות חיפוש חכם</span>}
+        {isAIMode && <span className={styles.aiResultsBadge}>✨ חיפוש חכם</span>}
         {displayed.length > 0 && (
           <span className={styles.resultsCount}>
-            מציג {Math.min((page - 1) * PAGE_SIZE + 1, displayed.length)}–{Math.min(page * PAGE_SIZE, displayed.length)} מתוך {displayed.length.toLocaleString()}
+            {displayed.length.toLocaleString()} תוצאות
           </span>
         )}
       </div>
@@ -208,49 +223,35 @@ export function Roved5() {
         <div className={styles.cardGrid}>
           {pageItems.map(service => {
             const aiResult = aiResults?.find(r => r.id === service.id)
-            const cat = serviceCategories.get(service.id)
-            const discount = typeof service.discount === 'number' ? `${service.discount}%` : service.discount || null
-            const cloudClass = service.cloud === 'GCP' ? styles.cardGCP : styles.cardAWS
 
             return (
-              <div key={service.id} className={`${styles.card} ${cloudClass}`} onClick={() => setSelected(service)}>
+              <div key={service.id} className={styles.card} onClick={() => setSelected(service)}>
                 <div className={styles.cardBadges}>
-                  <span className={`${styles.badge} ${service.cloud === 'GCP' ? styles.badgeGCP : styles.badgeAWS}`}>
-                    {service.cloud}
-                  </span>
                   <span className={`${styles.badge} ${service.type === 'SaaS' ? styles.badgeSaaS : styles.badgeNonSaaS}`}>
                     {service.type}
                   </span>
-                  {cat && (
-                    <span className={`${styles.badge} ${styles[CAT_STYLE[cat]]}`}>
-                      {CAT_ICONS[cat]} {CAT_LABELS[cat]}
-                    </span>
-                  )}
-                  <span className={styles.cardSku}>{service.id}</span>
+                  <span className={`${styles.badge} ${service.cloud === 'GCP' ? styles.badgeGCP : styles.badgeAWS}`}>
+                    {service.cloud}
+                  </span>
                 </div>
 
                 <div className={styles.cardTitle}>{service.name}</div>
+                {service.manufacturer && (
+                  <div className={styles.cardManufacturer}>{service.manufacturer}</div>
+                )}
                 <div className={styles.cardDesc}>{service.description}</div>
 
-                <div className={styles.cardMeta}>
-                  <span className={styles.cardMetaLabel}>יצרן: </span>{service.manufacturer || '—'}
-                  <span className={styles.cardMetaSep}> · </span>
-                  <span className={styles.cardMetaLabel}>ספק: </span>{service.provider}
-                </div>
+                {aiResult && (
+                  <div className={styles.cardAiReason}>
+                    <span className={styles.cardAiReasonLabel}>מדוע מתאים:</span>
+                    ✨ {aiResult.reason}
+                  </div>
+                )}
 
                 <div className={styles.cardFooter}>
-                  {discount
-                    ? <span className={styles.cardDiscount}>💰 הנחה {discount}</span>
-                    : <span className={styles.cardNoDiscount}>—</span>
-                  }
-                  <button className={styles.cardAction} onClick={e => { e.stopPropagation(); setSelected(service) }}>
-                    פרטים ←
-                  </button>
+                  <span className={styles.cardDate}>{service.approvalDate || '—'}</span>
+                  <span className={styles.cardProvider}>{service.provider}</span>
                 </div>
-
-                {aiResult && (
-                  <div className={styles.cardAiReason}>✨ {aiResult.reason}</div>
-                )}
               </div>
             )
           })}
