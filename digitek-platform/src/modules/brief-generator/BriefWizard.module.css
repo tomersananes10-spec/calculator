@@ -189,6 +189,18 @@
 }
 .milestonesTable td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
 .milestonesTable tr:last-child td { border-bottom: none; }
+
+/* Generic table (used by Steps 6/7/8/10) */
+.table { width: 100%; border-collapse: collapse; background: var(--surface); }
+.table th {
+  text-align: right; padding: 10px 12px;
+  font-size: 12px; font-weight: 700; color: var(--text3);
+  border-bottom: 2px solid var(--border);
+  background: var(--bg);
+}
+.table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover td { background: var(--bg); }
 .tableInput {
   width: 100%; border: 1px solid var(--border2); border-radius: 6px;
   padding: 6px 8px; font-size: 13px; font-family: inherit;
