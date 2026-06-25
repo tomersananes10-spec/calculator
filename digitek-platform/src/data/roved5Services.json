@@ -354,7 +354,7 @@
     "type": "non-SaaS",
     "discount": "לא רלוונטי",
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "08/2024",
     "notes": "שירות זה ניתן במודל BYOL והינו רלוונטי אך ורק לבעלי רשיון למוצר - יש לפעול בהתאם לסעיף 5.5.4 להודעת מכרז 16.12.3 בנושא \"רכש שירותי צד ג' בענן הציבורי של AWS ו-Google\".",
     "psServices": "לא כלול"
@@ -399,7 +399,7 @@
     "type": "SaaS",
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "01/2025",
     "notes": "",
     "psServices": "לא כלול"
@@ -535,21 +535,6 @@
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
     "contact": "אבישג שמואל-זאנה |  roved5@bynet.co.il",
-    "approvalDate": "03/2025",
-    "notes": "",
-    "psServices": "לא כלול"
-  },
-  {
-    "id": "G-04-4238-1",
-    "cloud": "GCP",
-    "provider": "אימג'סטור מערכות בע\"מ",
-    "manufacturer": "Parashift AG",
-    "name": "Parashift Platform",
-    "description": "מערכת לאוטומציה ועיבוד מסמכים לרבות OCR מתקדם, אימות טפסים ונתונים",
-    "type": "SaaS",
-    "discount": 0.2,
-    "priceLink": "קישור למחירון השירות",
-    "contact": "אייל נבו  |  edge@imagestore.co.il",
     "approvalDate": "03/2025",
     "notes": "",
     "psServices": "לא כלול"
@@ -717,7 +702,7 @@
     "contact": "אשר קנינו |  office@sumit-ai.com",
     "approvalDate": "04/2025",
     "notes": "",
-    "psServices": "כלול"
+    "psServices": "לא כלול"
   },
   {
     "id": "G-04-4356-1",
@@ -1749,7 +1734,7 @@
     "type": "SaaS",
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "08/2023",
     "notes": "יש לבחון ולרכוש את המודול המתאים מתוך האפשרויות המופיעות בשוק הדיגיטלי.",
     "psServices": "לא כלול"
@@ -1764,7 +1749,7 @@
     "type": "SaaS",
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "08/2023",
     "notes": "",
     "psServices": "לא כלול"
@@ -1779,7 +1764,7 @@
     "type": "SaaS",
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "08/2023",
     "notes": "",
     "psServices": "לא כלול"
@@ -1794,7 +1779,7 @@
     "type": "SaaS",
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "08/2023",
     "notes": "",
     "psServices": "לא כלול"
@@ -1809,7 +1794,7 @@
     "type": "non-SaaS",
     "discount": "לא רלוונטי",
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "08/2023",
     "notes": "שירות זה ניתן במודל BYOL והינו רלוונטי אך ורק לבעלי רשיון למוצר - יש לפעול בהתאם לסעיף 5.5.4 להודעת מכרז 16.12.3 בנושא \"רכש שירותי צד ג' בענן הציבורי של AWS ו-Google\".",
     "psServices": "לא כלול"
@@ -1824,7 +1809,7 @@
     "type": "non-SaaS",
     "discount": "לא רלוונטי",
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "08/2023",
     "notes": "שירות זה ניתן במודל BYOL והינו רלוונטי אך ורק לבעלי רשיון למוצר - יש לפעול בהתאם לסעיף 5.5.4 להודעת מכרז 16.12.3 בנושא \"רכש שירותי צד ג' בענן הציבורי של AWS ו-Google\".",
     "psServices": "לא כלול"
@@ -1839,7 +1824,7 @@
     "type": "non-SaaS",
     "discount": "לא רלוונטי",
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "08/2023",
     "notes": "שירות זה ניתן במודל BYOL והינו רלוונטי אך ורק לבעלי רשיון למוצר - יש לפעול בהתאם לסעיף 5.5.4 להודעת מכרז 16.12.3 בנושא \"רכש שירותי צד ג' בענן הציבורי של AWS ו-Google\".",
     "psServices": "לא כלול"
@@ -1854,7 +1839,7 @@
     "type": "non-SaaS",
     "discount": "לא רלוונטי",
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "08/2023",
     "notes": "שירות זה ניתן במודל BYOL והינו רלוונטי אך ורק לבעלי רשיון למוצר - יש לפעול בהתאם לסעיף 5.5.4 להודעת מכרז 16.12.3 בנושא \"רכש שירותי צד ג' בענן הציבורי של AWS ו-Google\".",
     "psServices": "לא כלול"
@@ -1869,7 +1854,7 @@
     "type": "non-SaaS",
     "discount": "לא רלוונטי",
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "08/2023",
     "notes": "שירות זה ניתן במודל BYOL והינו רלוונטי אך ורק לבעלי רשיון למוצר - יש לפעול בהתאם לסעיף 5.5.4 להודעת מכרז 16.12.3 בנושא \"רכש שירותי צד ג' בענן הציבורי של AWS ו-Google\".",
     "psServices": "לא כלול"
@@ -1884,7 +1869,7 @@
     "type": "non-SaaS",
     "discount": "לא רלוונטי",
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "08/2023",
     "notes": "שירות זה ניתן במודל BYOL והינו רלוונטי אך ורק לבעלי רשיון למוצר - יש לפעול בהתאם לסעיף 5.5.4 להודעת מכרז 16.12.3 בנושא \"רכש שירותי צד ג' בענן הציבורי של AWS ו-Google\".",
     "psServices": "לא כלול"
@@ -1989,7 +1974,7 @@
     "type": "SaaS",
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "11/2023",
     "notes": "",
     "psServices": "לא כלול"
@@ -2085,7 +2070,7 @@
     "psServices": "לא כלול"
   },
   {
-    "id": "A-4991-1-2",
+    "id": "A-4991-1",
     "cloud": "AWS",
     "provider": "Bynet Data Communications LTD",
     "manufacturer": "Radware",
@@ -2130,7 +2115,7 @@
     "psServices": "לא כלול"
   },
   {
-    "id": "1-A-5015",
+    "id": "A-5015-1",
     "cloud": "AWS",
     "provider": "מטריקס אי.טי. אינטגרציה ותשתיות בע\"מ",
     "manufacturer": "Veeam",
@@ -2739,7 +2724,7 @@
     "type": "SaaS",
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "10/2024",
     "notes": "",
     "psServices": "לא כלול"
@@ -2754,7 +2739,7 @@
     "type": "SaaS",
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "10/2024",
     "notes": "",
     "psServices": "לא כלול"
@@ -2769,7 +2754,7 @@
     "type": "non-SaaS",
     "discount": 0.3,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "10/2024",
     "notes": "",
     "psServices": "לא כלול"
@@ -2874,7 +2859,7 @@
     "type": "SaaS",
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "01/2025",
     "notes": "",
     "psServices": "לא כלול"
@@ -2964,7 +2949,7 @@
     "type": "SaaS",
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |  roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |  roved5@ness-tech.co.il",
     "approvalDate": "01/2025",
     "notes": "",
     "psServices": "לא כלול"
@@ -3476,7 +3461,7 @@
     "priceLink": "קישור למחירון השירות",
     "contact": "יוסי עטיה |  nimbus@island.io",
     "approvalDate": "01/2025",
-    "notes": "כל רכש של השירות מותנה בקבלת אישור מראש ובכתב של עורך המכרז, \n\nטרם בחינת שירות זה, יש לבצע רכש במסגרת ההתקשרות המרכזית לשירותי SSE. \nכל בקשה לרכש שירות זה מחייבת השוואה מול הרכיב המקביל בהתקשרות המרכזית לשירותי SSE ואל מול המוצרים המקבילים ברשימה זו.\n\nמשרד שקיבל אישור לרכש השירות על ידי עורך המכרז, יהיה רשאי להשלים את הרכש. נא תשומת ליבכם כי בכל מקרה, הרכיבים המפורטים להלן אינם מאושרים לרכישה:\n 1. Password Manager.\n 2. Cloud Proxy.\n 3. AI Assistant.\n 4. RDP & SSH.",
+    "notes": "רכש של שירות זה מותנה בקבלת אישור מראש ובכתב של עורך המכרז, ויתאפשר אך ורק עבור משתמשים להם נרכשו והוטמעו פתרונות ההגנה בגלישה, לרבות שירותי\r\nה-SWG  וה-RBI של השירות הזוכה בהתקשרות המרכזית לשירותי SSE. \r\n\nמשרד שקיבל אישור לרכש השירות על ידי עורך המכרז, יהיה רשאי להשלים את הרכש. נא תשומת ליבכם כי בכל מקרה, הרכיבים המפורטים להלן אינם מאושרים לרכישה:\n 1. Password Manager.\n 2. Cloud Proxy.\n 3. AI Assistant.\n 4. RDP & SSH.",
     "psServices": "לא כלול"
   },
   {
@@ -3847,7 +3832,7 @@
     "name": "Cloud Next-Generation Firewall as a Service (30-Day Free Trial to PAYG)",
     "description": "שירות firewall ענני בתצורת SaaS",
     "type": "SaaS",
-    "discount": 0.2,
+    "discount": 0.5,
     "priceLink": "קישור למחירון השירות",
     "contact": "ליאור אביב |  nimbus5@paloaltonetworks.com",
     "approvalDate": "06/2025",
@@ -4061,7 +4046,7 @@
     "priceLink": "קישור למחירון השירות",
     "contact": "חיים טייכהולץ | office@synchapp.io",
     "approvalDate": "09/2025",
-    "notes": "",
+    "notes": "השירות מוקפא ולא ניתן לרכוש אותו.",
     "psServices": "לא כלול"
   },
   {
@@ -4239,7 +4224,7 @@
     "type": "SaaS",
     "discount": 0.2,
     "priceLink": "קישור למחירון השירות",
-    "contact": "דדי קמרמן |   roved5@ness-tech.co.il",
+    "contact": "אירנה שושן |   roved5@ness-tech.co.il",
     "approvalDate": "09/2025",
     "notes": "שירות זה מיועד למזמינים עם תכולת עבודה משמעותית בענן, יש לבחון ראשית את שירותי ה-FinOps שיש לספקי הענן להציע.",
     "psServices": "לא כלול"
@@ -4676,7 +4661,7 @@
     "priceLink": "קישור למחירון השירות",
     "contact": "אבישג שמואל-זאנה |   roved5@bynet.co.il",
     "approvalDate": "10/2025",
-    "notes": "כל רכש של השירות מותנה בקבלת אישור מראש ובכתב של עורך המכרז, \n\nטרם בחינת שירות זה, יש לבצע רכש במסגרת ההתקשרות המרכזית לשירותי SSE. \nכל בקשה לרכש שירות זה מחייבת השוואה מול הרכיב המקביל בהתקשרות המרכזית לשירותי SSE ואל מול המוצרים המקבילים ברשימה זו.",
+    "notes": "רכש של שירות זה מותנה בקבלת אישור מראש ובכתב של עורך המכרז, ויתאפשר אך ורק עבור משתמשים להם נרכשו והוטמעו פתרונות ההגנה בגלישה, לרבות שירותי\nה-SWG  וה-RBI של השירות הזוכה בהתקשרות המרכזית לשירותי SSE.",
     "psServices": "לא כלול"
   },
   {
@@ -4902,6 +4887,21 @@
     "contact": "אשר קנינו |  office@sumit-ai.com",
     "approvalDate": "02/2026",
     "notes": "",
-    "psServices": "כלול"
+    "psServices": "לא כלול"
+  },
+  {
+    "id": "A-04-4390-1",
+    "cloud": "AWS",
+    "provider": "מטריקס אי.טי. אינטגרציה ותשתיות בע\"מ",
+    "manufacturer": "HPE / OpsRamp",
+    "name": "OpsRamp Platform",
+    "description": "שירות לגילוי, ניהול, ניטור ותפעול מערכות ונכסים בסביבת IT היברידית",
+    "type": "SaaS",
+    "discount": 0.2,
+    "priceLink": "קישור למחירון השירות",
+    "contact": "אלי כהן |   NimbusRoved5MatrixSW@matrix.co.il",
+    "approvalDate": "04/2026",
+    "notes": "",
+    "psServices": "לא כלול"
   }
 ]
