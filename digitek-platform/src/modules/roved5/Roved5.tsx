@@ -3,10 +3,42 @@ import type { Roved5Service, AISearchResult } from './types'
 import { aiSearch, keywordSearch, categorizeService } from './roved5AI'
 import type { ServiceCategory } from './roved5AI'
 import { ServiceModal } from './ServiceModal'
+import { supabase } from '../../lib/supabase'
 import styles from './Roved5.module.css'
-import allServices from '../../data/roved5Services.json'
 
-const services = allServices as Roved5Service[]
+interface DbRow {
+  id: string
+  cloud: 'GCP' | 'AWS'
+  provider: string
+  manufacturer: string
+  name: string
+  description: string
+  type: 'SaaS' | 'non-SaaS'
+  discount: number | null
+  price_link: string
+  contact: string
+  approval_date: string
+  notes: string
+  ps_services: string
+}
+
+function mapDbRow(r: DbRow): Roved5Service {
+  return {
+    id: r.id,
+    cloud: r.cloud,
+    provider: r.provider,
+    manufacturer: r.manufacturer,
+    name: r.name,
+    description: r.description,
+    type: r.type,
+    discount: r.discount ?? '',
+    priceLink: r.price_link,
+    contact: r.contact,
+    approvalDate: r.approval_date,
+    notes: r.notes,
+    psServices: r.ps_services,
+  }
+}
 
 type CloudFilter = 'all' | 'AWS' | 'GCP'
 type TypeFilter  = 'all' | 'SaaS' | 'non-SaaS'
@@ -33,6 +65,9 @@ const CAT_ICONS: Record<ServiceCategory, string> = {
 const PAGE_SIZE = 24
 
 export function Roved5() {
+  const [services,       setServices]       = useState<Roved5Service[]>([])
+  const [loading,        setLoading]        = useState(true)
+  const [loadError,      setLoadError]      = useState<string | null>(null)
   const [query,          setQuery]          = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [cloudFilter,    setCloudFilter]    = useState<CloudFilter>('all')
@@ -44,6 +79,26 @@ export function Roved5() {
   const [selected,       setSelected]       = useState<Roved5Service | null>(null)
   const [page,           setPage]           = useState(1)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    supabase
+      .from('roved5_services')
+      .select('id,cloud,provider,manufacturer,name,description,type,discount,price_link,contact,approval_date,notes,ps_services')
+      .order('cloud')
+      .order('id')
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) {
+          setLoadError(error.message)
+          setLoading(false)
+          return
+        }
+        setServices((data as DbRow[]).map(mapDbRow))
+        setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 400)
@@ -76,7 +131,7 @@ export function Roved5() {
         setAiResults(null)
       })
     return () => { controller.abort() }
-  }, [debouncedQuery])
+  }, [debouncedQuery, services])
 
   useEffect(() => { setPage(1) }, [debouncedQuery, cloudFilter, typeFilter, catFilter])
 
@@ -84,7 +139,7 @@ export function Roved5() {
     const map = new Map<string, ServiceCategory | null>()
     services.forEach(s => map.set(s.id, categorizeService(s)))
     return map
-  }, [])
+  }, [services])
 
   const catCounts = useMemo(() => {
     const counts: Record<ServiceCategory, number> = { security: 0, database: 0, storage: 0, compute: 0, ai_ml: 0, analytics: 0 }
@@ -92,8 +147,8 @@ export function Roved5() {
     return counts
   }, [serviceCategories])
 
-  const awsCount = useMemo(() => services.filter(s => s.cloud === 'AWS').length, [])
-  const gcpCount = useMemo(() => services.filter(s => s.cloud === 'GCP').length, [])
+  const awsCount = useMemo(() => services.filter(s => s.cloud === 'AWS').length, [services])
+  const gcpCount = useMemo(() => services.filter(s => s.cloud === 'GCP').length, [services])
 
   let displayed: Roved5Service[]
   if (aiResults && query.trim().length >= 3) {
@@ -127,7 +182,11 @@ export function Roved5() {
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>רובד 5</h1>
         <p className={styles.pageSub}>
-          {services.length.toLocaleString()} שירותי ענן מאושרים לרכישה
+          {loading
+            ? 'טוען קטלוג…'
+            : loadError
+              ? `שגיאת טעינה: ${loadError}`
+              : `${services.length.toLocaleString()} שירותי ענן מאושרים לרכישה`}
         </p>
       </div>
 

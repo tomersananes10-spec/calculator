@@ -6,7 +6,6 @@ import { useCalculationHistory } from '../modules/takam-calculator/useCalculatio
 import { useBriefs } from '../hooks/useBriefs'
 import { supabase } from '../lib/supabase'
 import type { Tender } from '../modules/tenders/types'
-import roved5Services from '../data/roved5Services.json'
 import styles from './Dashboard.module.css'
 
 const STAGE_LABELS: Record<string, string> = {
@@ -64,11 +63,16 @@ export function Dashboard() {
   const { briefs } = useBriefs()
 
   const [tenders, setTenders] = useState<Tender[]>([])
+  const [roved5Count, setRoved5Count] = useState<number | null>(null)
 
   useEffect(() => {
     void supabase.from('tenders').select('*').then(({ data }) => {
       setTenders((data ?? []) as Tender[])
     })
+    void supabase
+      .from('roved5_services')
+      .select('*', { count: 'exact', head: true })
+      .then(({ count }) => { setRoved5Count(count ?? 0) })
   }, [])
 
   const activeTenders = useMemo(
@@ -185,7 +189,7 @@ export function Dashboard() {
               <div className={styles.cardHead}>
                 <div className={`${styles.cardIcon} ${styles.iconLayer5}`}><Scale size={17} /></div>
                 <div className={styles.cardNums}>
-                  <div className={styles.num}>{(roved5Services as unknown[]).length}</div>
+                  <div className={styles.num}>{roved5Count ?? '—'}</div>
                   <div className={styles.lbl}>שירותים ברובד 5</div>
                 </div>
               </div>
