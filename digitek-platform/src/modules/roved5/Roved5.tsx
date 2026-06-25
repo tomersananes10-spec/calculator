@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import type { Roved5Service, AISearchResult } from './types'
 import { aiSearch, keywordSearch, categorizeService } from './roved5AI'
 import type { ServiceCategory } from './roved5AI'
@@ -41,37 +41,42 @@ export function Roved5() {
   const [showAdvanced,   setShowAdvanced]   = useState(false)
   const [aiResults,      setAiResults]      = useState<AISearchResult[] | null>(null)
   const [aiLoading,      setAiLoading]      = useState(false)
-  const [aiError,        setAiError]        = useState<string | null>(null)
   const [selected,       setSelected]       = useState<Roved5Service | null>(null)
   const [page,           setPage]           = useState(1)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(query), 300)
+    const t = setTimeout(() => setDebouncedQuery(query), 400)
     return () => clearTimeout(t)
   }, [query])
 
-  const triggerAiSearch = useCallback(async (q: string) => {
-    if (!q.trim() || q.trim().length < 3) { setAiResults(null); return }
-    setAiLoading(true)
-    setAiError(null)
-    const results = await aiSearch(q, services)
-    if (results.length > 0) {
-      setAiResults(results)
-    } else {
+  // AI הוא ברירת המחדל ברובד 5 — לא כפתור נפרד. כל שאילתה (3+ תווים)
+  // מפעילה אוטומטית את Gemini עם pre-filter keyword. בזמן שה-AI עובד,
+  // תוצאות keyword מוצגות כביניים, ואחרי שה-AI חוזר הן מוחלפות.
+  // אם ה-AI נכשל (timeout/error) — נופלים בשקט ל-keyword בלי באנר אדום.
+  useEffect(() => {
+    const q = debouncedQuery.trim()
+    if (q.length < 3) {
       setAiResults(null)
-      setAiError('חיפוש AI לא זמין כרגע — נסה חיפוש טקסט רגיל')
+      setAiLoading(false)
+      return
     }
-    setAiLoading(false)
-  }, [])
-
-  const handleAiClick = useCallback(() => {
-    if (query.trim().length >= 3) {
-      triggerAiSearch(query)
-    } else {
-      inputRef.current?.focus()
-    }
-  }, [query, triggerAiSearch])
+    const controller = new AbortController()
+    setAiLoading(true)
+    aiSearch(q, services, controller.signal)
+      .then(results => {
+        if (controller.signal.aborted) return
+        setAiLoading(false)
+        if (results.length > 0) setAiResults(results)
+        else setAiResults(null) // ה-keyword search כבר רץ ברקע
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return
+        setAiLoading(false)
+        setAiResults(null)
+      })
+    return () => { controller.abort() }
+  }, [debouncedQuery])
 
   useEffect(() => { setPage(1) }, [debouncedQuery, cloudFilter, typeFilter, catFilter])
 
@@ -110,7 +115,6 @@ export function Roved5() {
     setQuery('')
     setDebouncedQuery('')
     setAiResults(null)
-    setAiError(null)
     setCloudFilter('all')
     setTypeFilter('all')
     setCatFilter('all')
@@ -135,21 +139,15 @@ export function Roved5() {
               ref={inputRef}
               className={styles.searchInput}
               type="text"
-              placeholder='חיפוש חופשי — למשל: "גיבוי", "אבטחה", "AI"...'
+              placeholder='✨ חיפוש חכם — למשל: "סריקת מסמכים", "אבטחה לדאטה רגיש", "ETL"...'
               value={query}
-              onChange={e => { setQuery(e.target.value); setAiResults(null); setAiError(null) }}
-              onKeyDown={e => { if (e.key === 'Enter') handleAiClick() }}
+              onChange={e => { setQuery(e.target.value) }}
             />
-            {aiLoading && <span className={styles.spinner} />}
+            {aiLoading && <span className={styles.spinner} title="✨ AI מחפש..." />}
             {query && !aiLoading && <button className={styles.clearBtn} onClick={reset}>✕</button>}
           </div>
-          <button className={styles.aiBtn} onClick={handleAiClick} disabled={aiLoading}>
-            {aiLoading ? '⏳ מחפש...' : '✨ חיפוש חכם'}
-          </button>
         </div>
       </div>
-
-      {aiError && <div className={styles.aiErrorBar}>{aiError}</div>}
 
       <div className={styles.filterRow}>
         {(['all', 'AWS', 'GCP'] as CloudFilter[]).map(f => (
@@ -205,16 +203,7 @@ export function Roved5() {
       )}
 
       <div className={styles.resultsInfo}>
-        {isAIMode && <span className={styles.aiResultsBadge}>✨ חיפוש חכם</span>}
-        {!isAIMode && debouncedQuery.trim().length >= 3 && !aiLoading && (
-          <button
-            className={styles.aiCtaBadge}
-            onClick={handleAiClick}
-            title="חיפוש חכם — Gemini AI עם הבנה סמנטית של הצורך, לא רק התאמת מילים"
-          >
-            ✨ נסה חיפוש חכם (AI)
-          </button>
-        )}
+        {isAIMode && <span className={styles.aiResultsBadge}>✨ תוצאות חיפוש חכם</span>}
         {displayed.length > 0 && (
           <span className={styles.resultsCount}>
             {displayed.length.toLocaleString()} תוצאות

@@ -106,8 +106,20 @@ function expandTerms(term: string): string[] {
   return [...new Set(variants)]
 }
 
-export async function aiSearch(query: string, services: Roved5Service[]): Promise<AISearchResult[]> {
-  const serviceList = services
+export async function aiSearch(
+  query: string,
+  services: Roved5Service[],
+  signal?: AbortSignal,
+): Promise<AISearchResult[]> {
+  // Pre-filter עם keyword + נרדפות (~120 מונחים) כדי לצמצם את הקטלוג
+  // שנשלח ל-Gemini. עם 327 שירותים מלאים הקריאה לקחה ~60 שניות (12k thinking
+  // tokens). אחרי pre-filter ל-~60 מועמדים — ~3-5 שניות.
+  const keywordHits = keywordSearch(query, services)
+  const candidates = keywordHits.length >= 8
+    ? keywordHits.slice(0, 60)
+    : services // אם keyword לא מצא כמעט כלום — נחפש סמנטית בכל הקטלוג
+
+  const serviceList = candidates
     .map(s => `[${s.id}] ${s.name} | ${s.manufacturer} | ${s.description} | ${s.cloud} | ${s.type}`)
     .join('\n')
 
@@ -125,8 +137,14 @@ ${serviceList}
 
 כלול רק שירותים עם score >= 6. מיין לפי score יורד. מקסימום 20 תוצאות.`
 
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 15000)
+  const internalController = new AbortController()
+  const timeoutId = setTimeout(() => internalController.abort(), 30000)
+
+  // איחוד signal חיצוני (לביטול כשהמשתמש מקליד עוד) עם timeout פנימי
+  if (signal) {
+    if (signal.aborted) internalController.abort()
+    else signal.addEventListener('abort', () => internalController.abort(), { once: true })
+  }
 
   try {
     const res = await fetch('/api/ai-advisor', {
@@ -135,7 +153,7 @@ ${serviceList}
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
       }),
-      signal: controller.signal,
+      signal: internalController.signal,
     })
 
     clearTimeout(timeoutId)
