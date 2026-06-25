@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>רובד 5 — 3 מוקאפים לבחירה</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Heebo', system-ui, sans-serif; background: #f8fafc; color: #0f172a; padding: 40px 20px; min-height: 100vh; }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; text-align: center; }
+  .sub { font-size: 14px; color: #64748b; text-align: center; margin-bottom: 36px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card { background: #fff; border-radius: 14px; padding: 22px; box-shadow: 0 4px 18px rgba(15,23,42,0.06); border: 1px solid #e2e8f0; transition: all 0.18s; text-decoration: none; color: inherit; display: block; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(15,23,42,0.10); border-color: #3b82f6; }
+  .badge { display: inline-block; background: #ede9fe; color: #7c3aed; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
+  h2 { font-size: 18px; font-weight: 800; margin-bottom: 6px; color: #0f172a; }
+  .style { font-size: 12px; color: #1e40af; font-weight: 700; margin-bottom: 12px; }
+  .desc { font-size: 13px; color: #475569; line-height: 1.55; margin-bottom: 14px; }
+  .open-btn { display: inline-flex; align-items: center; gap: 4px; background: #1e40af; color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>רובד 5 — מודאל פרטי שירות</h1>
+  <p class="sub">3 כיווני עיצוב לבחירה. כל המוקאפים מציגים את אותם נתונים — בחר את הסגנון שמתאים.</p>
+
+  <div class="grid">
+    <a class="card" href="A.html">
+      <span class="badge">A</span>
+      <h2>Marketplace</h2>
+      <div class="style">Detail Page</div>
+      <p class="desc">עמודה יחידה, hero גדול, גלילה. discount badge ירוק בולט + כפתור "צפה במחירון" primary. notes כ-callout amber מודגש.</p>
+      <span class="open-btn">פתח ←</span>
+    </a>
+
+    <a class="card" href="B.html">
+      <span class="badge">B</span>
+      <h2>Split Two-Column</h2>
+      <div class="style">Business / Tech</div>
+      <p class="desc">Hero דק. 2 עמודות: שמאל = כלכלי (הנחה, מחירון, איש קשר). ימין = טכני (SKU, ענן, סוג). notes למטה כ-section full-width.</p>
+      <span class="open-btn">פתח ←</span>
+    </a>
+
+    <a class="card" href="C.html">
+      <span class="badge">C</span>
+      <h2>Tabbed Compact</h2>
+      <div class="style">4 Tabs</div>
+      <p class="desc">4 טאבים: סקירה / מסחרי / רכש &amp; עמידה / איש קשר. דחוס וגלוי — מסתיר את ה-notes הארוכים מאחורי טאב.</p>
+      <span class="open-btn">פתח ←</span>
+    </a>
+  </div>
+</div>
+</body>
+</html>

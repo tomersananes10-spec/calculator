@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>רובד 5 — מוקאפ A · Marketplace Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #1e40af; --primary-light: #3b82f6; --primary-bg: #dbeafe;
+    --secondary: #7c3aed; --secondary-bg: #ede9fe;
+    --navy: #0f172a; --text: #0f172a; --text2: #475569; --text3: #94a3b8;
+    --bg: #f8fafc; --surface: #ffffff; --border: #e2e8f0; --border2: #cbd5e1;
+    --green: #059669; --green-bg: #d1fae5;
+    --amber: #d97706; --amber-bg: #fef3c7;
+    --red: #dc2626; --red-bg: #fee2e2;
+    --radius: 12px;
+  }
+  body { font-family: 'Heebo', system-ui, sans-serif; background: rgba(15,23,42,0.55); min-height: 100vh; padding: 24px; display: flex; align-items: center; justify-content: center; color: var(--text); }
+
+  /* Mock label for context */
+  .mock-label { position: fixed; top: 16px; right: 16px; background: var(--secondary); color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; z-index: 100; }
+
+  /* Modal A — Marketplace Detail Page */
+  .modal { background: var(--surface); border-radius: var(--radius); width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(15,23,42,0.25); position: relative; }
+
+  .close { position: absolute; top: 14px; left: 14px; width: 34px; height: 34px; border: none; background: var(--bg); color: var(--text2); border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; z-index: 2; }
+  .close:hover { background: var(--red-bg); color: var(--red); }
+
+  /* Hero section */
+  .hero { padding: 36px 32px 28px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); }
+  .hero-badges { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .badge { padding: 4px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 700; line-height: 1.5; display: inline-flex; align-items: center; gap: 4px; }
+  .badge-cloud-gcp { background: #fef3c7; color: #b45309; }
+  .badge-type-nonsaas { background: #f3e8ff; color: #7c3aed; }
+  .badge-ps-yes { background: var(--green-bg); color: var(--green); }
+  .badge-ps-no { background: #f1f5f9; color: #64748b; }
+  .hero h1 { font-size: 28px; font-weight: 800; color: var(--navy); margin-bottom: 8px; line-height: 1.25; letter-spacing: -0.3px; }
+  .hero-mfg { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+  .hero-provider { font-size: 13px; color: var(--text3); }
+
+  /* Commercial section — discount + price */
+  .commercial { padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .discount-badge { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 10px; background: var(--green-bg); color: var(--green); font-size: 18px; font-weight: 800; }
+  .discount-badge .pct { font-size: 22px; }
+  .price-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 10px; background: var(--primary); color: #fff; font-size: 14px; font-weight: 700; text-decoration: none; transition: opacity 0.15s, transform 0.15s; border: none; cursor: pointer; font-family: inherit; }
+  .price-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+
+  /* Body sections */
+  .section { padding: 22px 32px; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+  .desc { font-size: 14px; color: var(--text2); line-height: 1.65; }
+
+  /* Quick facts grid */
+  .quick-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; }
+  .fact { display: flex; flex-direction: column; gap: 3px; }
+  .fact-label { font-size: 11px; font-weight: 700; color: var(--text3); }
+  .fact-value { font-size: 14px; font-weight: 600; color: var(--text); word-break: break-word; }
+
+  /* Procurement notes callout */
+  .notes-callout { background: var(--amber-bg); border-inline-start: 4px solid var(--amber); border-radius: 8px; padding: 16px 18px; font-size: 13px; color: #78350f; line-height: 1.65; }
+  .notes-callout .icon { font-size: 16px; margin-inline-end: 4px; }
+
+  /* Contact card */
+  .contact-card { background: var(--bg); border-radius: 10px; padding: 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .contact-info { flex: 1; min-width: 0; }
+  .contact-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .contact-email { font-size: 12px; color: var(--text3); word-break: break-all; }
+  .email-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 10px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; text-decoration: none; transition: opacity 0.15s; white-space: nowrap; }
+  .email-btn:hover { opacity: 0.92; }
+
+  @media (max-width: 600px) {
+    body { padding: 8px; }
+    .hero { padding: 28px 20px 20px; }
+    .hero h1 { font-size: 22px; }
+    .commercial, .section { padding: 18px 20px; }
+    .quick-facts { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mock-label">מוקאפ A · Marketplace Detail</div>
+
+<div class="modal">
+  <button class="close" aria-label="סגור">✕</button>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badges">
+      <span class="badge badge-cloud-gcp">GCP</span>
+      <span class="badge badge-type-nonsaas">non-SaaS</span>
+      <span class="badge badge-ps-no">ללא שירותי מומחים (PS)</span>
+    </div>
+    <h1>Pexip Infinity A La Carte</h1>
+    <div class="hero-mfg">Pexip</div>
+    <div class="hero-provider">ספק: Pexip Ltd · מק"ט G-4943-1 · אושר 08/2023</div>
+  </div>
+
+  <!-- COMMERCIAL -->
+  <div class="commercial">
+    <div class="discount-badge">
+      💰 הנחה <span class="pct">20%</span>
+    </div>
+    <a class="price-btn" href="#">📋 צפה במחירון</a>
+  </div>
+
+  <!-- DESCRIPTION -->
+  <div class="section">
+    <div class="section-label">תיאור השירות</div>
+    <p class="desc">שירות המאפשר לייצר שיחות וידאו בין משתמשים חיצוניים למערכות ארגוניות. תומך בפרוטוקולי SIP/H.323, אינטגרציה עם Microsoft Teams, Cisco Webex, Zoom ו-Google Meet, ומאפשר הקלטה וניהול חדרי וידאו מבוססי ענן.</p>
+  </div>
+
+  <!-- QUICK FACTS -->
+  <div class="section">
+    <div class="section-label">מפרט מהיר</div>
+    <div class="quick-facts">
+      <div class="fact"><span class="fact-label">ענן</span><span class="fact-value">GCP (Google Cloud)</span></div>
+      <div class="fact"><span class="fact-label">סוג שירות</span><span class="fact-value">non-SaaS</span></div>
+      <div class="fact"><span class="fact-label">מק"ט</span><span class="fact-value">G-4943-1</span></div>
+      <div class="fact"><span class="fact-label">מועד אישור</span><span class="fact-value">אוגוסט 2023</span></div>
+      <div class="fact"><span class="fact-label">שירותי מומחים (PS)</span><span class="fact-value">לא כלול</span></div>
+      <div class="fact"><span class="fact-label">אחוז הנחה</span><span class="fact-value" style="color: var(--green); font-weight: 800;">20%</span></div>
+    </div>
+  </div>
+
+  <!-- PROCUREMENT NOTES -->
+  <div class="section">
+    <div class="section-label">⚠️ כללים והנחיות פרטניים</div>
+    <div class="notes-callout">
+      <span class="icon">📌</span>
+      יש לבחון את הרכיבים הנדרשים לצורך מימוש הפתרון מתוך האפשרויות המופיעות בשוק הדיגיטלי. שירות זה ניתן במודל <strong>BYOL</strong> והינו רלוונטי אך ורק לבעלי רישיון למוצר — יש לפעול בהתאם <strong>לסעיף 5.5.4 להודעת מכרז 16.12.3</strong> בנושא "רכש שירותי צד ג' בענן הציבורי של AWS ו-Google".
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="section">
+    <div class="section-label">פרטי איש קשר אצל הספק</div>
+    <div class="contact-card">
+      <div class="contact-info">
+        <div class="contact-name">Richard Hearn</div>
+        <div class="contact-email">richard.hearn@pexip.com</div>
+      </div>
+      <a class="email-btn" href="mailto:richard.hearn@pexip.com">✉ שלח מייל</a>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

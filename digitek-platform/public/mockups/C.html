@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>רובד 5 — מוקאפ C · Tabbed Compact</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #1e40af; --primary-light: #3b82f6; --primary-bg: #dbeafe;
+    --secondary: #7c3aed; --secondary-bg: #ede9fe;
+    --navy: #0f172a; --text: #0f172a; --text2: #475569; --text3: #94a3b8;
+    --bg: #f8fafc; --surface: #ffffff; --border: #e2e8f0; --border2: #cbd5e1;
+    --green: #059669; --green-bg: #d1fae5;
+    --amber: #d97706; --amber-bg: #fef3c7;
+    --red: #dc2626; --red-bg: #fee2e2;
+    --radius: 12px;
+  }
+  body { font-family: 'Heebo', system-ui, sans-serif; background: rgba(15,23,42,0.55); min-height: 100vh; padding: 24px; display: flex; align-items: center; justify-content: center; color: var(--text); }
+
+  .mock-label { position: fixed; top: 16px; right: 16px; background: var(--secondary); color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; z-index: 100; }
+
+  /* Modal C — Tabbed compact */
+  .modal { background: var(--surface); border-radius: var(--radius); width: 100%; max-width: 660px; max-height: 88vh; overflow: hidden; box-shadow: 0 20px 60px rgba(15,23,42,0.25); position: relative; display: flex; flex-direction: column; }
+
+  .close { position: absolute; top: 14px; left: 14px; width: 34px; height: 34px; border: none; background: var(--bg); color: var(--text2); border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; z-index: 2; }
+  .close:hover { background: var(--red-bg); color: var(--red); }
+
+  /* Compact hero */
+  .hero { padding: 24px 28px 16px; border-bottom: 1px solid var(--border); }
+  .hero-badges { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .badge { padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; line-height: 1.5; }
+  .badge-cloud-gcp { background: #fef3c7; color: #b45309; }
+  .badge-type-nonsaas { background: #f3e8ff; color: #7c3aed; }
+  .badge-ps-no { background: #f1f5f9; color: #64748b; }
+  .hero h1 { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 4px; line-height: 1.3; }
+  .hero-mfg { font-size: 13px; font-weight: 700; color: var(--primary); }
+  .hero-mfg .sep { color: var(--text3); font-weight: 400; margin: 0 6px; }
+  .hero-mfg .provider { color: var(--text2); font-weight: 500; }
+
+  /* Tabs */
+  .tabs { display: flex; padding: 0 28px; border-bottom: 1px solid var(--border); background: var(--bg); gap: 4px; overflow-x: auto; }
+  .tab { padding: 12px 16px; border: none; background: transparent; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--text3); cursor: pointer; border-bottom: 2.5px solid transparent; transition: all 0.15s; white-space: nowrap; margin-bottom: -1px; }
+  .tab:hover { color: var(--text2); }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .tab .badge-count { background: var(--primary-bg); color: var(--primary); padding: 1px 6px; border-radius: 6px; font-size: 10px; margin-inline-start: 4px; }
+
+  /* Tab panels */
+  .panel { padding: 22px 28px 28px; overflow-y: auto; flex: 1; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .section-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+  .desc { font-size: 14px; color: var(--text2); line-height: 1.65; margin-bottom: 20px; }
+
+  /* Quick facts grid in Overview */
+  .quick-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fact { background: var(--bg); padding: 10px 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 3px; }
+  .fact-label { font-size: 11px; font-weight: 600; color: var(--text3); }
+  .fact-value { font-size: 13px; font-weight: 700; color: var(--text); }
+
+  /* Commercial tab */
+  .discount-hero { background: var(--green-bg); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 18px; }
+  .discount-hero .pct { font-size: 48px; font-weight: 900; color: var(--green); line-height: 1; margin-bottom: 6px; }
+  .discount-hero .label { font-size: 14px; color: #047857; font-weight: 600; }
+  .price-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border-radius: 10px; background: var(--primary); color: #fff; font-size: 14px; font-weight: 700; text-decoration: none; transition: opacity 0.15s; width: 100%; box-sizing: border-box; }
+  .price-btn:hover { opacity: 0.92; }
+
+  /* Procurement notes */
+  .notes-callout { background: var(--amber-bg); border-inline-start: 4px solid var(--amber); border-radius: 8px; padding: 16px 18px; font-size: 13px; color: #78350f; line-height: 1.7; }
+  .info-row { background: var(--bg); padding: 12px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .info-row .l { font-size: 12px; font-weight: 600; color: var(--text3); }
+  .info-row .v { font-size: 13px; font-weight: 700; color: var(--text); }
+
+  /* Contact */
+  .contact-big { background: var(--bg); border-radius: 12px; padding: 22px; text-align: center; }
+  .contact-name { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+  .contact-role { font-size: 12px; color: var(--text3); margin-bottom: 14px; }
+  .contact-email { display: inline-block; font-size: 13px; color: var(--primary); font-weight: 600; margin-bottom: 18px; word-break: break-all; }
+  .email-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 10px; background: var(--primary); color: #fff; font-size: 14px; font-weight: 700; text-decoration: none; transition: opacity 0.15s; }
+  .email-btn:hover { opacity: 0.92; }
+
+  @media (max-width: 600px) {
+    body { padding: 8px; }
+    .hero { padding: 20px 18px 12px; }
+    .tabs { padding: 0 18px; }
+    .panel { padding: 18px 18px 22px; }
+    .quick-facts { grid-template-columns: 1fr; }
+    .discount-hero .pct { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mock-label">מוקאפ C · Tabbed Compact</div>
+
+<div class="modal">
+  <button class="close" aria-label="סגור">✕</button>
+
+  <div class="hero">
+    <div class="hero-badges">
+      <span class="badge badge-cloud-gcp">GCP</span>
+      <span class="badge badge-type-nonsaas">non-SaaS</span>
+      <span class="badge badge-ps-no">PS: לא כלול</span>
+    </div>
+    <h1>Pexip Infinity A La Carte</h1>
+    <div class="hero-mfg">
+      Pexip
+      <span class="sep">·</span>
+      <span class="provider">Pexip Ltd</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab(0)">סקירה</button>
+    <button class="tab" onclick="showTab(1)">מסחרי</button>
+    <button class="tab" onclick="showTab(2)">רכש & עמידה</button>
+    <button class="tab" onclick="showTab(3)">איש קשר</button>
+  </div>
+
+  <!-- TAB 1: OVERVIEW -->
+  <div class="panel active">
+    <div class="section-label">תיאור השירות</div>
+    <p class="desc">שירות המאפשר לייצר שיחות וידאו בין משתמשים חיצוניים למערכות ארגוניות. תומך בפרוטוקולי SIP/H.323, אינטגרציה עם Microsoft Teams, Cisco Webex, Zoom ו-Google Meet.</p>
+
+    <div class="section-label">מפרט מהיר</div>
+    <div class="quick-facts">
+      <div class="fact"><span class="fact-label">מק"ט</span><span class="fact-value">G-4943-1</span></div>
+      <div class="fact"><span class="fact-label">ענן</span><span class="fact-value">Google Cloud</span></div>
+      <div class="fact"><span class="fact-label">סוג</span><span class="fact-value">non-SaaS</span></div>
+      <div class="fact"><span class="fact-label">מועד אישור</span><span class="fact-value">08/2023</span></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: COMMERCIAL -->
+  <div class="panel">
+    <div class="discount-hero">
+      <div class="pct">20%</div>
+      <div class="label">הנחה ממחיר רשמי לרובד 5</div>
+    </div>
+
+    <a class="price-btn" href="#" style="margin-bottom: 18px;">📋 צפה במחירון מלא</a>
+
+    <div class="info-row"><span class="l">סוג שירות</span><span class="v">non-SaaS</span></div>
+    <div class="info-row"><span class="l">שירותי מומחים (PS)</span><span class="v">לא כלול</span></div>
+    <div class="info-row"><span class="l">מועד אישור</span><span class="v">08/2023</span></div>
+  </div>
+
+  <!-- TAB 3: PROCUREMENT -->
+  <div class="panel">
+    <div class="section-label">⚠️ כללים והנחיות פרטניים</div>
+    <div class="notes-callout">
+      יש לבחון את הרכיבים הנדרשים לצורך מימוש הפתרון מתוך האפשרויות המופיעות בשוק הדיגיטלי. שירות זה ניתן במודל <strong>BYOL</strong> והינו רלוונטי אך ורק לבעלי רישיון למוצר — יש לפעול בהתאם <strong>לסעיף 5.5.4 להודעת מכרז 16.12.3</strong> בנושא "רכש שירותי צד ג' בענן הציבורי של AWS ו-Google".
+    </div>
+
+    <div style="margin-top: 20px;">
+      <div class="info-row"><span class="l">מק"ט הקטלוג</span><span class="v">G-4943-1</span></div>
+      <div class="info-row"><span class="l">מועד אישור</span><span class="v">אוגוסט 2023</span></div>
+      <div class="info-row"><span class="l">דורש BYOL</span><span class="v" style="color: var(--amber);">כן</span></div>
+    </div>
+  </div>
+
+  <!-- TAB 4: CONTACT -->
+  <div class="panel">
+    <div class="contact-big">
+      <div class="contact-name">Richard Hearn</div>
+      <div class="contact-role">נציג Pexip Ltd</div>
+      <div class="contact-email">richard.hearn@pexip.com</div>
+      <a class="email-btn" href="mailto:richard.hearn@pexip.com">✉ שלח מייל</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showTab(idx) {
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+    document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+  }
+</script>
+
+</body>
+</html>
