@@ -431,7 +431,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ─── ServiceModal ─── */
+/* ─── ServiceModal (Mockup B — Split Two-Column) ─── */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -453,8 +453,8 @@
   background: var(--surface);
   border-radius: var(--radius);
   width: 100%;
-  max-width: 640px;
-  max-height: 86vh;
+  max-width: 780px;
+  max-height: 92vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
   animation: modalSlideUp 0.22s ease;
@@ -468,161 +468,261 @@
   position: absolute;
   top: 14px;
   left: 14px;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border: none;
   background: var(--bg);
   color: var(--text2);
   border-radius: 50%;
-  font-size: 14px;
+  font-size: 15px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s;
-  z-index: 2;
+  z-index: 3;
 }
-.modalClose:hover {
-  background: var(--red-bg);
-  color: var(--red);
-}
+.modalClose:hover { background: var(--red-bg); color: var(--red); }
 
-/* Modal header */
-.modalTop {
-  padding: 28px 28px 20px;
+/* Hero — thin sticky */
+.modalHero {
+  padding: 22px 28px 18px;
   border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 .modalBadges {
   display: flex;
   gap: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
 }
-.cloudBadge,
-.typeBadge {
+.badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 6px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
   line-height: 1.5;
 }
-.cloudAWS    { background: #fee2e2; color: #dc2626; }
-.cloudGCP    { background: #fef3c7; color: #b45309; }
-.typeSaaS    { background: #dcfce7; color: #15803d; }
-.typeNonSaaS { background: #f3e8ff; color: #7c3aed; }
+.badgeCloudGCP    { background: #fef3c7; color: #b45309; }
+.badgeCloudAWS    { background: #fee2e2; color: #dc2626; }
+.badgeTypeSaaS    { background: #dcfce7; color: #15803d; }
+.badgeTypeNonSaaS { background: #f3e8ff; color: #7c3aed; }
+.badgePsYes       { background: var(--green-bg); color: var(--green); }
+.badgePsNo        { background: #f1f5f9; color: #64748b; }
 
 .modalTitle {
   font-size: 22px;
   font-weight: 800;
   color: var(--navy, var(--text));
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   line-height: 1.3;
 }
-.modalManufacturer {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--primary);
-  margin: 0;
+.modalMeta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.modalMetaMfg { color: var(--primary); font-weight: 700; }
+.modalMetaSep { color: var(--text3); }
+.modalMetaProvider { color: var(--text2); }
+
+/* Description strip */
+.modalDescBar {
+  padding: 18px 28px;
+  background: var(--bg);
+  font-size: 13.5px;
+  color: var(--text2);
+  line-height: 1.6;
+  border-bottom: 1px solid var(--border);
 }
 
-/* Modal body */
-.modalBody {
-  padding: 22px 28px 28px;
+/* Two-column layout */
+.modalColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
 }
-.modalSection {
-  margin-bottom: 22px;
-}
-.modalSectionLabel {
+.modalCol { padding: 22px 26px; }
+.modalCol:first-child { border-inline-start: 1px solid var(--border); }
+.modalColTech { background: var(--bg); }
+.modalColLabel {
   font-size: 11px;
   font-weight: 700;
   color: var(--text3);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-.modalDesc {
-  font-size: 14px;
-  color: var(--text2);
-  line-height: 1.6;
-  margin: 0;
-}
-.modalNotes {
-  font-size: 13px;
-  color: var(--text2);
-  line-height: 1.6;
-  margin: 0;
-  background: var(--bg);
-  padding: 12px 14px;
-  border-radius: 8px;
-  border-inline-start: 3px solid var(--primary-light);
-}
-
-/* Modal field grid */
-.modalGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 14px;
-  background: var(--bg);
-  padding: 16px;
-  border-radius: var(--radius);
-  margin-bottom: 22px;
-}
-.modalRow {
+  letter-spacing: 0.6px;
+  margin-bottom: 14px;
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-.modalLabel {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text3);
-}
-.modalValue {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-  word-break: break-word;
-}
-
-/* Modal contact block */
-.modalContact {
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-}
-.modalContactName {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  margin: 0 0 10px;
-}
-.modalEmailBtn {
-  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 20px;
+}
+
+/* Business column — discount */
+.discountRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 14px;
+  background: var(--green-bg);
+  border-radius: 10px;
+}
+.discountPct {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--green);
+  line-height: 1;
+}
+.discountLabel {
+  font-size: 13px;
+  color: #047857;
+  font-weight: 600;
+}
+.discountRowNeutral {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 16px;
+  padding: 14px;
+  background: var(--bg);
+  border: 1px dashed var(--border2);
+  border-radius: 10px;
+}
+.discountNa {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text2);
+}
+.discountSub {
+  font-size: 12px;
+  color: var(--text3);
+}
+
+.priceBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
   border-radius: 10px;
   background: var(--primary);
   color: #fff;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   text-decoration: none;
   transition: opacity 0.15s, transform 0.15s;
+  margin-bottom: 6px;
 }
-.modalEmailBtn:hover {
-  opacity: 0.92;
-  transform: translateY(-1px);
+.priceBtn:hover { opacity: 0.92; transform: translateY(-1px); }
+
+.contactMini {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.contactName {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.contactEmail {
+  font-size: 12px;
+  color: var(--text3);
+  word-break: break-all;
+  margin-bottom: 10px;
+}
+.contactEmpty {
+  font-size: 12.5px;
+  color: var(--text3);
+  font-style: italic;
+}
+.emailBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.emailBtn:hover { opacity: 0.92; }
+
+/* Tech column */
+.techGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.techRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-radius: 8px;
+  align-items: center;
+  gap: 12px;
+}
+.techLabel {
+  font-size: 12px;
+  color: var(--text3);
+  font-weight: 600;
+}
+.techValue {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 700;
+  text-align: end;
+  word-break: break-word;
 }
 
-@media (max-width: 768px) {
-  .modalOverlay { padding: 12px; }
-  .modalTop  { padding: 22px 20px 16px; }
-  .modalBody { padding: 18px 20px 22px; }
+/* Notes — full width bottom */
+.modalNotesSection {
+  padding: 22px 28px 28px;
+  border-top: 1px solid var(--border);
+}
+.modalNotesLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
+}
+.modalNotesCallout {
+  background: var(--amber-bg);
+  border-inline-start: 4px solid var(--amber);
+  border-radius: 8px;
+  padding: 16px 18px;
+  font-size: 13px;
+  color: #78350f;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 700px) {
+  .modalOverlay { padding: 8px; }
+  .modalHero { padding: 20px 18px 14px; }
   .modalTitle { font-size: 18px; }
-  .modalGrid { grid-template-columns: 1fr; }
+  .modalDescBar { padding: 16px 18px; }
+  .modalColumns { grid-template-columns: 1fr; }
+  .modalCol:first-child { border-inline-start: none; border-bottom: 1px solid var(--border); }
+  .modalCol { padding: 18px 18px; }
+  .modalNotesSection { padding: 18px 18px 22px; }
 }
 
 /* ── Tablet (≤1024px) ── */
