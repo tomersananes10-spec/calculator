@@ -206,6 +206,15 @@ export function Roved5() {
 
       <div className={styles.resultsInfo}>
         {isAIMode && <span className={styles.aiResultsBadge}>✨ חיפוש חכם</span>}
+        {!isAIMode && debouncedQuery.trim().length >= 3 && !aiLoading && (
+          <button
+            className={styles.aiCtaBadge}
+            onClick={handleAiClick}
+            title="חיפוש חכם — Gemini AI עם הבנה סמנטית של הצורך, לא רק התאמת מילים"
+          >
+            ✨ נסה חיפוש חכם (AI)
+          </button>
+        )}
         {displayed.length > 0 && (
           <span className={styles.resultsCount}>
             {displayed.length.toLocaleString()} תוצאות

@@ -53,6 +53,43 @@ function stemHebrew(word: string): string[] {
   return [...new Set(results)]
 }
 
+// מילון נרדפות — מאחד מונחי תחום בעברית ובאנגלית כדי שחיפוש keyword
+// יהיה רחב יותר. כל ערך = קבוצת מונחים שמרחיבים זה את זה. כשהמשתמש
+// מקליד "אבטחה" — נחפש גם security, firewall, WAF, הצפנה, וכו'.
+const SYNONYMS: string[][] = [
+  ['אבטחה', 'אבטח', 'security', 'firewall', 'waf', 'הצפנה', 'הגנה', 'cyber', 'siem', 'xdr', 'דלף', 'dlp'],
+  ['גיבוי', 'backup', 'recovery', 'שחזור', 'archive', 'אחסון', 'storage', 'נאס', 'nas', 'blob'],
+  ['בסיס נתונים', 'database', 'db', 'sql', 'nosql', 'redis', 'mongo', 'postgres', 'נתונים'],
+  ['ai', 'ml', 'בינה', 'machine learning', 'למידה', 'nlp', 'gpt', 'neural', 'מלאכותית'],
+  ['וידאו', 'video', 'שיחות', 'תקשורת', 'voip', 'meeting', 'conference', 'ועידה'],
+  ['ניטור', 'monitoring', 'observability', 'log', 'logs', 'מעקב', 'splunk', 'datadog', 'grafana', 'alerts'],
+  ['אנליטיקה', 'analytics', 'bi', 'dashboard', 'ניתוח', 'דוחות', 'reports', 'visualization'],
+  ['מחשוב', 'compute', 'vm', 'virtual', 'container', 'kubernetes', 'docker', 'k8s'],
+  ['serverless', 'lambda', 'function', 'cloud function'],
+  ['load balancer', 'איזון', 'עומסים', 'adc', 'cdn', 'מאזן'],
+  ['erp', 'sap', 'מערכת ניהול', 'ניהול משאבים'],
+  ['crm', 'ניהול לקוחות', 'שירות לקוחות', 'salesforce', 'servicenow'],
+  ['etl', 'אינטגרציה', 'integration', 'pipeline', 'data pipeline'],
+  ['קבצים', 'files', 'file', 'אחסון קבצים', 'מסמכים', 'documents'],
+  ['מסרים', 'messaging', 'kafka', 'pub sub', 'queue', 'topic', 'תורים'],
+  ['identity', 'identification', 'sso', 'oauth', 'זהות', 'הזדהות', 'iam'],
+  ['email', 'מייל', 'דואל', 'דואר', 'mail'],
+  ['compliance', 'עמידה', 'תקינה', 'iso', 'gdpr', 'audit', 'ביקורת'],
+]
+
+// אינדקס: מילה → קבוצת הנרדפות שלה
+const SYNONYM_INDEX = new Map<string, Set<string>>()
+for (const group of SYNONYMS) {
+  const set = new Set(group.map(s => s.toLowerCase()))
+  for (const term of group) SYNONYM_INDEX.set(term.toLowerCase(), set)
+}
+
+function expandWithSynonyms(term: string): string[] {
+  const lower = term.toLowerCase()
+  const group = SYNONYM_INDEX.get(lower)
+  return group ? [...group] : []
+}
+
 function expandTerms(term: string): string[] {
   const variants = stemHebrew(term)
 
@@ -62,6 +99,9 @@ function expandTerms(term: string): string[] {
       variants.push(...stemHebrew(term.slice(i)))
     }
   }
+
+  // נרדפות תחומיות (אבטחה ↔ security ↔ WAF וכו')
+  variants.push(...expandWithSynonyms(term))
 
   return [...new Set(variants)]
 }
