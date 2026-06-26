@@ -1,42 +1,5 @@
 import { MODULE_CATALOG } from './moduleCatalog'
 
-const RESPONSE_SCHEMA = {
-  type: 'object',
-  properties: {
-    summary: {
-      type: 'string',
-      description: 'תקציר בעברית של בקשת המשתמש במשפט אחד עד שניים',
-    },
-    tags: {
-      type: 'array',
-      items: { type: 'string' },
-      description: 'עד 5 תגיות עבריות שמתארות את הבקשה (תחום, ענן, סוג רכש וכו)',
-    },
-    steps: {
-      type: 'array',
-      minItems: 1,
-      maxItems: 10,
-      items: {
-        type: 'object',
-        properties: {
-          module_key: {
-            type: 'string',
-            enum: ['brief', 'takam', 'aiml', 'tenders', 'roved5', 'suppliers'],
-          },
-          title:       { type: 'string', description: 'כותרת קצרה לשלב בעברית' },
-          description: { type: 'string', description: 'הסבר בעברית מה השלב הזה נותן למשתמש' },
-          prefill_params: {
-            type: 'object',
-            description: 'פרמטרים שיועברו ל-URL של המודול. ראה prefill_schema לכל מודול',
-          },
-        },
-        required: ['module_key', 'title', 'description', 'prefill_params'],
-      },
-    },
-  },
-  required: ['summary', 'tags', 'steps'],
-}
-
 function moduleCatalogText(): string {
   return MODULE_CATALOG.map(m => (
     `### ${m.he_name} (module_key="${m.key}")\n` +
@@ -119,7 +82,6 @@ export function buildGeminiPayload(wish: string) {
       temperature: 0.4,
       maxOutputTokens: 4096,
       responseMimeType: 'application/json',
-      responseSchema: RESPONSE_SCHEMA,
     },
   }
 }
