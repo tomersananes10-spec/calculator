@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מוקאפ A — ספרייה עם סרגל סינון</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #0ea5e9; --primary-light: #38bdf8; --primary-bg: #e0f2fe; --primary-dark: #0369a1;
+  --navy: #0f172a; --slate: #64748b; --text: #1e293b; --text2: #475569; --text3: #94a3b8;
+  --bg: #f8fafc; --surface: #fff; --border: #e2e8f0; --border2: #cbd5e1;
+  --green: #10b981; --green-bg: #d1fae5; --amber: #f59e0b; --amber-bg: #fef3c7;
+  --red: #ef4444; --red-bg: #fee2e2;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.app { display: grid; grid-template-columns: 1fr 320px; min-height: 100vh; }
+.main { padding: 28px 32px; overflow-y: auto; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.title { font-size: 28px; font-weight: 800; color: var(--navy); }
+.subtitle { color: var(--text2); font-size: 14px; margin-top: 4px; }
+.toolbar { display: flex; align-items: center; gap: 12px; }
+.btn-toggle { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.btn-toggle button { padding: 8px 14px; background: transparent; border: none; cursor: pointer; font-family: inherit; font-size: 13px; color: var(--text2); font-weight: 500; }
+.btn-toggle button.active { background: var(--primary); color: white; }
+.summary { background: var(--primary-bg); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; display: flex; gap: 24px; align-items: center; }
+.summary-num { font-size: 22px; font-weight: 800; color: var(--primary-dark); }
+.summary-label { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.active-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); padding: 4px 10px; border-radius: 999px; font-size: 12px; color: var(--text2); }
+.pill button { background: none; border: none; cursor: pointer; color: var(--text3); font-weight: bold; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; cursor: pointer; transition: all 0.15s; }
+.card:hover { border-color: var(--primary); box-shadow: 0 4px 16px rgba(14, 165, 233, 0.1); }
+.card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px; gap: 8px; }
+.card-name { font-size: 15px; font-weight: 700; color: var(--navy); line-height: 1.3; }
+.card-meta { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.status-active { background: var(--green-bg); color: var(--green); padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.card-specs { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 4px; }
+.spec-tag { background: var(--bg); border: 1px solid var(--border); padding: 3px 8px; border-radius: 6px; font-size: 11px; color: var(--text2); }
+.size-badges { display: flex; gap: 6px; margin-top: 10px; font-size: 11px; }
+.size-large { background: var(--primary-bg); color: var(--primary-dark); padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+.size-small { background: var(--amber-bg); color: var(--amber); padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+
+.rail { background: var(--surface); border-left: 1px solid var(--border); padding: 24px 20px; overflow-y: auto; position: sticky; top: 0; height: 100vh; }
+.rail-section { margin-bottom: 24px; }
+.rail-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 10px; }
+.search { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius); font-family: inherit; font-size: 13px; }
+.search:focus { outline: none; border-color: var(--primary); }
+.cluster-list { display: flex; flex-direction: column; gap: 4px; }
+.cluster-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text); transition: all 0.1s; }
+.cluster-item:hover { background: var(--bg); }
+.cluster-item.active { background: var(--primary-bg); color: var(--primary-dark); font-weight: 600; }
+.cluster-count { font-size: 11px; color: var(--text3); background: var(--bg); padding: 2px 7px; border-radius: 999px; }
+.cluster-item.active .cluster-count { background: var(--primary); color: white; }
+.spec-list { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding-left: 4px; }
+.spec-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; color: var(--text); }
+.spec-item:hover { background: var(--bg); }
+.spec-item input { cursor: pointer; }
+.spec-count { margin-right: auto; font-size: 10px; color: var(--text3); }
+.size-toggle { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--bg); border-radius: 8px; padding: 3px; }
+.size-toggle button { padding: 6px; border: none; background: transparent; border-radius: 6px; font-family: inherit; font-size: 12px; cursor: pointer; color: var(--text2); font-weight: 500; }
+.size-toggle button.active { background: var(--surface); color: var(--primary-dark); font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.clear-btn { width: 100%; padding: 8px; background: transparent; border: 1px dashed var(--border2); border-radius: 8px; color: var(--text2); cursor: pointer; font-family: inherit; font-size: 12px; }
+.clear-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* Drawer */
+.drawer-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); z-index: 100; display: none; }
+.drawer-overlay.open { display: block; }
+.drawer { position: fixed; top: 0; left: 0; height: 100vh; width: 520px; max-width: 90vw; background: var(--surface); box-shadow: 4px 0 24px rgba(0,0,0,0.15); z-index: 101; transform: translateX(-100%); transition: transform 0.25s; overflow-y: auto; }
+.drawer.open { transform: translateX(0); }
+.drawer-header { padding: 24px 28px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.drawer-close { background: var(--bg); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 18px; color: var(--text2); }
+.drawer-body { padding: 24px 28px; }
+.detail-row { display: grid; grid-template-columns: 130px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.detail-row dt { color: var(--text3); }
+.detail-row dd { color: var(--text); font-weight: 500; }
+.quals-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+.quals-table th { background: var(--bg); padding: 8px 10px; text-align: right; color: var(--text3); font-weight: 600; border-bottom: 1px solid var(--border); }
+.quals-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.section-h { font-weight: 700; color: var(--navy); margin: 24px 0 8px; font-size: 14px; }
+
+.empty { text-align: center; padding: 60px 20px; color: var(--text3); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .rail { position: static; height: auto; border-left: none; border-top: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <main class="main">
+    <div class="header">
+      <div>
+        <div class="title">ספקים זוכים</div>
+        <div class="subtitle">נספח ד2 — מכרז דיגטק 07-2023 · 16.2.19</div>
+      </div>
+      <div class="toolbar">
+        <div class="btn-toggle">
+          <button class="active" data-view="cards">לפי ספק</button>
+          <button data-view="matrix">מטריצה</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary">
+      <div><div class="summary-num" id="sumSuppliers">—</div><div class="summary-label">ספקים</div></div>
+      <div><div class="summary-num" id="sumSpecs">—</div><div class="summary-label">התמחויות</div></div>
+      <div><div class="summary-num" id="sumQuals">—</div><div class="summary-label">הרשאות</div></div>
+    </div>
+
+    <div class="active-filters" id="activeFilters"></div>
+    <div class="cards" id="results"></div>
+  </main>
+
+  <aside class="rail">
+    <div class="rail-section">
+      <div class="rail-label">חיפוש חופשי</div>
+      <input type="text" class="search" id="search" placeholder="שם ספק, התמחות, מק&quot;ט...">
+    </div>
+
+    <div class="rail-section">
+      <div class="rail-label">אשכול שירות</div>
+      <div class="cluster-list" id="clusterList"></div>
+    </div>
+
+    <div class="rail-section">
+      <div class="rail-label">התמחויות</div>
+      <div class="spec-list" id="specList"></div>
+    </div>
+
+    <div class="rail-section">
+      <div class="rail-label">גודל התקשרות</div>
+      <div class="size-toggle" id="sizeToggle">
+        <button class="active" data-size="all">הכל</button>
+        <button data-size="גדול">גדול</button>
+        <button data-size="קטן">קטן</button>
+        <button data-size="none">ללא</button>
+      </div>
+    </div>
+
+    <button class="clear-btn" id="clearBtn">↺ נקה הכל</button>
+  </aside>
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer"></div>
+
+<script>
+let DATA = null, filters = { cluster: null, specs: new Set(), size: 'all', q: '' };
+
+fetch('data.json').then(r => r.json()).then(d => { DATA = d; init(); });
+
+function init() {
+  renderClusters();
+  renderSpecs();
+  render();
+  document.getElementById('search').addEventListener('input', e => { filters.q = e.target.value.trim().toLowerCase(); render(); renderActiveFilters(); });
+  document.getElementById('clearBtn').addEventListener('click', () => { filters = { cluster: null, specs: new Set(), size: 'all', q: '' }; document.getElementById('search').value = ''; renderClusters(); renderSpecs(); render(); renderActiveFilters(); setSizeBtn('all'); });
+  document.getElementById('sizeToggle').addEventListener('click', e => { if (e.target.tagName === 'BUTTON') { filters.size = e.target.dataset.size; setSizeBtn(filters.size); render(); renderActiveFilters(); }});
+  document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
+}
+function setSizeBtn(v) { document.querySelectorAll('#sizeToggle button').forEach(b => b.classList.toggle('active', b.dataset.size === v)); }
+
+function renderClusters() {
+  const counts = {}; DATA.rows.forEach(r => counts[r.c] = (counts[r.c] || new Set()).add(r.s));
+  const el = document.getElementById('clusterList');
+  el.innerHTML = '';
+  const allItem = document.createElement('div'); allItem.className = 'cluster-item' + (filters.cluster === null ? ' active' : '');
+  allItem.innerHTML = `<span>כל האשכולות</span><span class="cluster-count">148</span>`;
+  allItem.onclick = () => { filters.cluster = null; filters.specs.clear(); renderClusters(); renderSpecs(); render(); renderActiveFilters(); };
+  el.appendChild(allItem);
+  DATA.clusters.forEach(c => {
+    const item = document.createElement('div'); item.className = 'cluster-item' + (filters.cluster === c.name ? ' active' : '');
+    item.innerHTML = `<span>${c.name}</span><span class="cluster-count">${c.suppliers}</span>`;
+    item.onclick = () => { filters.cluster = c.name; filters.specs.clear(); renderClusters(); renderSpecs(); render(); renderActiveFilters(); };
+    el.appendChild(item);
+  });
+}
+
+function renderSpecs() {
+  const el = document.getElementById('specList');
+  const rows = filters.cluster ? DATA.rows.filter(r => r.c === filters.cluster) : DATA.rows;
+  const specs = {}; rows.forEach(r => { if (!specs[r.sp]) specs[r.sp] = new Set(); specs[r.sp].add(r.s); });
+  el.innerHTML = '';
+  Object.entries(specs).sort(([a],[b]) => a.localeCompare(b, 'he')).forEach(([name, set]) => {
+    const id = 'sp_' + name.replace(/\s/g,'_');
+    const item = document.createElement('label'); item.className = 'spec-item';
+    item.innerHTML = `<input type="checkbox" id="${id}" ${filters.specs.has(name) ? 'checked' : ''}><span>${name}</span><span class="spec-count">${set.size}</span>`;
+    item.querySelector('input').onchange = e => { if (e.target.checked) filters.specs.add(name); else filters.specs.delete(name); render(); renderActiveFilters(); };
+    el.appendChild(item);
+  });
+}
+
+function renderActiveFilters() {
+  const el = document.getElementById('activeFilters'); el.innerHTML = '';
+  const pills = [];
+  if (filters.cluster) pills.push({ text: 'אשכול: ' + filters.cluster, clear: () => { filters.cluster = null; filters.specs.clear(); renderClusters(); renderSpecs(); }});
+  filters.specs.forEach(s => pills.push({ text: s, clear: () => { filters.specs.delete(s); renderSpecs(); }}));
+  if (filters.size !== 'all') pills.push({ text: 'גודל: ' + (filters.size === 'none' ? 'לא מוגדר' : filters.size), clear: () => { filters.size = 'all'; setSizeBtn('all'); }});
+  if (filters.q) pills.push({ text: '"' + filters.q + '"', clear: () => { filters.q = ''; document.getElementById('search').value = ''; }});
+  pills.forEach(p => { const span = document.createElement('span'); span.className = 'pill'; const txt = document.createTextNode(p.text + ' '); span.appendChild(txt); const btn = document.createElement('button'); btn.textContent = '×'; btn.onclick = () => { p.clear(); render(); renderActiveFilters(); }; span.appendChild(btn); el.appendChild(span); });
+}
+
+function getFiltered() {
+  return DATA.rows.filter(r => {
+    if (filters.cluster && r.c !== filters.cluster) return false;
+    if (filters.specs.size && !filters.specs.has(r.sp)) return false;
+    if (filters.size === 'גדול' && r.sz !== 'גדול') return false;
+    if (filters.size === 'קטן' && r.sz !== 'קטן') return false;
+    if (filters.size === 'none' && r.sz) return false;
+    if (filters.q) { const t = (r.s + ' ' + r.sp + ' ' + r.k + ' ' + r.m).toLowerCase(); if (!t.includes(filters.q)) return false; }
+    return true;
+  });
+}
+
+function render() {
+  const rows = getFiltered();
+  const suppliers = {};
+  rows.forEach(r => { if (!suppliers[r.s]) suppliers[r.s] = { name: r.s, m: r.m, ag: r.ag, vf: r.vf, vt: r.vt, quals: [] }; suppliers[r.s].quals.push(r); });
+  const arr = Object.values(suppliers).sort((a,b) => b.quals.length - a.quals.length);
+
+  document.getElementById('sumSuppliers').textContent = arr.length;
+  document.getElementById('sumSpecs').textContent = new Set(rows.map(r => r.sp)).size;
+  document.getElementById('sumQuals').textContent = rows.length;
+
+  const el = document.getElementById('results');
+  if (arr.length === 0) { el.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div>לא נמצאו ספקים בחיתוך זה</div>'; return; }
+  el.innerHTML = arr.slice(0, 60).map(s => {
+    const large = s.quals.filter(q => q.sz === 'גדול').length;
+    const small = s.quals.filter(q => q.sz === 'קטן').length;
+    const specs = [...new Set(s.quals.map(q => q.sp))];
+    const active = new Date(s.vt) >= new Date();
+    const safeName = s.name.replace(/"/g, '&quot;');
+    return `<div class="card" data-name="${safeName}">
+      <div class="card-header">
+        <div><div class="card-name">${s.name}</div><div class="card-meta">מנו"ף ${s.m} · הסכם ${s.ag}</div></div>
+        ${active ? '<span class="status-active">בתוקף</span>' : ''}
+      </div>
+      <div class="card-specs">${specs.slice(0,4).map(sp => `<span class="spec-tag">${sp}</span>`).join('')}${specs.length > 4 ? `<span class="spec-tag">+${specs.length-4}</span>` : ''}</div>
+      <div class="size-badges">${large ? `<span class="size-large">גדול × ${large}</span>` : ''}${small ? `<span class="size-small">קטן × ${small}</span>` : ''}</div>
+    </div>`;
+  }).join('');
+  if (arr.length > 60) el.innerHTML += `<div class="empty" style="grid-column:1/-1">מציג 60 מתוך ${arr.length} · צמצם סינון לראות עוד</div>`;
+  el.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openDrawer(c.dataset.name)));
+}
+
+function openDrawer(name) {
+  const quals = DATA.rows.filter(r => r.s === name);
+  const s = quals[0];
+  const drawer = document.getElementById('drawer');
+  drawer.innerHTML = `
+    <div class="drawer-header">
+      <div><h2 style="font-size:20px;color:var(--navy);margin-bottom:6px">${name}</h2>
+      <span class="status-active">בתוקף עד ${formatDate(s.vt)}</span></div>
+      <button class="drawer-close" onclick="closeDrawer()">×</button>
+    </div>
+    <div class="drawer-body">
+      <dl>
+        <div class="detail-row"><dt>מנו"ף</dt><dd>${s.m}</dd></div>
+        <div class="detail-row"><dt>מספר הסכם סיגמה</dt><dd>${s.ag}</dd></div>
+        <div class="detail-row"><dt>תוקף</dt><dd>${formatDate(s.vf)} — ${formatDate(s.vt)}</dd></div>
+        <div class="detail-row"><dt>סה"כ הרשאות</dt><dd>${quals.length}</dd></div>
+      </dl>
+      <div class="section-h">ההתמחויות של הספק (${quals.length})</div>
+      <table class="quals-table">
+        <thead><tr><th>אשכול</th><th>התמחות</th><th>גודל</th><th>מק"ט</th></tr></thead>
+        <tbody>${quals.map(q => `<tr><td>${q.c}</td><td>${q.sp}</td><td>${q.sz || '—'}</td><td>${q.k}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  drawer.classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+}
+function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); }
+function formatDate(d) { if (!d) return '—'; const x = new Date(d); return `${x.getDate()}/${x.getMonth()+1}/${x.getFullYear()}`; }
+</script>
+</body>
+</html>

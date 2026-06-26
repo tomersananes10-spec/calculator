@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מוקאפ C — חוקר נתונים (טבלה + מטריצה)</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #0ea5e9; --primary-light: #38bdf8; --primary-bg: #e0f2fe; --primary-dark: #0369a1;
+  --navy: #0f172a; --slate: #64748b; --text: #1e293b; --text2: #475569; --text3: #94a3b8;
+  --bg: #f8fafc; --surface: #fff; --border: #e2e8f0; --border2: #cbd5e1;
+  --green: #10b981; --green-bg: #d1fae5; --amber: #f59e0b; --amber-bg: #fef3c7;
+  --red: #ef4444; --red-bg: #fee2e2;
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow: hidden; }
+.app { display: grid; grid-template-columns: 280px 1fr; height: 100vh; }
+
+/* Sidebar */
+.sidebar { background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); }
+.sidebar-title { font-size: 18px; font-weight: 800; color: var(--navy); }
+.sidebar-sub { color: var(--text3); font-size: 11px; margin-top: 2px; }
+.tree { flex: 1; overflow-y: auto; padding: 12px 8px; }
+.tree-section { margin-bottom: 4px; }
+.tree-cluster { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text); transition: all 0.1s; }
+.tree-cluster:hover { background: var(--bg); }
+.tree-cluster.active { background: var(--primary-bg); color: var(--primary-dark); font-weight: 700; }
+.tree-cluster .arrow { font-size: 10px; color: var(--text3); transition: transform 0.15s; }
+.tree-cluster.expanded .arrow { transform: rotate(90deg); }
+.tree-cluster .name { flex: 1; }
+.tree-cluster .count { font-size: 10px; background: var(--bg); color: var(--text3); padding: 1px 7px; border-radius: 999px; }
+.tree-cluster.active .count { background: var(--primary); color: white; }
+.tree-specs { display: none; padding-right: 16px; margin: 4px 0; }
+.tree-specs.expanded { display: block; }
+.tree-spec { display: flex; gap: 6px; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; color: var(--text2); }
+.tree-spec:hover { background: var(--bg); color: var(--text); }
+.tree-spec.active { background: var(--primary-bg); color: var(--primary-dark); font-weight: 600; }
+.tree-spec .count { margin-right: auto; font-size: 10px; color: var(--text3); }
+
+/* Main */
+.main { display: flex; flex-direction: column; overflow: hidden; }
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; gap: 12px; align-items: center; }
+.search { flex: 1; max-width: 420px; padding: 9px 14px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 13px; }
+.search:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-bg); }
+.seg { display: flex; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
+.seg button { padding: 7px 14px; background: transparent; border: none; border-radius: 6px; font-family: inherit; font-size: 12px; cursor: pointer; color: var(--text2); font-weight: 600; }
+.seg button.active { background: var(--surface); color: var(--primary-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.spacer { flex: 1; }
+.stat-mini { display: flex; gap: 16px; font-size: 12px; }
+.stat-mini div { display: flex; flex-direction: column; align-items: flex-end; }
+.stat-mini strong { font-size: 16px; color: var(--navy); font-weight: 800; }
+.stat-mini span { color: var(--text3); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.content { flex: 1; overflow: auto; padding: 16px 24px; }
+.breadcrumb { font-size: 12px; color: var(--text3); margin-bottom: 12px; }
+.breadcrumb strong { color: var(--text); }
+
+/* Table view */
+.dt { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.dt th { background: var(--bg); padding: 10px 12px; text-align: right; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; border-bottom: 1px solid var(--border); position: sticky; top: 0; cursor: pointer; }
+.dt th:hover { color: var(--primary); }
+.dt td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.dt tr { cursor: pointer; transition: background 0.1s; }
+.dt tr:hover td { background: var(--primary-bg); }
+.dt .supplier { font-weight: 600; color: var(--navy); }
+.dt .sku { font-family: monospace; font-size: 11px; color: var(--text3); }
+.size-pill { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.size-pill.large { background: var(--primary-bg); color: var(--primary-dark); }
+.size-pill.small { background: var(--amber-bg); color: #b45309; }
+.size-pill.none { background: var(--bg); color: var(--text3); }
+
+/* Matrix view */
+.matrix-wrap { background: var(--surface); border-radius: var(--radius); padding: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: auto; }
+.matrix { border-collapse: separate; border-spacing: 2px; font-size: 11px; }
+.matrix th { background: var(--bg); padding: 8px 10px; font-weight: 600; color: var(--text2); text-align: center; }
+.matrix th.supplier-h { text-align: right; min-width: 200px; max-width: 200px; position: sticky; right: 0; background: var(--surface); z-index: 2; border-left: 2px solid var(--border); padding: 8px 12px; }
+.matrix th.spec-h { writing-mode: vertical-rl; transform: rotate(180deg); padding: 14px 6px; max-width: 32px; height: 160px; vertical-align: bottom; font-size: 10px; line-height: 1.1; cursor: help; }
+.matrix td { width: 32px; height: 32px; text-align: center; background: var(--bg); border-radius: 4px; vertical-align: middle; cursor: pointer; transition: all 0.1s; }
+.matrix td:hover { transform: scale(1.15); box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 2; position: relative; }
+.matrix td.has { background: var(--primary); color: white; font-weight: 700; }
+.matrix td.has-both { background: linear-gradient(135deg, var(--primary) 50%, var(--amber) 50%); color: white; }
+.matrix td.has-small { background: var(--amber); color: white; font-weight: 700; }
+.matrix td.has-none { background: var(--text3); color: white; font-weight: 700; }
+.matrix td.supplier-c { text-align: right; font-weight: 600; color: var(--navy); background: var(--surface); position: sticky; right: 0; z-index: 1; border-left: 2px solid var(--border); padding: 6px 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.matrix-legend { display: flex; gap: 14px; padding: 8px 12px; font-size: 11px; color: var(--text3); }
+.matrix-legend .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+
+/* Detail panel (bottom drawer style) */
+.detail-panel { background: var(--surface); border-top: 2px solid var(--primary); padding: 18px 24px; max-height: 280px; overflow-y: auto; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); display: none; }
+.detail-panel.open { display: block; }
+.detail-panel-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; gap: 16px; }
+.detail-panel-title { font-size: 17px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+.detail-panel-meta { font-size: 11px; color: var(--text3); }
+.detail-panel-close { background: var(--bg); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; color: var(--text2); flex-shrink: 0; }
+.detail-tags { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px; }
+.detail-tag { background: var(--bg); padding: 6px 10px; border-radius: 6px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.detail-tag .sp { color: var(--text); }
+.detail-tag .meta { font-size: 10px; color: var(--text3); }
+
+.empty { text-align: center; padding: 80px 20px; color: var(--text3); }
+.empty .icon { font-size: 48px; margin-bottom: 12px; }
+
+@media (max-width: 900px) { .app { grid-template-columns: 1fr; } .sidebar { display: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">ספקים זוכים</div>
+      <div class="sidebar-sub">דיגטק 07-2023 · 16.2.19</div>
+    </div>
+    <div class="tree" id="tree"></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <input type="text" class="search" id="search" placeholder="חיפוש ספק, התמחות, מק&quot;ט, מנו&quot;ף...">
+      <div class="seg" id="sizeSeg">
+        <button class="active" data-size="all">הכל</button>
+        <button data-size="גדול">גדול</button>
+        <button data-size="קטן">קטן</button>
+        <button data-size="none">ללא</button>
+      </div>
+      <div class="seg" id="viewSeg">
+        <button class="active" data-view="table">📋 טבלה</button>
+        <button data-view="matrix">⊞ מטריצה</button>
+      </div>
+      <div class="spacer"></div>
+      <div class="stat-mini">
+        <div><strong id="stSuppliers">—</strong><span>ספקים</span></div>
+        <div><strong id="stSpecs">—</strong><span>התמחויות</span></div>
+        <div><strong id="stQuals">—</strong><span>הרשאות</span></div>
+      </div>
+    </div>
+
+    <div class="content" id="content">
+      <div class="breadcrumb" id="breadcrumb">—</div>
+      <div id="viewArea"></div>
+    </div>
+
+    <div class="detail-panel" id="detail"></div>
+  </main>
+</div>
+
+<script>
+let DATA = null, filters = { cluster: null, spec: null, size: 'all', q: '' }, view = 'table';
+
+fetch('data.json').then(r => r.json()).then(d => { DATA = d; init(); });
+
+function init() {
+  renderTree();
+  render();
+  document.getElementById('search').addEventListener('input', e => { filters.q = e.target.value.trim().toLowerCase(); render(); });
+  document.getElementById('sizeSeg').addEventListener('click', e => { if (e.target.tagName === 'BUTTON') { filters.size = e.target.dataset.size; document.querySelectorAll('#sizeSeg button').forEach(b => b.classList.toggle('active', b === e.target)); render(); }});
+  document.getElementById('viewSeg').addEventListener('click', e => { if (e.target.tagName === 'BUTTON') { view = e.target.dataset.view; document.querySelectorAll('#viewSeg button').forEach(b => b.classList.toggle('active', b === e.target)); render(); }});
+}
+
+function renderTree() {
+  const el = document.getElementById('tree');
+  el.innerHTML = '';
+  const allBtn = document.createElement('div'); allBtn.className = 'tree-cluster' + (filters.cluster === null ? ' active' : '');
+  allBtn.innerHTML = `<span class="arrow"></span><span class="name">כל האשכולות</span><span class="count">148</span>`;
+  allBtn.onclick = () => { filters.cluster = null; filters.spec = null; renderTree(); render(); };
+  el.appendChild(allBtn);
+
+  DATA.clusters.forEach(c => {
+    const wrap = document.createElement('div'); wrap.className = 'tree-section';
+    const item = document.createElement('div'); item.className = 'tree-cluster' + (filters.cluster === c.name ? ' active expanded' : '');
+    item.innerHTML = `<span class="arrow">▶</span><span class="name">${c.name}</span><span class="count">${c.suppliers}</span>`;
+    item.onclick = () => { filters.cluster = filters.cluster === c.name ? null : c.name; filters.spec = null; renderTree(); render(); };
+    wrap.appendChild(item);
+
+    const specsDiv = document.createElement('div'); specsDiv.className = 'tree-specs' + (filters.cluster === c.name ? ' expanded' : '');
+    const specs = {}; DATA.rows.filter(r => r.c === c.name).forEach(r => { if (!specs[r.sp]) specs[r.sp] = new Set(); specs[r.sp].add(r.s); });
+    Object.entries(specs).sort(([a],[b]) => a.localeCompare(b, 'he')).forEach(([name, set]) => {
+      const sp = document.createElement('div'); sp.className = 'tree-spec' + (filters.spec === name ? ' active' : '');
+      sp.innerHTML = `<span>${name}</span><span class="count">${set.size}</span>`;
+      sp.onclick = e => { e.stopPropagation(); filters.spec = filters.spec === name ? null : name; renderTree(); render(); };
+      specsDiv.appendChild(sp);
+    });
+    wrap.appendChild(specsDiv);
+    el.appendChild(wrap);
+  });
+}
+
+function getFiltered() {
+  return DATA.rows.filter(r => {
+    if (filters.cluster && r.c !== filters.cluster) return false;
+    if (filters.spec && r.sp !== filters.spec) return false;
+    if (filters.size === 'גדול' && r.sz !== 'גדול') return false;
+    if (filters.size === 'קטן' && r.sz !== 'קטן') return false;
+    if (filters.size === 'none' && r.sz) return false;
+    if (filters.q) { const t = (r.s + ' ' + r.sp + ' ' + r.k + ' ' + r.m + ' ' + r.ag).toLowerCase(); if (!t.includes(filters.q)) return false; }
+    return true;
+  });
+}
+
+function render() {
+  const rows = getFiltered();
+  const suppliers = new Set(rows.map(r => r.s));
+  const specs = new Set(rows.map(r => r.sp));
+  document.getElementById('stSuppliers').textContent = suppliers.size;
+  document.getElementById('stSpecs').textContent = specs.size;
+  document.getElementById('stQuals').textContent = rows.length;
+
+  const crumbs = [];
+  crumbs.push(filters.cluster ? `<strong>${filters.cluster}</strong>` : '<strong>כל האשכולות</strong>');
+  if (filters.spec) crumbs.push(`<strong>${filters.spec}</strong>`);
+  if (filters.size !== 'all') crumbs.push(`גודל: <strong>${filters.size === 'none' ? 'לא מוגדר' : filters.size}</strong>`);
+  if (filters.q) crumbs.push(`חיפוש: <strong>"${filters.q}"</strong>`);
+  document.getElementById('breadcrumb').innerHTML = crumbs.join(' › ');
+
+  const area = document.getElementById('viewArea');
+  if (rows.length === 0) { area.innerHTML = '<div class="empty"><div class="icon">🔍</div>לא נמצאו ספקים בחיתוך זה</div>'; return; }
+
+  if (view === 'table') renderTable(rows, area);
+  else renderMatrix(rows, area);
+}
+
+function renderTable(rows, area) {
+  const sorted = [...rows].sort((a,b) => a.s.localeCompare(b.s, 'he') || a.sp.localeCompare(b.sp, 'he'));
+  const limit = 200;
+  area.innerHTML = `<table class="dt">
+    <thead><tr><th>ספק</th><th>אשכול</th><th>התמחות</th><th>גודל</th><th>מק"ט</th><th>תוקף עד</th></tr></thead>
+    <tbody>${sorted.slice(0, limit).map((r,i) => {
+      const safe = r.s.replace(/"/g, '&quot;');
+      return `<tr data-name="${safe}">
+        <td class="supplier">${r.s}</td>
+        <td>${r.c}</td>
+        <td>${r.sp}</td>
+        <td><span class="size-pill ${r.sz === 'גדול' ? 'large' : r.sz === 'קטן' ? 'small' : 'none'}">${r.sz || 'לא מוגדר'}</span></td>
+        <td class="sku">${r.k}</td>
+        <td>${formatDate(r.vt)}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>${sorted.length > limit ? `<div class="empty" style="padding:20px">מציג ${limit} מתוך ${sorted.length} שורות · השתמש בסינון כדי לראות עוד</div>` : ''}`;
+  area.querySelectorAll('tr[data-name]').forEach(tr => tr.addEventListener('click', () => openDetail(tr.dataset.name)));
+}
+
+function renderMatrix(rows, area) {
+  const suppliers = [...new Set(rows.map(r => r.s))].sort((a,b) => a.localeCompare(b, 'he'));
+  const specs = [...new Set(rows.map(r => r.sp))].sort((a,b) => a.localeCompare(b, 'he'));
+  if (suppliers.length > 40 || specs.length > 30) {
+    area.innerHTML = `<div class="empty"><div class="icon">⊞</div>מטריצה זמינה כשמסננים לקבוצה קטנה<br>${suppliers.length} ספקים × ${specs.length} התמחויות — בחר אשכול ספציפי מהעמודה השמאלית</div>`;
+    return;
+  }
+  const map = {};
+  rows.forEach(r => { const k = r.s + '||' + r.sp; if (!map[k]) map[k] = new Set(); map[k].add(r.sz || 'none'); });
+
+  let html = '<div class="matrix-legend"><span><span class="swatch" style="background:var(--primary)"></span>גדול</span><span><span class="swatch" style="background:var(--amber)"></span>קטן</span><span><span class="swatch" style="background:linear-gradient(135deg,var(--primary) 50%,var(--amber) 50%)"></span>גם וגם</span><span><span class="swatch" style="background:var(--text3)"></span>לא מוגדר</span></div>';
+  html += '<div class="matrix-wrap"><table class="matrix"><thead><tr><th class="supplier-h">ספק / התמחות</th>';
+  specs.forEach(sp => html += `<th class="spec-h" title="${sp}">${sp.length > 28 ? sp.slice(0,28)+'…' : sp}</th>`);
+  html += '</tr></thead><tbody>';
+  suppliers.forEach(s => {
+    const safe = s.replace(/"/g, '&quot;');
+    html += `<tr><td class="supplier-c" data-name="${safe}">${s}</td>`;
+    specs.forEach(sp => {
+      const sizes = map[s + '||' + sp];
+      if (!sizes) { html += '<td></td>'; return; }
+      const hasL = sizes.has('גדול'), hasS = sizes.has('קטן'), hasN = sizes.has('none');
+      let cls = 'has', sym = '●';
+      if (hasL && hasS) { cls = 'has-both'; sym = 'L+S'; }
+      else if (hasS && !hasL) { cls = 'has-small'; sym = 'S'; }
+      else if (hasN && !hasL && !hasS) { cls = 'has-none'; sym = '?'; }
+      else { sym = 'L'; }
+      html += `<td class="${cls}" data-name="${safe}" data-sp="${sp.replace(/"/g, '&quot;')}" title="${s} — ${sp}">${sym}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  area.innerHTML = html;
+  area.querySelectorAll('[data-name]').forEach(el => el.addEventListener('click', () => openDetail(el.dataset.name)));
+}
+
+function openDetail(name) {
+  const quals = DATA.rows.filter(r => r.s === name);
+  const s = quals[0];
+  const panel = document.getElementById('detail');
+  panel.innerHTML = `
+    <div class="detail-panel-header">
+      <div>
+        <div class="detail-panel-title">${name}</div>
+        <div class="detail-panel-meta">מנו"ף ${s.m} · הסכם ${s.ag} · תוקף עד ${formatDate(s.vt)} · ${quals.length} הרשאות</div>
+      </div>
+      <button class="detail-panel-close" id="detClose">×</button>
+    </div>
+    <div class="detail-tags">${quals.map(q => `<div class="detail-tag"><span class="sp">${q.sp}</span><span><span class="size-pill ${q.sz === 'גדול' ? 'large' : q.sz === 'קטן' ? 'small' : 'none'}">${q.sz || '—'}</span> <span class="meta">${q.k}</span></span></div>`).join('')}</div>`;
+  panel.classList.add('open');
+  document.getElementById('detClose').onclick = () => panel.classList.remove('open');
+}
+
+function formatDate(d) { if (!d) return '—'; const x = new Date(d); return `${x.getDate()}/${x.getMonth()+1}/${x.getFullYear()}`; }
+</script>
+</body>
+</html>

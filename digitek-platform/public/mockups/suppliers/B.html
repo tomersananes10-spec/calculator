@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מוקאפ B — קטלוג דמוי רובד 5</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #0ea5e9; --primary-light: #38bdf8; --primary-bg: #e0f2fe; --primary-dark: #0369a1;
+  --navy: #0f172a; --slate: #64748b; --text: #1e293b; --text2: #475569; --text3: #94a3b8;
+  --bg: #f8fafc; --surface: #fff; --border: #e2e8f0; --border2: #cbd5e1;
+  --green: #10b981; --green-bg: #d1fae5; --amber: #f59e0b; --amber-bg: #fef3c7;
+  --red: #ef4444; --red-bg: #fee2e2;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.container { max-width: 1280px; margin: 0 auto; padding: 32px 24px; }
+.header { text-align: center; margin-bottom: 28px; }
+.title { font-size: 36px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+.subtitle { color: var(--text2); font-size: 15px; }
+.count-line { color: var(--text2); font-size: 13px; margin-top: 4px; }
+
+.search-row { display: flex; gap: 10px; align-items: center; max-width: 760px; margin: 0 auto 20px; }
+.search-pill { flex: 1; display: flex; background: var(--surface); border: 1.5px solid var(--border); border-radius: 999px; padding: 4px 4px 4px 20px; transition: border-color 0.15s; }
+.search-pill:focus-within { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-bg); }
+.search-pill input { flex: 1; border: none; outline: none; padding: 10px 0; font-family: inherit; font-size: 14px; background: transparent; }
+.search-pill .icon { color: var(--text3); font-size: 18px; align-self: center; margin-left: 8px; }
+.size-seg { display: flex; background: var(--surface); border: 1.5px solid var(--border); border-radius: 999px; padding: 3px; }
+.size-seg button { padding: 8px 14px; background: transparent; border: none; border-radius: 999px; font-family: inherit; font-size: 12px; cursor: pointer; color: var(--text2); font-weight: 600; }
+.size-seg button.active { background: var(--primary); color: white; }
+
+.cluster-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
+.cluster-chip { background: var(--surface); border: 1.5px solid var(--border); padding: 8px 16px; border-radius: 999px; font-size: 13px; cursor: pointer; color: var(--text); font-weight: 500; transition: all 0.1s; display: inline-flex; align-items: center; gap: 8px; }
+.cluster-chip:hover { border-color: var(--primary-light); }
+.cluster-chip.active { background: var(--navy); color: white; border-color: var(--navy); }
+.cluster-chip .num { background: var(--bg); color: var(--text2); padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.cluster-chip.active .num { background: rgba(255,255,255,0.2); color: white; }
+
+.adv-toggle { display: block; margin: 0 auto 16px; padding: 6px 14px; background: transparent; border: 1px dashed var(--border2); border-radius: 999px; color: var(--text2); cursor: pointer; font-family: inherit; font-size: 12px; }
+.adv-toggle:hover { color: var(--primary); border-color: var(--primary); }
+.adv-panel { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 20px; }
+.adv-panel.open { display: block; }
+.adv-panel h4 { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.spec-chips { display: flex; gap: 6px; flex-wrap: wrap; max-height: 240px; overflow-y: auto; }
+.spec-chip { background: var(--bg); border: 1px solid var(--border); padding: 5px 11px; border-radius: 999px; font-size: 12px; cursor: pointer; color: var(--text); display: inline-flex; align-items: center; gap: 6px; }
+.spec-chip:hover { border-color: var(--primary); }
+.spec-chip.active { background: var(--primary-bg); border-color: var(--primary); color: var(--primary-dark); font-weight: 600; }
+.spec-chip .n { font-size: 10px; color: var(--text3); }
+.spec-chip.active .n { color: var(--primary-dark); }
+
+.results-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; }
+.results-info .count { color: var(--text2); font-size: 13px; }
+.results-info .count strong { color: var(--navy); font-size: 16px; }
+
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: all 0.15s; position: relative; }
+.card:hover { border-color: var(--primary); box-shadow: 0 6px 20px rgba(14, 165, 233, 0.1); transform: translateY(-2px); }
+.card-stripe { height: 4px; }
+.c-stripe-0 { background: #0ea5e9; } .c-stripe-1 { background: #8b5cf6; } .c-stripe-2 { background: #ec4899; }
+.c-stripe-3 { background: #f97316; } .c-stripe-4 { background: #10b981; } .c-stripe-5 { background: #ef4444; }
+.c-stripe-6 { background: #14b8a6; }
+.card-body { padding: 16px 18px; }
+.card-name { font-size: 16px; font-weight: 700; color: var(--navy); line-height: 1.3; margin-bottom: 6px; }
+.card-meta { font-size: 11px; color: var(--text3); margin-bottom: 12px; }
+.card-clusters { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.cl-tag { font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+.card-summary { display: flex; gap: 16px; padding-top: 10px; border-top: 1px solid var(--border); }
+.s-num { font-size: 18px; font-weight: 800; color: var(--navy); }
+.s-lab { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+.card-footer { display: flex; justify-content: space-between; padding: 10px 18px; background: var(--bg); border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); }
+.status-active { color: var(--green); font-weight: 700; }
+.status-warning { color: var(--amber); font-weight: 700; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: var(--radius); max-width: 760px; width: 100%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.modal-header { padding: 24px 28px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 16px; }
+.modal-close { background: var(--bg); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 18px; color: var(--text2); flex-shrink: 0; }
+.modal-body { padding: 24px 28px; overflow-y: auto; flex: 1; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.detail-cell { background: var(--bg); border-radius: 8px; padding: 10px 14px; }
+.detail-cell dt { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.detail-cell dd { font-size: 14px; color: var(--text); font-weight: 600; }
+.qual-group { margin-top: 16px; }
+.qual-group h5 { font-size: 13px; color: var(--text3); margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+.qual-row { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 6px 4px; font-size: 13px; align-items: center; }
+.qual-row .name { color: var(--text); }
+.qual-row .size { font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+.qual-row .sku { font-size: 11px; color: var(--text3); font-family: monospace; }
+.size-large { background: var(--primary-bg); color: var(--primary-dark); }
+.size-small { background: var(--amber-bg); color: #b45309; }
+.size-none { background: var(--bg); color: var(--text3); }
+
+.empty { text-align: center; padding: 60px 20px; color: var(--text3); grid-column: 1/-1; }
+.empty .icon { font-size: 48px; margin-bottom: 12px; }
+
+@media (max-width: 980px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .cards { grid-template-columns: 1fr; } .detail-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1 class="title">ספקים זוכים</h1>
+    <div class="subtitle">נספח ד2 — מכרז דיגטק 07-2023 · הודעה 16.2.19</div>
+    <div class="count-line" id="countLine">—</div>
+  </div>
+
+  <div class="search-row">
+    <div class="search-pill">
+      <input type="text" id="search" placeholder="חיפוש ספק, התמחות, מק&quot;ט...">
+      <span class="icon">🔍</span>
+    </div>
+    <div class="size-seg" id="sizeSeg">
+      <button class="active" data-size="all">הכל</button>
+      <button data-size="גדול">גדול</button>
+      <button data-size="קטן">קטן</button>
+    </div>
+  </div>
+
+  <div class="cluster-chips" id="clusterChips"></div>
+
+  <button class="adv-toggle" id="advToggle">⚙️ סינון התמחויות</button>
+  <div class="adv-panel" id="advPanel">
+    <h4>בחר התמחויות (מספר אפשרי)</h4>
+    <div class="spec-chips" id="specChips"></div>
+  </div>
+
+  <div class="results-info">
+    <div class="count"><strong id="cnt">—</strong> ספקים זוכים</div>
+    <div class="count" id="cntDetail">—</div>
+  </div>
+
+  <div class="cards" id="results"></div>
+</div>
+
+<div class="modal-overlay" id="modal"></div>
+
+<script>
+let DATA = null, filters = { cluster: null, specs: new Set(), size: 'all', q: '' };
+const CLUSTER_COLORS = {};
+
+fetch('data.json').then(r => r.json()).then(d => {
+  DATA = d;
+  d.clusters.forEach((c, i) => CLUSTER_COLORS[c.name] = i);
+  init();
+});
+
+function init() {
+  renderClusterChips();
+  renderSpecChips();
+  render();
+  document.getElementById('search').addEventListener('input', e => { filters.q = e.target.value.trim().toLowerCase(); render(); });
+  document.getElementById('sizeSeg').addEventListener('click', e => { if (e.target.tagName === 'BUTTON') { filters.size = e.target.dataset.size; document.querySelectorAll('#sizeSeg button').forEach(b => b.classList.toggle('active', b === e.target)); render(); }});
+  document.getElementById('advToggle').addEventListener('click', () => { document.getElementById('advPanel').classList.toggle('open'); });
+}
+
+function renderClusterChips() {
+  const el = document.getElementById('clusterChips');
+  el.innerHTML = '';
+  const all = document.createElement('button');
+  all.className = 'cluster-chip' + (filters.cluster === null ? ' active' : '');
+  all.innerHTML = `<span>כל האשכולות</span><span class="num">148</span>`;
+  all.onclick = () => { filters.cluster = null; filters.specs.clear(); renderClusterChips(); renderSpecChips(); render(); };
+  el.appendChild(all);
+  DATA.clusters.forEach(c => {
+    const chip = document.createElement('button');
+    chip.className = 'cluster-chip' + (filters.cluster === c.name ? ' active' : '');
+    chip.innerHTML = `<span>${c.name}</span><span class="num">${c.suppliers}</span>`;
+    chip.onclick = () => { filters.cluster = filters.cluster === c.name ? null : c.name; filters.specs.clear(); renderClusterChips(); renderSpecChips(); render(); };
+    el.appendChild(chip);
+  });
+}
+
+function renderSpecChips() {
+  const el = document.getElementById('specChips');
+  const rows = filters.cluster ? DATA.rows.filter(r => r.c === filters.cluster) : DATA.rows;
+  const counts = {}; rows.forEach(r => { if (!counts[r.sp]) counts[r.sp] = new Set(); counts[r.sp].add(r.s); });
+  el.innerHTML = '';
+  Object.entries(counts).sort(([a],[b]) => a.localeCompare(b, 'he')).forEach(([name, set]) => {
+    const chip = document.createElement('button');
+    chip.className = 'spec-chip' + (filters.specs.has(name) ? ' active' : '');
+    chip.innerHTML = `<span>${name}</span><span class="n">${set.size}</span>`;
+    chip.onclick = () => { if (filters.specs.has(name)) filters.specs.delete(name); else filters.specs.add(name); renderSpecChips(); render(); };
+    el.appendChild(chip);
+  });
+}
+
+function getFiltered() {
+  return DATA.rows.filter(r => {
+    if (filters.cluster && r.c !== filters.cluster) return false;
+    if (filters.specs.size && !filters.specs.has(r.sp)) return false;
+    if (filters.size === 'גדול' && r.sz !== 'גדול') return false;
+    if (filters.size === 'קטן' && r.sz !== 'קטן') return false;
+    if (filters.q) { const t = (r.s + ' ' + r.sp + ' ' + r.k + ' ' + r.m).toLowerCase(); if (!t.includes(filters.q)) return false; }
+    return true;
+  });
+}
+
+function render() {
+  const rows = getFiltered();
+  const sup = {};
+  rows.forEach(r => { if (!sup[r.s]) sup[r.s] = { name: r.s, m: r.m, ag: r.ag, vf: r.vf, vt: r.vt, quals: [] }; sup[r.s].quals.push(r); });
+  const arr = Object.values(sup).sort((a,b) => b.quals.length - a.quals.length);
+
+  document.getElementById('cnt').textContent = arr.length;
+  document.getElementById('cntDetail').textContent = `${new Set(rows.map(r=>r.sp)).size} התמחויות · ${rows.length} הרשאות`;
+  document.getElementById('countLine').textContent = `${DATA.totals.suppliers} ספקים · ${DATA.totals.specialties} התמחויות · ${DATA.clusters.length} אשכולות`;
+
+  const el = document.getElementById('results');
+  if (arr.length === 0) { el.innerHTML = '<div class="empty"><div class="icon">🔍</div>לא נמצאו ספקים בחיתוך זה<br>נסה להרחיב את הסינון</div>'; return; }
+
+  el.innerHTML = arr.slice(0, 60).map(s => {
+    const clusters = [...new Set(s.quals.map(q => q.c))];
+    const mainCluster = clusters[0];
+    const stripeIdx = CLUSTER_COLORS[mainCluster] ?? 0;
+    const large = s.quals.filter(q => q.sz === 'גדול').length;
+    const small = s.quals.filter(q => q.sz === 'קטן').length;
+    const specCount = new Set(s.quals.map(q => q.sp)).size;
+    const vt = new Date(s.vt); const today = new Date(); const days = Math.floor((vt - today) / 86400000);
+    const statusClass = days < 0 ? 'status-warning' : days < 90 ? 'status-warning' : 'status-active';
+    const statusText = days < 0 ? 'פג תוקף' : days < 90 ? `פג בעוד ${days} ימים` : `בתוקף עד ${vt.getFullYear()}`;
+    const safe = s.name.replace(/"/g, '&quot;');
+    return `<div class="card" data-name="${safe}">
+      <div class="card-stripe c-stripe-${stripeIdx}"></div>
+      <div class="card-body">
+        <div class="card-name">${s.name}</div>
+        <div class="card-meta">מנו"ף ${s.m} · הסכם ${s.ag}</div>
+        <div class="card-clusters">${clusters.slice(0,2).map(c => `<span class="cl-tag" style="background:var(--bg);color:var(--text2)">${c}</span>`).join('')}${clusters.length > 2 ? `<span class="cl-tag" style="background:var(--bg);color:var(--text3)">+${clusters.length-2}</span>` : ''}</div>
+        <div class="card-summary">
+          <div><div class="s-num">${specCount}</div><div class="s-lab">התמחויות</div></div>
+          <div><div class="s-num" style="color:var(--primary)">${large}</div><div class="s-lab">גדול</div></div>
+          <div><div class="s-num" style="color:var(--amber)">${small}</div><div class="s-lab">קטן</div></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="${statusClass}">● ${statusText}</span>
+        <span>${formatDate(s.vf)}</span>
+      </div>
+    </div>`;
+  }).join('');
+  if (arr.length > 60) el.innerHTML += `<div class="empty">מציג 60 מתוך ${arr.length} · צמצם סינון לראות עוד</div>`;
+  el.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openModal(c.dataset.name)));
+}
+
+function openModal(name) {
+  const quals = DATA.rows.filter(r => r.s === name);
+  const s = quals[0];
+  const byCluster = {};
+  quals.forEach(q => { if (!byCluster[q.c]) byCluster[q.c] = []; byCluster[q.c].push(q); });
+  const m = document.getElementById('modal');
+  m.innerHTML = `<div class="modal">
+    <div class="modal-header">
+      <div><h2 style="font-size:22px;color:var(--navy);margin-bottom:4px">${name}</h2>
+      <div style="color:var(--text3);font-size:12px">הסכם ${s.ag} · מנו"ף ${s.m}</div></div>
+      <button class="modal-close" id="modalClose">×</button>
+    </div>
+    <div class="modal-body">
+      <dl class="detail-grid">
+        <div class="detail-cell"><dt>תוקף ההסכם</dt><dd>${formatDate(s.vf)} — ${formatDate(s.vt)}</dd></div>
+        <div class="detail-cell"><dt>סה"כ הרשאות</dt><dd>${quals.length}</dd></div>
+        <div class="detail-cell"><dt>אשכולות</dt><dd>${Object.keys(byCluster).length}</dd></div>
+        <div class="detail-cell"><dt>התמחויות</dt><dd>${new Set(quals.map(q => q.sp)).size}</dd></div>
+      </dl>
+      ${Object.entries(byCluster).map(([c, qs]) => `
+        <div class="qual-group">
+          <h5>${c}<span style="color:var(--text3);font-weight:400">${qs.length} הרשאות</span></h5>
+          ${qs.map(q => `<div class="qual-row">
+            <span class="name">${q.sp}</span>
+            <span class="size size-${q.sz === 'גדול' ? 'large' : q.sz === 'קטן' ? 'small' : 'none'}">${q.sz || 'לא מוגדר'}</span>
+            <span class="sku">${q.k}</span>
+          </div>`).join('')}
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+  m.classList.add('open');
+  document.getElementById('modalClose').onclick = () => m.classList.remove('open');
+  m.onclick = e => { if (e.target === m) m.classList.remove('open'); };
+}
+
+function formatDate(d) { if (!d) return '—'; const x = new Date(d); return `${x.getDate()}/${x.getMonth()+1}/${x.getFullYear()}`; }
+</script>
+</body>
+</html>

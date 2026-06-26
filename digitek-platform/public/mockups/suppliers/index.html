@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מודול ספקים זוכים — 3 כיווני עיצוב</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #0ea5e9; --primary-dark: #0369a1; --primary-bg: #e0f2fe;
+  --navy: #0f172a; --text: #1e293b; --text2: #475569; --text3: #94a3b8;
+  --bg: #f8fafc; --surface: #fff; --border: #e2e8f0;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Heebo', sans-serif; background: linear-gradient(135deg, #e0f2fe 0%, #f8fafc 100%); color: var(--text); min-height: 100vh; padding: 40px 20px; }
+.wrap { max-width: 1100px; margin: 0 auto; }
+.header { text-align: center; margin-bottom: 40px; }
+h1 { font-size: 40px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+.sub { color: var(--text2); font-size: 16px; margin-bottom: 16px; }
+.meta { display: inline-flex; gap: 16px; padding: 10px 20px; background: var(--surface); border-radius: 999px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); font-size: 13px; color: var(--text2); }
+.meta strong { color: var(--navy); font-weight: 800; }
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.card { background: var(--surface); border-radius: var(--radius); padding: 28px 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); display: flex; flex-direction: column; transition: all 0.2s; text-decoration: none; color: inherit; }
+.card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(14, 165, 233, 0.15); }
+.card-letter { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: white; margin-bottom: 16px; }
+.card-letter.a { background: #0ea5e9; }
+.card-letter.b { background: #8b5cf6; }
+.card-letter.c { background: #10b981; }
+.card-title { font-size: 19px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+.card-desc { color: var(--text2); font-size: 13px; line-height: 1.5; margin-bottom: 16px; flex: 1; }
+.card-features { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.feat { display: flex; gap: 8px; font-size: 12px; color: var(--text); }
+.feat .dot { color: var(--primary); font-weight: 800; }
+.card-btn { padding: 10px 14px; background: var(--navy); color: white; border-radius: 8px; text-align: center; font-size: 13px; font-weight: 600; }
+.card-btn:hover { background: var(--primary-dark); }
+
+.bottom { text-align: center; margin-top: 32px; color: var(--text3); font-size: 12px; }
+.bottom code { background: var(--surface); padding: 3px 8px; border-radius: 4px; font-size: 11px; color: var(--text2); }
+
+@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>מודול ספקים זוכים</h1>
+    <div class="sub">3 כיווני עיצוב לבחירה — נבנו על נתונים אמיתיים מנספח ד2</div>
+    <div class="meta">
+      <span><strong>694</strong> שורות הסמכה</span>
+      <span><strong>148</strong> ספקים</span>
+      <span><strong>42</strong> התמחויות</span>
+      <span><strong>7</strong> אשכולות</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <a class="card" href="A.html">
+      <div class="card-letter a">A</div>
+      <div class="card-title">ספרייה עם סרגל סינון</div>
+      <div class="card-desc">פריסה לפי האפיון המקורי: סרגל פילטרים צדדי קבוע מימין, רשימת ספקים כקלפים במרכז, מגירת פרטים נפתחת משמאל.</div>
+      <div class="card-features">
+        <div class="feat"><span class="dot">●</span> סרגל פילטרים סטיקי</div>
+        <div class="feat"><span class="dot">●</span> רשימת התמחויות עם checkbox</div>
+        <div class="feat"><span class="dot">●</span> מגירה צדדית לפרטי ספק</div>
+        <div class="feat"><span class="dot">●</span> Pills של פילטרים פעילים</div>
+      </div>
+      <div class="card-btn">פתח מוקאפ ←</div>
+    </a>
+
+    <a class="card" href="B.html">
+      <div class="card-letter b">B</div>
+      <div class="card-title">קטלוג דמוי רובד 5</div>
+      <div class="card-desc">סגנון שכבר מוכר למשתמש מרובד 5: כותרת מרכזית, סרגל chips של אשכולות, פאנל סינון מתקפל, כרטיסי ספק עם פס צבע.</div>
+      <div class="card-features">
+        <div class="feat"><span class="dot">●</span> Chips של אשכולות (7 + הכל)</div>
+        <div class="feat"><span class="dot">●</span> צבע פס פר אשכול</div>
+        <div class="feat"><span class="dot">●</span> מודאל פרטים גדול</div>
+        <div class="feat"><span class="dot">●</span> תווית "פג בעוד X ימים"</div>
+      </div>
+      <div class="card-btn">פתח מוקאפ ←</div>
+    </a>
+
+    <a class="card" href="C.html">
+      <div class="card-letter c">C</div>
+      <div class="card-title">חוקר נתונים — טבלה + מטריצה</div>
+      <div class="card-desc">תצוגה אנליטית: עץ אשכול↔התמחות בצד, החלפה בין טבלה דחוסה למטריצה ויזואלית ספק×התמחות, פאנל פרטים תחתון.</div>
+      <div class="card-features">
+        <div class="feat"><span class="dot">●</span> עץ ניווט: אשכול → התמחות</div>
+        <div class="feat"><span class="dot">●</span> טבלה דחוסה ניתנת למיון</div>
+        <div class="feat"><span class="dot">●</span> מטריצה חזותית עם heatmap</div>
+        <div class="feat"><span class="dot">●</span> פאנל פרטים תחתון</div>
+      </div>
+      <div class="card-btn">פתח מוקאפ ←</div>
+    </a>
+  </div>
+
+  <div class="bottom">
+    💡 כל מוקאפ פונקציונלי — לחץ, סנן, חפש. הנתונים נטענים מ-<code>data.json</code> (162KB, 694 שורות).
+  </div>
+</div>
+</body>
+</html>
