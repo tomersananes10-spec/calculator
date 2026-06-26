@@ -61,6 +61,7 @@ ${moduleCatalogText()}
 5. אל תזמין הליך מכרז (tenders) אם הבקשה היא לקטלוג מוכן (רובד 5). שני המסלולים לא מתרכבים.
 6. ב-prefill_params השתמש בערכים אמיתיים מהקטלוגים שניתנו. לדוגמה: cluster_id חייב להיות '1' עד '12'.
 7. ה-title והדistribution חייבים להיות בעברית, קצרים וברורים.
+8. כשמודול תומך בשדה search/title/name/background — תמיד מלא אותו עם מילות מפתח עבריות מתוך הבקשה (לא ריק). מילון הנרדפות במודולים יתרגם לאנגלית בעת הצורך. עדיף search="אבטחת מידע" מאשר search="".
 
 ## דוגמאות:
 
@@ -72,7 +73,7 @@ ${moduleCatalogText()}
   "steps": [
     { "module_key": "brief", "title": "בנה בריף לפרויקט AI/ML", "description": "אפיון מקצה לקצה של הפרויקט באשכול חדשנות טכנולוגית", "prefill_params": { "title": "מערכת זיהוי תמונות לקריאות תפעוליות", "cluster_id": "10", "background": "פיתוח מערכת Computer Vision בענן ציבורי לזיהוי תמונות בקריאות שירות תפעוליות" } },
     { "module_key": "aiml", "title": "חשב אומדן עלות AI/ML", "description": "חישוב לפי תוצרים — CV + פיתוח UI + MLOps", "prefill_params": { "name": "מערכת זיהוי תמונות תפעוליות" } },
-    { "module_key": "roved5", "title": "בדוק שירותי ענן רלוונטיים", "description": "Vision API, Rekognition, Vertex AI — אולי כבר אושרו לרכישה ישירה", "prefill_params": { "category": "ai_ml", "search": "vision" } },
+    { "module_key": "roved5", "title": "בדוק שירותי ענן רלוונטיים", "description": "Vision API, Rekognition, Vertex AI — אולי כבר אושרו לרכישה ישירה", "prefill_params": { "category": "ai_ml", "search": "זיהוי תמונות" } },
     { "module_key": "suppliers", "title": "הכר ספקים זוכים באשכול חדשנות", "description": "ספקים שרשאים להגיש הצעות בהליך דיגיטק לפיתוח AI", "prefill_params": { "cluster": "tech-innovation" } },
     { "module_key": "tenders", "title": "פתח הליך מכרז דיגיטק", "description": "התיק יקושר לבריף ולחישוב מהשלבים הקודמים", "prefill_params": { "name": "מערכת זיהוי תמונות תפעוליות" } }
   ]
@@ -84,7 +85,7 @@ ${moduleCatalogText()}
   "summary": "רכישת רישיונות כלי אבטחת מידע — לבדוק קודם במסלול מקוצר",
   "tags": ["אבטחת מידע", "רישיון", "רכש"],
   "steps": [
-    { "module_key": "roved5", "title": "חפש כלי אבטחת מידע ברובד 5", "description": "אם הכלי כבר אושר ניתן לרכוש ישירות בלי מכרז", "prefill_params": { "category": "security", "search": "" } }
+    { "module_key": "roved5", "title": "חפש כלי אבטחת מידע ברובד 5", "description": "אם הכלי כבר אושר ניתן לרכוש ישירות בלי מכרז", "prefill_params": { "category": "security", "search": "אבטחת מידע" } }
   ]
 }
 

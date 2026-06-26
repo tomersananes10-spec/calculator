@@ -81,7 +81,10 @@ export function Roved5() {
     const allowed: CatFilter[] = ['all', 'security', 'database', 'storage', 'compute', 'ai_ml', 'analytics']
     return (allowed.includes(c as CatFilter) ? c : 'all') as CatFilter
   })
-  const [showAdvanced,   setShowAdvanced]   = useState(false)
+  const [showAdvanced,   setShowAdvanced]   = useState(() => {
+    if (typeof window === 'undefined') return false
+    return new URLSearchParams(window.location.search).get('category') !== null
+  })
   const [aiResults,      setAiResults]      = useState<AISearchResult[] | null>(null)
   const [aiLoading,      setAiLoading]      = useState(false)
   const [selected,       setSelected]       = useState<Roved5Service | null>(null)
