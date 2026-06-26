@@ -75,6 +75,7 @@ export function Sidebar({ isOpen, onClose }: Props) {
         <div className={styles.brandIcon}>🏛️</div>
         <div className={styles.brandText}>
           <div className={styles.brandName}>LIBA</div>
+          <div className={styles.brandSub}>המערכת שתתמוך בליבה שלך</div>
         </div>
       </NavLink>
 
