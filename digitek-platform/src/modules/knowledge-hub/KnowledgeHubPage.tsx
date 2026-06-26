@@ -62,6 +62,7 @@ export function KnowledgeHubPage() {
     <div className={styles.searchPage}>
       <div className={styles.searchInner}>
         <h1 className={styles.brand}>LIBA</h1>
+        <p className={styles.subBrand}>המערכת שתתמוך בליבה שלך</p>
         <p className={styles.tagline}>מה אתה רוצה להשיג היום?</p>
 
         <form onSubmit={handleSubmit} className={styles.searchForm}>
