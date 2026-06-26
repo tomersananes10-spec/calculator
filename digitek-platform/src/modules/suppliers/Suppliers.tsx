@@ -45,6 +45,45 @@ export function Suppliers() {
     return () => { cancelled = true }
   }, [])
 
+  // Knowledge Hub deep-link — landing with journey_step_id marks the step done
+  // and applies the cluster/specialization filter once rows have loaded.
+  useEffect(() => {
+    if (loading) return
+    const params = new URLSearchParams(window.location.search)
+    const stepId = params.get('journey_step_id')
+    const clusterSlug = params.get('cluster')
+    const specName = params.get('specialization')
+
+    if (clusterSlug) {
+      const found = rows.find(r => r.cluster_slug === clusterSlug)
+      if (found) setClusterId(found.cluster_id)
+    }
+    if (specName) {
+      const found = rows.find(r => r.specialization_name === specName)
+      if (found) setSpecIds(new Set([found.specialization_id]))
+    }
+
+    if (stepId) {
+      void supabase
+        .from('journey_steps')
+        .update({
+          status: 'done',
+          linked_entity_table: 'suppliers_view',
+          completed_at: new Date().toISOString(),
+        })
+        .eq('id', stepId)
+        .neq('status', 'done')
+    }
+
+    if (stepId || clusterSlug || specName) {
+      params.delete('journey_step_id')
+      params.delete('cluster')
+      params.delete('specialization')
+      const newQuery = params.toString()
+      window.history.replaceState({}, '', `${window.location.pathname}${newQuery ? '?' + newQuery : ''}`)
+    }
+  }, [loading, rows])
+
   // Reset page on filter change
   useEffect(() => { setPage(1) }, [query, clusterId, specIds, sizeFilter])
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { createTender } from '../modules/tenders/hooks/useTender'
 import { evaluateG1_Amount, evaluateG7_WinnerApproval, evaluateG9_ContractTemplate } from '../modules/tenders/data/gateways'
@@ -43,13 +43,15 @@ function formatAmount(n: number): string {
 
 export function TenderWizardPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [signerDrafts, setSignerDrafts] = useState<SignerDrafts>(() => emptySignerDrafts())
+  const journeyStepIdRef = useRef<string | null>(null)
 
   // Step 1
-  const [title, setTitle] = useState('')
+  const [title, setTitle] = useState(() => searchParams.get('name') ?? '')
   const [ministry, setMinistry] = useState('')
 
   // Step 2
@@ -59,15 +61,28 @@ export function TenderWizardPage() {
 
   // Step 3 — קישור / העלאה של בריף + פרוטוקול (שניהם חובה לפתיחה ב-T0)
   const [briefSource, setBriefSource] = useState<BriefSource>('existing')
-  const [briefId, setBriefId] = useState('')
+  const [briefId, setBriefId] = useState(() => searchParams.get('brief_id') ?? '')
   const [briefFile, setBriefFile] = useState<File | null>(null)
   const [protocolFile, setProtocolFile] = useState<File | null>(null)
-  const [calculationId, setCalculationId] = useState('')
+  const [calculationId, setCalculationId] = useState(() => searchParams.get('calculation_id') ?? '')
   const [briefs, setBriefs] = useState<BriefOption[]>([])
   const [calculations, setCalculations] = useState<CalcOption[]>([])
   const [loadingLinks, setLoadingLinks] = useState(false)
   const briefFileInputRef = useRef<HTMLInputElement>(null)
   const protocolFileInputRef = useRef<HTMLInputElement>(null)
+
+  // Knowledge Hub deep-link: ?journey_step_id=…&name=…&brief_id=…&calculation_id=…
+  useEffect(() => {
+    const stepId = searchParams.get('journey_step_id')
+    if (!stepId) return
+    journeyStepIdRef.current = stepId
+    const params = new URLSearchParams(searchParams)
+    params.delete('journey_step_id')
+    params.delete('name')
+    params.delete('brief_id')
+    params.delete('calculation_id')
+    setSearchParams(params, { replace: true })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let cancelled = false
@@ -162,6 +177,13 @@ export function TenderWizardPage() {
       setSubmitting(false)
       setError(result.error ?? 'שגיאה ביצירת ההליך')
       return
+    }
+
+    // Link the new tender to the journey step that opened the wizard.
+    // The trigger on tenders.journey_step_id marks the step as done.
+    if (journeyStepIdRef.current) {
+      await supabase.from('tenders').update({ journey_step_id: journeyStepIdRef.current }).eq('id', result.id)
+      journeyStepIdRef.current = null
     }
 
     // העלאת מסמכים אחרי שההליך נוצר (storage path מצריך tender_id).

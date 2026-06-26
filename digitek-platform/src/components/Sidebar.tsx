@@ -14,7 +14,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/',           label: 'בית',        icon: '🏠' },
+  { href: '/',           label: 'מרכז ידע',   icon: '💡' },
   { href: '/calculator', label: 'מחשבון',     icon: '🧮', badgeKey: 'calculator' },
   { href: '/briefs',     label: 'בריפים',     icon: '📋', badgeKey: 'briefs' },
   { href: '/tenders',    label: 'מורשי חתימה', icon: '✅', badgeKey: 'tenders' },

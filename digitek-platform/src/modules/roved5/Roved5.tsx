@@ -68,17 +68,47 @@ export function Roved5() {
   const [services,       setServices]       = useState<Roved5Service[]>([])
   const [loading,        setLoading]        = useState(true)
   const [loadError,      setLoadError]      = useState<string | null>(null)
-  const [query,          setQuery]          = useState('')
+  const [query,          setQuery]          = useState(() => {
+    if (typeof window === 'undefined') return ''
+    return new URLSearchParams(window.location.search).get('search') ?? ''
+  })
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [cloudFilter,    setCloudFilter]    = useState<CloudFilter>('all')
   const [typeFilter,     setTypeFilter]     = useState<TypeFilter>('all')
-  const [catFilter,      setCatFilter]      = useState<CatFilter>('all')
+  const [catFilter,      setCatFilter]      = useState<CatFilter>(() => {
+    if (typeof window === 'undefined') return 'all'
+    const c = new URLSearchParams(window.location.search).get('category')
+    const allowed: CatFilter[] = ['all', 'security', 'database', 'storage', 'compute', 'ai_ml', 'analytics']
+    return (allowed.includes(c as CatFilter) ? c : 'all') as CatFilter
+  })
   const [showAdvanced,   setShowAdvanced]   = useState(false)
   const [aiResults,      setAiResults]      = useState<AISearchResult[] | null>(null)
   const [aiLoading,      setAiLoading]      = useState(false)
   const [selected,       setSelected]       = useState<Roved5Service | null>(null)
   const [page,           setPage]           = useState(1)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Knowledge Hub deep-link — landing on the page with a journey_step_id
+  // counts as "done" (roved5 is informational, no entity to create).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const stepId = params.get('journey_step_id')
+    if (!stepId) return
+    void supabase
+      .from('journey_steps')
+      .update({
+        status: 'done',
+        linked_entity_table: 'roved5_view',
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', stepId)
+      .neq('status', 'done')
+    params.delete('journey_step_id')
+    params.delete('category')
+    params.delete('search')
+    const newQuery = params.toString()
+    window.history.replaceState({}, '', `${window.location.pathname}${newQuery ? '?' + newQuery : ''}`)
+  }, [])
 
   useEffect(() => {
     let cancelled = false

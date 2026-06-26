@@ -46,7 +46,7 @@ export function useCalculationHistory(userId: string | undefined) {
 
   useEffect(() => { fetchCalculations() }, [fetchCalculations])
 
-  async function saveCalculation(state: CalcState): Promise<string | null> {
+  async function saveCalculation(state: CalcState, opts?: { journey_step_id?: string | null }): Promise<string | null> {
     if (!userId) return null
     const { net } = calcTotalCost(state.mix, state.period, state.matchingOn, state.matchingPct, state.rolesData, state.hoursMultiplier)
     const riskAmt = Math.round(net * state.riskPct / 100)
@@ -57,7 +57,7 @@ export function useCalculationHistory(userId: string | undefined) {
     const vat = Math.round(subtotal * 0.17)
     const grandTotal = subtotal + vat
 
-    const row = {
+    const row: Record<string, unknown> = {
       owner_id: userId,
       name: state.project.name,
       ministry: state.project.ministry,
@@ -81,6 +81,7 @@ export function useCalculationHistory(userId: string | undefined) {
       await fetchCalculations()
       return state.calculationId
     } else {
+      if (opts?.journey_step_id) row.journey_step_id = opts.journey_step_id
       const { data, error } = await supabase
         .from('calculations')
         .insert(row)
@@ -92,7 +93,7 @@ export function useCalculationHistory(userId: string | undefined) {
     }
   }
 
-  async function saveDraft(state: CalcState): Promise<string | null> {
+  async function saveDraft(state: CalcState, opts?: { journey_step_id?: string | null }): Promise<string | null> {
     if (!userId) return null
     const hasContent = state.project.name || state.project.ministry || state.mix.length > 0
     if (!hasContent) return null
@@ -109,7 +110,7 @@ export function useCalculationHistory(userId: string | undefined) {
       grandTotal = subtotal + vat
     } catch { /* partial data, keep 0 */ }
 
-    const row = {
+    const row: Record<string, unknown> = {
       owner_id: userId,
       name: state.project.name || 'טיוטה',
       ministry: state.project.ministry,
@@ -136,6 +137,7 @@ export function useCalculationHistory(userId: string | undefined) {
       await fetchCalculations()
       return state.calculationId
     } else {
+      if (opts?.journey_step_id) row.journey_step_id = opts.journey_step_id
       const { data, error } = await supabase
         .from('calculations')
         .insert(row)

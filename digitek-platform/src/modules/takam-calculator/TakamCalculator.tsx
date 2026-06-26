@@ -24,6 +24,24 @@ export function TakamCalculator() {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
   const [searchParams, setSearchParams] = useSearchParams()
+  const journeyStepIdRef = useRef<string | null>(null)
+
+  // Knowledge Hub deep-link: ?journey_step_id=…&name=…&ministry=…
+  useEffect(() => {
+    const stepId = searchParams.get('journey_step_id')
+    if (!stepId) return
+    journeyStepIdRef.current = stepId
+    const name = searchParams.get('name') ?? ''
+    const ministry = searchParams.get('ministry') ?? ''
+    if (name || ministry) {
+      dispatch({ type: 'SET_PROJECT', payload: { name, ministry } })
+    }
+    const params = new URLSearchParams(searchParams)
+    params.delete('journey_step_id')
+    params.delete('name')
+    params.delete('ministry')
+    setSearchParams(params, { replace: true })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load from share token on mount
   useEffect(() => {
@@ -116,9 +134,10 @@ export function TakamCalculator() {
     if (!user || s.viewOnly) return
     const hasContent = s.project.name || s.project.ministry || s.mix.length > 0
     if (!hasContent) return
-    const id = await history.saveDraft(s)
+    const id = await history.saveDraft(s, { journey_step_id: journeyStepIdRef.current })
     if (id && !s.calculationId) {
       dispatch({ type: 'SET_CALCULATION_ID', payload: id })
+      journeyStepIdRef.current = null // already linked on insert; future updates skip it
     }
   }, [user, history, dispatch])
 
@@ -151,9 +170,10 @@ export function TakamCalculator() {
     setSaving(true)
     setSaveMsg(null)
     try {
-      const id = await history.saveCalculation(state)
+      const id = await history.saveCalculation(state, { journey_step_id: journeyStepIdRef.current })
       if (id) {
         dispatch({ type: 'SET_CALCULATION_ID', payload: id })
+        journeyStepIdRef.current = null
         setSaveMsg('נשמר!')
         setTimeout(() => setSaveMsg(null), 2500)
       } else {

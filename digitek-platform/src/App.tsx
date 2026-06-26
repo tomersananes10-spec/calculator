@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Login }           from './pages/Login'
-import { Dashboard }       from './pages/Dashboard'
+import { KnowledgeHubPage } from './modules/knowledge-hub/KnowledgeHubPage'
 import { Calculator }      from './pages/Calculator'
 import { BriefGenerator }  from './pages/BriefGenerator'
 import { Admin }           from './pages/Admin'
@@ -35,7 +35,8 @@ export default function App() {
         <Route path="/login"          element={<Login />} />
         <Route path="/auth/callback"  element={<AuthCallback />} />
         <Route path="/approve/:requestId" element={<ApprovalPage />} />
-        <Route path="/"               element={<Protected><Dashboard /></Protected>} />
+        <Route path="/"               element={<Protected><KnowledgeHubPage /></Protected>} />
+        <Route path="/knowledge-hub"  element={<Navigate to="/" replace />} />
         <Route path="/briefs"         element={<Protected><BriefGenerator /></Protected>} />
         <Route path="/calculator"     element={<Protected><Calculator /></Protected>} />
         <Route path="/aiml-calculator" element={<Navigate to="/calculator?mode=ai" replace />} />

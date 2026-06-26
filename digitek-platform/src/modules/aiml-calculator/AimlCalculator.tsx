@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAimlCalculator } from './useAimlCalculator'
 import { useAimlHistory } from './useAimlHistory'
 import { AimlHistoryPanel } from './AimlHistoryPanel'
@@ -8,6 +9,7 @@ import { Step3AimlSizing } from './Step3AimlSizing'
 import { Step4AimlResults } from './Step4AimlResults'
 import { AimlAiAdvisorModal } from './AimlAiAdvisorModal'
 import type { AimlStep, SavedAimlCalculation } from './types'
+import { supabase } from '../../lib/supabase'
 import s from '../takam-calculator/TakamCalculator.module.css'
 
 const STEP_NAMES = ['הגדרת פרויקט', 'בחירת תוצרים', 'גודל וכמויות', 'תוצאות']
@@ -17,6 +19,24 @@ export function AimlCalculator() {
   const history = useAimlHistory()
   const [historyOpen, setHistoryOpen] = useState(false)
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const journeyStepIdRef = useRef<string | null>(null)
+
+  // Knowledge Hub deep-link: ?journey_step_id=…&name=…&ministry=…
+  useEffect(() => {
+    const stepId = searchParams.get('journey_step_id')
+    if (!stepId) return
+    journeyStepIdRef.current = stepId
+    const name = searchParams.get('name') ?? ''
+    const ministry = searchParams.get('ministry') ?? ''
+    if (name) dispatch({ type: 'SET_PROJECT_NAME', payload: name })
+    if (ministry) dispatch({ type: 'SET_MINISTRY', payload: ministry })
+    const params = new URLSearchParams(searchParams)
+    params.delete('journey_step_id')
+    params.delete('name')
+    params.delete('ministry')
+    setSearchParams(params, { replace: true })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function tryGoStep(n: AimlStep) {
     if (n < state.currentStep) dispatch({ type: 'GO_STEP', payload: n })
@@ -32,6 +52,21 @@ export function AimlCalculator() {
     dispatch({ type: 'SET_CALC_ID', payload: id })
     setSaveMsg('נשמר!')
     setTimeout(() => setSaveMsg(null), 2000)
+
+    // AIML history is local-only; mark journey step as done directly.
+    const stepId = journeyStepIdRef.current
+    if (stepId) {
+      journeyStepIdRef.current = null
+      void supabase
+        .from('journey_steps')
+        .update({
+          status: 'done',
+          linked_entity_table: 'aiml_local',
+          linked_entity_id: null,
+          completed_at: new Date().toISOString(),
+        })
+        .eq('id', stepId)
+    }
   }
 
   function handleLoad(calc: SavedAimlCalculation) {

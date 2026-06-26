@@ -25,10 +25,18 @@ export function useBriefs() {
     }
   }
 
-  async function createBrief(): Promise<BriefRecord> {
+  async function createBrief(opts?: { journey_step_id?: string | null }): Promise<BriefRecord> {
+    const insertPayload: Record<string, unknown> = {
+      title: 'טיוטה ללא שם',
+      state: {},
+      user_id: (await supabase.auth.getUser()).data.user?.id,
+    }
+    if (opts?.journey_step_id) {
+      insertPayload.journey_step_id = opts.journey_step_id
+    }
     const { data, error } = await supabase
       .from('briefs')
-      .insert({ title: 'טיוטה ללא שם', state: {}, user_id: (await supabase.auth.getUser()).data.user?.id })
+      .insert(insertPayload)
       .select()
       .single()
     if (error) throw error
