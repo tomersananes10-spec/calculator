@@ -22,7 +22,7 @@ const MODULE_ROUTES: Record<ModuleKey, { base: string; allowed: string[] }> = {
   aiml:      { base: '/calculator',    allowed: ['name', 'ministry'] },
   tenders:   { base: '/tenders/new',   allowed: ['name', 'brief_id', 'calculation_id'] },
   roved5:    { base: '/layer5',        allowed: ['category', 'search'] },
-  suppliers: { base: '/suppliers',     allowed: ['cluster', 'specialization'] },
+  suppliers: { base: '/suppliers',     allowed: ['cluster', 'specialization', 'search'] },
 }
 
 export function urlForStep(step: JourneyStep): string {

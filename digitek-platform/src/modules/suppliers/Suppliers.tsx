@@ -21,7 +21,10 @@ export function Suppliers() {
   const [rows,        setRows]        = useState<FlatRow[]>([])
   const [loading,     setLoading]     = useState(true)
   const [loadError,   setLoadError]   = useState<string | null>(null)
-  const [query,       setQuery]       = useState('')
+  const [query,       setQuery]       = useState(() => {
+    if (typeof window === 'undefined') return ''
+    return new URLSearchParams(window.location.search).get('search') ?? ''
+  })
   const [clusterId,   setClusterId]   = useState<string | null>(null)
   const [specIds,     setSpecIds]     = useState<Set<string>>(new Set())
   const [sizeFilter,  setSizeFilter]  = useState<SizeFilter>('all')
@@ -53,6 +56,7 @@ export function Suppliers() {
     const stepId = params.get('journey_step_id')
     const clusterSlug = params.get('cluster')
     const specName = params.get('specialization')
+    const searchText = params.get('search')
 
     if (clusterSlug) {
       const found = rows.find(r => r.cluster_slug === clusterSlug)
@@ -75,10 +79,11 @@ export function Suppliers() {
         .neq('status', 'done')
     }
 
-    if (stepId || clusterSlug || specName) {
+    if (stepId || clusterSlug || specName || searchText) {
       params.delete('journey_step_id')
       params.delete('cluster')
       params.delete('specialization')
+      params.delete('search')
       const newQuery = params.toString()
       window.history.replaceState({}, '', `${window.location.pathname}${newQuery ? '?' + newQuery : ''}`)
     }

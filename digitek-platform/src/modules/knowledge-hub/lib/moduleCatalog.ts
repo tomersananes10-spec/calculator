@@ -85,6 +85,6 @@ export const MODULE_CATALOG: ModuleDescriptor[] = [
     he_name: 'ספקים זוכים דיגיטק',
     purpose: '148 ספקים שזכו במכרז דיגיטק 07/2023 — מסונן לפי אשכול שירותים.',
     when_to_use: 'כדי לדעת מי הספקים שניתן להזמין הצעות מהם בהליך מכרז דיגיטק.',
-    prefill_schema: `params: { cluster, specialization }. cluster מהרשימה: ${SUPPLIER_CLUSTERS.join(', ')}`,
+    prefill_schema: `params: { cluster, specialization, search }. cluster מהרשימה: ${SUPPLIER_CLUSTERS.join(', ')}. search = מילות מפתח עבריות מהבקשה (אופציונלי, חיפוש חופשי בשם הספק/התמחות)`,
   },
 ]
