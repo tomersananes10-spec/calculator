@@ -88,6 +88,7 @@ export function Sidebar({ isOpen, onClose }: Props) {
               key={item.href}
               to={item.href}
               end={item.href === '/'}
+              state={{ fromSidebar: true, ts: Date.now() }}
               className={({ isActive }) =>
                 `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
               }
