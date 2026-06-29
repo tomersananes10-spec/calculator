@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useCreateJourney } from './hooks/useJourney'
-import { useJourneys } from './hooks/useJourneys'
 import { JourneyResultView } from './JourneyResultView'
 import styles from './KnowledgeHubPage.module.css'
 
@@ -17,7 +16,6 @@ export function KnowledgeHubPage() {
   const journeyId = searchParams.get('journey')
   const [wish, setWish] = useState('')
   const { create, creating, error } = useCreateJourney()
-  const { journeys } = useJourneys()
   const abortRef = useRef<AbortController | null>(null)
 
   // Reset input when leaving result mode
@@ -100,25 +98,6 @@ export function KnowledgeHubPage() {
           ))}
         </div>
 
-        {journeys.length > 0 && (
-          <div className={styles.recent}>
-            <div className={styles.recentLabel}>המסעות שלי ({journeys.length})</div>
-            <div className={styles.recentList}>
-              {journeys.slice(0, 5).map(j => (
-                <button
-                  key={j.id}
-                  type="button"
-                  className={styles.recentItem}
-                  onClick={() => setSearchParams({ journey: j.id })}
-                  title={j.wish_text}
-                >
-                  <span className={styles.recentText}>{j.wish_text}</span>
-                  {j.status === 'completed' && <span className={styles.recentDone}>✓</span>}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
