@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>סינון התמחויות — וריאציה C: Accordion</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Heebo',sans-serif;background:#f8fafc;color:#0f172a;font-size:14px;line-height:1.5}
+  .page{max-width:1280px;margin:0 auto;padding:24px}
+  .header{text-align:center;margin-bottom:18px}
+  .header h1{font-size:30px;font-weight:800;color:#0f172a;margin-bottom:4px}
+  .header p{color:#64748b;font-size:13px}
+  .top-search{background:#fff;border:1px solid #e2e8f0;border-radius:999px;padding:12px 22px;display:flex;align-items:center;gap:12px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04);max-width:760px;margin-left:auto;margin-right:auto}
+  .top-search input{flex:1;border:none;outline:none;font-family:inherit;font-size:14px;background:transparent}
+  .cluster-chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:14px}
+  .chip{background:#fff;border:1px solid #e2e8f0;border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+  .chip.active{background:#0f172a;color:#fff;border-color:#0f172a}
+  .chip-num{background:#f1f5f9;color:#64748b;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:600}
+  .chip.active .chip-num{background:rgba(255,255,255,.2);color:#fff}
+
+  .adv-wrap{max-width:900px;margin:0 auto 18px}
+  .adv-toggle{background:#fff;border:1.5px dashed #c7d2fe;color:#1e40af;border-radius:10px;padding:10px 18px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:block;margin:0 auto;transition:all .15s}
+  .adv-toggle:hover{background:#eff6ff;border-style:solid}
+  .adv-toggle.active{background:#1e40af;color:#fff;border-color:#1e40af;border-style:solid}
+  .adv-toggle .pill{background:rgba(255,255,255,.2);padding:1px 8px;border-radius:999px;margin-right:6px;font-size:11px}
+
+  .adv-panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;margin-top:10px;overflow:hidden;display:none}
+  .adv-panel.open{display:block}
+  .adv-search{padding:12px 16px;border-bottom:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;gap:10px}
+  .adv-search input{flex:1;border:1px solid #cbd5e1;border-radius:8px;padding:8px 12px;font-family:inherit;font-size:13px;outline:none}
+  .adv-search input:focus{border-color:#1e40af}
+  .adv-search button{background:none;border:none;color:#64748b;cursor:pointer;font-family:inherit;font-size:12px;text-decoration:underline}
+
+  .cluster-acc{border-bottom:1px solid #f1f5f9}
+  .cluster-acc:last-child{border-bottom:none}
+  .ca-header{padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:10px;user-select:none;font-weight:700;color:#0f172a}
+  .ca-header:hover{background:#f8fafc}
+  .ca-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .ca-name{flex:1;font-size:14px}
+  .ca-count{color:#94a3b8;font-size:12px;font-weight:500}
+  .ca-sel{background:#1e40af;color:#fff;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;margin-left:4px;display:none}
+  .ca-sel.show{display:inline-block}
+  .ca-chev{color:#64748b;font-size:11px;transition:transform .15s}
+  .cluster-acc.open .ca-chev{transform:rotate(90deg)}
+  .ca-body{padding:0 18px 16px;display:none}
+  .cluster-acc.open .ca-body{display:block}
+  .spec-grid{display:flex;flex-wrap:wrap;gap:6px}
+  .spec-chip{background:#f8fafc;border:1px solid #e2e8f0;border-radius:999px;padding:6px 13px;font-size:12.5px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px;color:#334155}
+  .spec-chip:hover{border-color:#1e40af;color:#1e40af}
+  .spec-chip.active{background:#1e40af;color:#fff;border-color:#1e40af;font-weight:600}
+  .spec-chip-num{background:#fff;color:#64748b;padding:1px 6px;border-radius:999px;font-size:10.5px;font-weight:600}
+  .spec-chip.active .spec-chip-num{background:rgba(255,255,255,.25);color:#fff}
+
+  .results-bar{max-width:1100px;margin:0 auto 12px;display:flex;justify-content:space-between;align-items:center;padding:0 12px}
+  .results-count strong{font-size:24px;color:#0f172a;font-weight:800}
+  .reset-link{background:none;border:none;color:#1e40af;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;margin-right:8px;text-decoration:underline}
+  .cards{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:0 8px}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;display:flex;cursor:pointer;transition:all .15s}
+  .card:hover{box-shadow:0 4px 12px rgba(0,0,0,.06);transform:translateY(-1px)}
+  .card-stripe{width:5px;flex-shrink:0}
+  .card-body{padding:12px 14px;flex:1;min-width:0}
+  .card-name{font-weight:700;font-size:14px;color:#0f172a;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card-meta{font-size:11px;color:#64748b;margin-bottom:8px}
+  .card-clusters{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+  .ctag{background:#f1f5f9;color:#475569;padding:2px 7px;border-radius:6px;font-size:10.5px;font-weight:500}
+  .card-num{display:flex;gap:14px;font-size:11px;color:#475569}
+  .card-num strong{color:#1e40af;font-size:14px;font-weight:800;display:block}
+
+  .nudge{margin:0 auto 18px;max-width:760px;background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:10px 14px;font-size:13px;text-align:center;color:#92400e}
+  .badge-title{display:inline-block;background:#1e40af;color:#fff;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="header">
+    <h1>ספקים זוכים</h1>
+    <p>נספח ד2 — מכרז דיגטק 07-2023 · 148 ספקים · 43 התמחויות · 7 אשכולות</p>
+  </div>
+
+  <div class="nudge"><span class="badge-title">וריאציה C</span> Accordion · התמחויות מקובצות לפי אשכול, כל קבוצה נפתחת בלחיצה · ארגון ברור על המסך</div>
+
+  <div class="top-search">
+    <span>🔍</span>
+    <input placeholder='חיפוש לפי שם ספק, מק"ט, מנו"ף...'>
+  </div>
+  <div class="cluster-chips" id="clusterChips"></div>
+
+  <div class="adv-wrap">
+    <button class="adv-toggle" id="advToggle" onclick="document.getElementById('advPanel').classList.toggle('open');this.classList.toggle('active')">
+      ⚙️ סינון התמחויות
+      <span class="pill" id="advCount" style="display:none">0</span>
+    </button>
+    <div class="adv-panel" id="advPanel">
+      <div class="adv-search">
+        <input id="specSearch" placeholder="חפש בכל ההתמחויות...">
+        <button id="clearSpecs">נקה</button>
+      </div>
+      <div id="acc"></div>
+    </div>
+  </div>
+
+  <div class="results-bar">
+    <div class="results-count">
+      <strong id="resCount">148</strong> ספקים זוכים
+      <button class="reset-link" id="resetAll" style="display:none">↺ נקה הכל</button>
+    </div>
+    <div style="font-size:12px;color:#64748b" id="resDetail">42 התמחויות · 694 הרשאות</div>
+  </div>
+  <div class="cards" id="cards"></div>
+</div>
+
+<script>
+const CLUSTER_COLOR={ 'תיכנון ניתוח ופיתוח':'#1e40af','תשתיות והגירה לענן':'#7c3aed','חדשנות טכנולוגית':'#ec4899','אינטגרציה של פתרונות צד ג לענן':'#f97316','הדרכה':'#059669','אבטחת מידע':'#dc2626','בסיסי נתונים':'#0d9488' };
+let DATA=null, selectedSpecs=new Set(), activeCluster=null, specSearchQ='', openClusters=new Set();
+
+fetch('../suppliers/data.json').then(r=>r.json()).then(d=>{
+  DATA=d;
+  if(DATA.clusters.length) openClusters.add(DATA.clusters[0].name);
+  render();
+});
+
+function render(){ renderClusterChips(); renderAccordion(); renderCards(); }
+
+function renderClusterChips(){
+  const total=DATA.totals.suppliers;
+  const html=['<button class="chip '+(activeCluster===null?'active':'')+'" onclick="setCluster(null)"><span>כל האשכולות</span><span class="chip-num">'+total+'</span></button>'];
+  DATA.clusters.forEach(c=>{
+    html.push('<button class="chip '+(activeCluster===c.name?'active':'')+'" onclick="setCluster(\''+c.name.replace(/'/g,"\\'")+'\')"><span>'+c.name+'</span><span class="chip-num">'+c.suppliers+'</span></button>');
+  });
+  document.getElementById('clusterChips').innerHTML=html.join('');
+}
+
+function renderAccordion(){
+  const byCluster={};
+  DATA.rows.forEach(r=>{
+    if(activeCluster && r.c!==activeCluster) return;
+    if(!byCluster[r.c]) byCluster[r.c]={};
+    if(!byCluster[r.c][r.sp]) byCluster[r.c][r.sp]=new Set();
+    byCluster[r.c][r.sp].add(r.s);
+  });
+  const q=specSearchQ.toLowerCase().trim();
+  // Auto-expand all clusters when searching
+  const expandAll = q.length>0;
+  const html=[];
+  DATA.clusters.forEach(c=>{
+    if(activeCluster && activeCluster!==c.name) return;
+    const specs=byCluster[c.name]||{};
+    const filtered=Object.entries(specs).filter(([n])=>!q || n.toLowerCase().includes(q));
+    if(filtered.length===0) return;
+    const isOpen = expandAll || openClusters.has(c.name);
+    const selInGroup = filtered.filter(([n])=>selectedSpecs.has(n)).length;
+    const color = CLUSTER_COLOR[c.name] || '#94a3b8';
+    html.push('<div class="cluster-acc '+(isOpen?'open':'')+'">');
+    html.push('<div class="ca-header" onclick="toggleCluster(\''+c.name.replace(/'/g,"\\'")+'\')"><span class="ca-dot" style="background:'+color+'"></span><span class="ca-name">'+c.name+'</span><span class="ca-sel '+(selInGroup>0?'show':'')+'">'+selInGroup+' נבחרו</span><span class="ca-count">'+filtered.length+' התמחויות</span><span class="ca-chev">▶</span></div>');
+    html.push('<div class="ca-body"><div class="spec-grid">');
+    filtered.forEach(([name, supSet])=>{
+      const sel=selectedSpecs.has(name);
+      html.push('<button class="spec-chip '+(sel?'active':'')+'" onclick="toggleSpec(\''+name.replace(/'/g,"\\'")+'\')"><span>'+name+'</span><span class="spec-chip-num">'+supSet.size+'</span></button>');
+    });
+    html.push('</div></div></div>');
+  });
+  if(html.length===0) html.push('<div style="color:#94a3b8;padding:40px;text-align:center;font-size:13px">לא נמצאו התמחויות</div>');
+  document.getElementById('acc').innerHTML=html.join('');
+
+  const ac=document.getElementById('advCount');
+  if(selectedSpecs.size>0){ ac.style.display='inline-block'; ac.textContent=selectedSpecs.size; }
+  else ac.style.display='none';
+  document.getElementById('resetAll').style.display = (selectedSpecs.size>0 || activeCluster) ? 'inline-block' : 'none';
+}
+
+function renderCards(){
+  const supMap={};
+  DATA.rows.forEach(r=>{
+    if(activeCluster && r.c!==activeCluster) return;
+    if(selectedSpecs.size && !selectedSpecs.has(r.sp)) return;
+    if(!supMap[r.s]){ supMap[r.s]={name:r.s,m:r.m,ag:r.ag,specs:new Set(),clusters:new Set(),large:0,small:0}; }
+    supMap[r.s].specs.add(r.sp);
+    supMap[r.s].clusters.add(r.c);
+    if(r.sz==='גדול') supMap[r.s].large++;
+    else if(r.sz==='קטן') supMap[r.s].small++;
+  });
+  const sups=Object.values(supMap).sort((a,b)=>b.specs.size-a.specs.size);
+  document.getElementById('resCount').textContent=sups.length;
+  const totalSpecs=new Set(); let totalQuals=0;
+  DATA.rows.forEach(r=>{ if(activeCluster && r.c!==activeCluster) return; if(selectedSpecs.size && !selectedSpecs.has(r.sp)) return; totalSpecs.add(r.sp); totalQuals++; });
+  document.getElementById('resDetail').textContent=totalSpecs.size+' התמחויות · '+totalQuals+' הרשאות';
+
+  const html=sups.slice(0,30).map(s=>{
+    const clusters=Array.from(s.clusters);
+    const color=CLUSTER_COLOR[clusters[0]]||'#94a3b8';
+    return '<div class="card"><div class="card-stripe" style="background:'+color+'"></div><div class="card-body"><div class="card-name">'+s.name+'</div><div class="card-meta">מנו"ף '+s.m+' · הסכם '+s.ag+'</div><div class="card-clusters">'+clusters.slice(0,2).map(c=>'<span class="ctag">'+c+'</span>').join('')+(clusters.length>2?'<span class="ctag">+'+(clusters.length-2)+'</span>':'')+'</div><div class="card-num"><div><strong>'+s.specs.size+'</strong>התמחויות</div><div><strong style="color:#1e40af">'+s.large+'</strong>גדול</div><div><strong style="color:#f59e0b">'+s.small+'</strong>קטן</div></div></div></div>';
+  }).join('');
+  document.getElementById('cards').innerHTML=html || '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">לא נמצאו תוצאות</div>';
+}
+
+function setCluster(c){ activeCluster=c; selectedSpecs=new Set(); if(c) openClusters.add(c); render(); }
+function toggleSpec(name){ if(selectedSpecs.has(name)) selectedSpecs.delete(name); else selectedSpecs.add(name); render(); }
+function toggleCluster(name){ if(openClusters.has(name)) openClusters.delete(name); else openClusters.add(name); renderAccordion(); }
+document.getElementById('specSearch').addEventListener('input',e=>{ specSearchQ=e.target.value; renderAccordion(); });
+document.getElementById('clearSpecs').addEventListener('click',()=>{ selectedSpecs=new Set(); render(); });
+document.getElementById('resetAll').addEventListener('click',()=>{ selectedSpecs=new Set(); activeCluster=null; render(); });
+</script>
+</body>
+</html>

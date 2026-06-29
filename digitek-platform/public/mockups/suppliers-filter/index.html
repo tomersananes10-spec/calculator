@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>סינון התמחויות — בחירת כיוון UX</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Heebo',sans-serif;background:linear-gradient(135deg,#f8fafc 0%,#eff6ff 100%);color:#0f172a;min-height:100vh;padding:40px 20px}
+  .wrap{max-width:1100px;margin:0 auto}
+  h1{font-size:36px;font-weight:800;text-align:center;margin-bottom:8px}
+  .sub{text-align:center;color:#64748b;font-size:15px;margin-bottom:40px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;text-decoration:none;color:inherit;transition:all .2s;display:block;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .card:hover{transform:translateY(-4px);box-shadow:0 10px 25px rgba(30,64,175,.12);border-color:#1e40af}
+  .badge{display:inline-block;background:#1e40af;color:#fff;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;margin-bottom:12px}
+  .badgeB{background:#7c3aed}
+  .badgeC{background:#059669}
+  .name{font-size:20px;font-weight:800;margin-bottom:6px}
+  .desc{color:#64748b;font-size:13.5px;line-height:1.6;margin-bottom:14px}
+  .preview{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;font-family:monospace;font-size:11px;color:#475569;white-space:pre-line;line-height:1.5;direction:ltr;text-align:right}
+  .cta{margin-top:14px;color:#1e40af;font-weight:700;font-size:13px}
+  .nudge{background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:14px 18px;font-size:14px;text-align:center;color:#92400e;margin-bottom:30px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>סינון התמחויות — 3 כיוונים</h1>
+  <p class="sub">בחר את הכיוון שמתאים לך — לחץ על כל אחד כדי לראות אותו פעיל עם נתונים אמיתיים</p>
+
+  <div class="nudge">
+    כל מוקאפ עובד עם <strong>148 הספקים</strong> + <strong>43 ההתמחויות</strong> + <strong>7 האשכולות</strong> מ-data.json האמיתי.<br>
+    אפשר לסנן, לחפש, ולראות איך הרשימת הספקים מצטמצמת בזמן אמת.
+  </div>
+
+  <div class="grid">
+    <a class="card" href="A.html">
+      <div class="badge">וריאציה A</div>
+      <div class="name">Sidebar קבוע</div>
+      <div class="desc">פאנל קבוע משמאל עם שדה חיפוש בראש, וכל ההתמחויות כ-checkboxes מקובצות לפי אשכול, מקופלות. הקלדה ב-search מסננת חי.</div>
+      <div class="preview">┌──────────────────┐
+│ 🔍 חפש...     │
+├──────────────────┤
+│ ✓ נבחרו (3)     │
+├──────────────────┤
+│ ▼ תיכנון (24)   │
+│   ☑ JAVA      49│
+│   ☑ אדריכלות 24│
+│ ▶ חדשנות (12)   │
+│ ▶ אינטגרציה(16)│
+└──────────────────┘</div>
+      <div class="cta">פתח את A ←</div>
+    </a>
+
+    <a class="card" href="B.html">
+      <div class="badge badgeB">וריאציה B</div>
+      <div class="name">Dropdown חיפוש</div>
+      <div class="desc">כפתור אחד "+ סינון התמחויות ▼". בלחיצה — dropdown צף עם search + רשימה. בחירה → tag מעל הכפתור. סגנון Linear/Notion. שומר על המסך נקי.</div>
+      <div class="preview">[+ סינון התמחויות ▼]  [✕ JAVA]
+         │
+         ▼
+  ┌──────────────────┐
+  │ 🔍 חפש התמחות...│
+  ├──────────────────┤
+  │ ☑ JAVA      (49)│
+  │ ☐ אדריכלות  (24)│
+  │ ☑ AI/ML     (30)│
+  │ ☐ נתוח     (37)│
+  └──────────────────┘</div>
+      <div class="cta">פתח את B ←</div>
+    </a>
+
+    <a class="card" href="C.html">
+      <div class="badge badgeC">וריאציה C</div>
+      <div class="name">Accordion לפי אשכול</div>
+      <div class="desc">משמר את הפאנל הקיים — אבל 43 הצ'יפים מסודרים תחת 7 קבוצות מתקפלות. ראשונה פתוחה, אחרים סגורים. שדה חיפוש פותח את כולם אוטומטית.</div>
+      <div class="preview">[⚙ סינון התמחויות — 2]
+
+┌──────────────────────────┐
+│ ▼ תיכנון (24)            │
+│ [JAVA 49] [PYTHON 10]... │
+│ ▶ חדשנות טכנולוגית (12)  │
+│ ▶ אינטגרציה ענן (16)    │
+│ ▶ תשתיות והגירה (5)     │
+└──────────────────────────┘</div>
+      <div class="cta">פתח את C ←</div>
+    </a>
+  </div>
+</div>
+</body>
+</html>

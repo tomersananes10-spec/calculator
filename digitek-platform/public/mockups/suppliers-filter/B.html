@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>סינון התמחויות — וריאציה B: Dropdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Heebo',sans-serif;background:#f8fafc;color:#0f172a;font-size:14px;line-height:1.5}
+  .page{max-width:1280px;margin:0 auto;padding:24px}
+  .header{text-align:center;margin-bottom:18px}
+  .header h1{font-size:30px;font-weight:800;color:#0f172a;margin-bottom:4px}
+  .header p{color:#64748b;font-size:13px}
+  .top-search{background:#fff;border:1px solid #e2e8f0;border-radius:999px;padding:12px 22px;display:flex;align-items:center;gap:12px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04);max-width:760px;margin-left:auto;margin-right:auto}
+  .top-search input{flex:1;border:none;outline:none;font-family:inherit;font-size:14px;background:transparent}
+  .cluster-chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:14px}
+  .chip{background:#fff;border:1px solid #e2e8f0;border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+  .chip.active{background:#0f172a;color:#fff;border-color:#0f172a}
+  .chip-num{background:#f1f5f9;color:#64748b;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:600}
+  .chip.active .chip-num{background:rgba(255,255,255,.2);color:#fff}
+
+  .filter-row{max-width:1100px;margin:0 auto 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 8px}
+  .dd-btn{background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:#1e40af;position:relative}
+  .dd-btn:hover{border-color:#1e40af;background:#eff6ff}
+  .dd-btn.active{background:#1e40af;color:#fff;border-color:#1e40af}
+  .dd-wrap{position:relative}
+  .dd-pop{position:absolute;top:calc(100% + 6px);right:0;width:380px;max-width:90vw;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.12);z-index:50;display:none;overflow:hidden}
+  .dd-wrap.open .dd-pop{display:block}
+  .dd-search{padding:10px 12px;border-bottom:1px solid #e2e8f0;position:relative}
+  .dd-search input{width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:13px;outline:none}
+  .dd-search input:focus{border-color:#1e40af}
+  .dd-search::after{content:'🔍';position:absolute;right:22px;top:50%;transform:translateY(-50%);opacity:.4;font-size:13px}
+  .dd-toolbar{display:flex;justify-content:space-between;align-items:center;padding:6px 14px;background:#f8fafc;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0}
+  .dd-toolbar button{background:none;border:none;color:#1e40af;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600}
+  .dd-list{max-height:380px;overflow-y:auto;padding:6px 0}
+  .dd-list::-webkit-scrollbar{width:6px}
+  .dd-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+  .dd-group-h{padding:8px 14px 4px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+  .dd-item{display:flex;align-items:center;gap:10px;padding:7px 14px;cursor:pointer;font-size:13px;color:#334155;user-select:none}
+  .dd-item:hover{background:#f8fafc}
+  .dd-item.selected{background:#eff6ff;color:#1e40af;font-weight:600}
+  .dd-item input{margin:0;cursor:pointer;accent-color:#1e40af}
+  .dd-item-name{flex:1}
+  .dd-item-count{color:#94a3b8;font-size:11px;font-weight:500}
+  .dd-footer{padding:8px 14px;border-top:1px solid #e2e8f0;background:#f8fafc;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+  .dd-footer button{background:#1e40af;color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-family:inherit;font-weight:600;font-size:12px}
+
+  .tag{background:#e0e7ff;color:#1e40af;border:1px solid #c7d2fe;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:500;display:inline-flex;gap:5px;align-items:center}
+  .tag .x{cursor:pointer;font-weight:700;opacity:.7}
+  .tag .x:hover{opacity:1}
+  .clear-link{background:none;border:none;color:#64748b;cursor:pointer;font-family:inherit;font-size:12px;text-decoration:underline;margin-right:auto}
+
+  .results-bar{max-width:1100px;margin:0 auto 12px;display:flex;justify-content:space-between;align-items:center;padding:0 12px}
+  .results-count strong{font-size:24px;color:#0f172a;font-weight:800}
+  .cards{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:0 8px}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;display:flex;cursor:pointer;transition:all .15s}
+  .card:hover{box-shadow:0 4px 12px rgba(0,0,0,.06);transform:translateY(-1px)}
+  .card-stripe{width:5px;flex-shrink:0}
+  .card-body{padding:12px 14px;flex:1;min-width:0}
+  .card-name{font-weight:700;font-size:14px;color:#0f172a;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card-meta{font-size:11px;color:#64748b;margin-bottom:8px}
+  .card-clusters{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+  .ctag{background:#f1f5f9;color:#475569;padding:2px 7px;border-radius:6px;font-size:10.5px;font-weight:500}
+  .card-num{display:flex;gap:14px;font-size:11px;color:#475569}
+  .card-num strong{color:#1e40af;font-size:14px;font-weight:800;display:block}
+
+  .nudge{margin:0 auto 18px;max-width:760px;background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:10px 14px;font-size:13px;text-align:center;color:#92400e}
+  .badge-title{display:inline-block;background:#1e40af;color:#fff;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="header">
+    <h1>ספקים זוכים</h1>
+    <p>נספח ד2 — מכרז דיגטק 07-2023 · 148 ספקים · 43 התמחויות · 7 אשכולות</p>
+  </div>
+
+  <div class="nudge"><span class="badge-title">וריאציה B</span> Dropdown אחד עם חיפוש · tags גלויים תחת הכפתור · מינימליסטי כמו Linear/Notion</div>
+
+  <div class="top-search">
+    <span>🔍</span>
+    <input placeholder='חיפוש לפי שם ספק, מק"ט, מנו"ף...'>
+  </div>
+  <div class="cluster-chips" id="clusterChips"></div>
+
+  <div class="filter-row">
+    <div class="dd-wrap" id="ddWrap">
+      <button class="dd-btn" id="ddBtn" onclick="toggleDD(event)">
+        <span>+ סינון התמחויות</span>
+        <span id="ddBtnCount" style="display:none;background:#1e40af;color:#fff;padding:1px 7px;border-radius:999px;font-size:11px">0</span>
+        <span>▼</span>
+      </button>
+      <div class="dd-pop">
+        <div class="dd-search"><input id="specSearch" placeholder="חפש התמחות..."></div>
+        <div class="dd-toolbar">
+          <span><span id="ddSelLabel">0</span> נבחרו מתוך <span id="ddTotal">43</span></span>
+          <button id="ddClearBtn">נקה</button>
+        </div>
+        <div class="dd-list" id="ddList"></div>
+        <div class="dd-footer">
+          <span style="color:#64748b" id="ddFooterCount">148 ספקים תואמים</span>
+          <button onclick="closeDD()">סגור</button>
+        </div>
+      </div>
+    </div>
+    <div id="tagsRow" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
+    <button class="clear-link" id="clearAll" style="display:none">↺ נקה הכל</button>
+  </div>
+
+  <div class="results-bar">
+    <div class="results-count"><strong id="resCount">148</strong> ספקים זוכים</div>
+    <div style="font-size:12px;color:#64748b" id="resDetail">42 התמחויות · 694 הרשאות</div>
+  </div>
+  <div class="cards" id="cards"></div>
+</div>
+
+<script>
+const CLUSTER_COLOR={ 'תיכנון ניתוח ופיתוח':'#1e40af','תשתיות והגירה לענן':'#7c3aed','חדשנות טכנולוגית':'#ec4899','אינטגרציה של פתרונות צד ג לענן':'#f97316','הדרכה':'#059669','אבטחת מידע':'#dc2626','בסיסי נתונים':'#0d9488' };
+let DATA=null, selectedSpecs=new Set(), activeCluster=null, specSearchQ='';
+
+fetch('../suppliers/data.json').then(r=>r.json()).then(d=>{ DATA=d; render(); });
+
+function render(){ renderClusterChips(); renderDD(); renderTags(); renderCards(); }
+
+function renderClusterChips(){
+  const total=DATA.totals.suppliers;
+  const html=['<button class="chip '+(activeCluster===null?'active':'')+'" onclick="setCluster(null)"><span>כל האשכולות</span><span class="chip-num">'+total+'</span></button>'];
+  DATA.clusters.forEach(c=>{
+    html.push('<button class="chip '+(activeCluster===c.name?'active':'')+'" onclick="setCluster(\''+c.name.replace(/'/g,"\\'")+'\')"><span>'+c.name+'</span><span class="chip-num">'+c.suppliers+'</span></button>');
+  });
+  document.getElementById('clusterChips').innerHTML=html.join('');
+}
+
+function getSpecsByCluster(){
+  const byCluster={};
+  DATA.rows.forEach(r=>{
+    if(activeCluster && r.c!==activeCluster) return;
+    if(!byCluster[r.c]) byCluster[r.c]={};
+    if(!byCluster[r.c][r.sp]) byCluster[r.c][r.sp]=new Set();
+    byCluster[r.c][r.sp].add(r.s);
+  });
+  return byCluster;
+}
+
+function renderDD(){
+  const byCluster=getSpecsByCluster();
+  const q=specSearchQ.toLowerCase().trim();
+  const html=[];
+  let totalShown=0;
+  DATA.clusters.forEach(c=>{
+    if(activeCluster && activeCluster!==c.name) return;
+    const specs=byCluster[c.name]||{};
+    const filtered=Object.entries(specs).filter(([n])=>!q || n.toLowerCase().includes(q));
+    if(filtered.length===0) return;
+    html.push('<div class="dd-group-h">'+c.name+'</div>');
+    filtered.forEach(([name, supSet])=>{
+      const sel=selectedSpecs.has(name);
+      totalShown++;
+      html.push('<label class="dd-item '+(sel?'selected':'')+'"><input type="checkbox" '+(sel?'checked':'')+' onchange="toggleSpec(\''+name.replace(/'/g,"\\'")+'\')"><span class="dd-item-name">'+name+'</span><span class="dd-item-count">'+supSet.size+' ספקים</span></label>');
+    });
+  });
+  if(html.length===0) html.push('<div style="color:#94a3b8;padding:20px;text-align:center;font-size:12px">לא נמצאו התמחויות</div>');
+  document.getElementById('ddList').innerHTML=html.join('');
+  document.getElementById('ddSelLabel').textContent=selectedSpecs.size;
+  document.getElementById('ddTotal').textContent=totalShown;
+  // Button count
+  const btnCount=document.getElementById('ddBtnCount');
+  if(selectedSpecs.size>0){ btnCount.style.display='inline-block'; btnCount.textContent=selectedSpecs.size; document.getElementById('ddBtn').classList.add('active'); }
+  else{ btnCount.style.display='none'; document.getElementById('ddBtn').classList.remove('active'); }
+}
+
+function renderTags(){
+  const row=document.getElementById('tagsRow');
+  if(selectedSpecs.size===0){ row.innerHTML=''; document.getElementById('clearAll').style.display='none'; return; }
+  row.innerHTML=Array.from(selectedSpecs).map(s=>'<span class="tag">'+s+'<span class="x" onclick="toggleSpec(\''+s.replace(/'/g,"\\'")+'\')">×</span></span>').join('');
+  document.getElementById('clearAll').style.display='inline-block';
+}
+
+function renderCards(){
+  const supMap={};
+  DATA.rows.forEach(r=>{
+    if(activeCluster && r.c!==activeCluster) return;
+    if(selectedSpecs.size && !selectedSpecs.has(r.sp)) return;
+    if(!supMap[r.s]){ supMap[r.s]={name:r.s,m:r.m,ag:r.ag,specs:new Set(),clusters:new Set(),large:0,small:0}; }
+    supMap[r.s].specs.add(r.sp);
+    supMap[r.s].clusters.add(r.c);
+    if(r.sz==='גדול') supMap[r.s].large++;
+    else if(r.sz==='קטן') supMap[r.s].small++;
+  });
+  const sups=Object.values(supMap).sort((a,b)=>b.specs.size-a.specs.size);
+  document.getElementById('resCount').textContent=sups.length;
+  document.getElementById('ddFooterCount').textContent=sups.length+' ספקים תואמים';
+  const totalSpecs=new Set(); let totalQuals=0;
+  DATA.rows.forEach(r=>{ if(activeCluster && r.c!==activeCluster) return; if(selectedSpecs.size && !selectedSpecs.has(r.sp)) return; totalSpecs.add(r.sp); totalQuals++; });
+  document.getElementById('resDetail').textContent=totalSpecs.size+' התמחויות · '+totalQuals+' הרשאות';
+
+  const html=sups.slice(0,30).map(s=>{
+    const clusters=Array.from(s.clusters);
+    const color=CLUSTER_COLOR[clusters[0]]||'#94a3b8';
+    return '<div class="card"><div class="card-stripe" style="background:'+color+'"></div><div class="card-body"><div class="card-name">'+s.name+'</div><div class="card-meta">מנו"ף '+s.m+' · הסכם '+s.ag+'</div><div class="card-clusters">'+clusters.slice(0,2).map(c=>'<span class="ctag">'+c+'</span>').join('')+(clusters.length>2?'<span class="ctag">+'+(clusters.length-2)+'</span>':'')+'</div><div class="card-num"><div><strong>'+s.specs.size+'</strong>התמחויות</div><div><strong style="color:#1e40af">'+s.large+'</strong>גדול</div><div><strong style="color:#f59e0b">'+s.small+'</strong>קטן</div></div></div></div>';
+  }).join('');
+  document.getElementById('cards').innerHTML=html || '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">לא נמצאו תוצאות</div>';
+}
+
+function setCluster(c){ activeCluster=c; selectedSpecs=new Set(); render(); }
+function toggleSpec(name){ if(selectedSpecs.has(name)) selectedSpecs.delete(name); else selectedSpecs.add(name); render(); }
+function toggleDD(e){ e.stopPropagation(); document.getElementById('ddWrap').classList.toggle('open'); }
+function closeDD(){ document.getElementById('ddWrap').classList.remove('open'); }
+document.addEventListener('click', e=>{ if(!e.target.closest('#ddWrap')) closeDD(); });
+document.getElementById('specSearch').addEventListener('input',e=>{ specSearchQ=e.target.value; renderDD(); });
+document.getElementById('ddClearBtn').addEventListener('click',()=>{ selectedSpecs=new Set(); render(); });
+document.getElementById('clearAll').addEventListener('click',()=>{ selectedSpecs=new Set(); activeCluster=null; render(); });
+</script>
+</body>
+</html>
