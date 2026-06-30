@@ -356,13 +356,56 @@ export function Suppliers() {
         </div>
       </div>
 
-      {!loading && suppliers.length === 0 && (
-        <div className={styles.empty}>
-          <div className={styles.emptyIcon}>🔍</div>
-          <div>לא נמצאו ספקים בחיתוך זה</div>
-          <div className={styles.emptyHint}>נסה להרחיב את הסינון או נקה את כל הפילטרים</div>
-        </div>
-      )}
+      {!loading && suppliers.length === 0 && (() => {
+        // Smart empty state — explain WHICH filter is blocking and offer to clear just it
+        const clusterName = clusterId ? clusters.find(c => c.id === clusterId)?.name : null
+        const supplierCountInCluster = clusterId
+          ? new Set(rows.filter(r => r.cluster_id === clusterId).map(r => r.supplier_id)).size
+          : totals.suppliers
+
+        // Case A: search + cluster — search is the likely culprit
+        if (query.trim() && clusterId && supplierCountInCluster > 0) {
+          return (
+            <div className={styles.empty}>
+              <div className={styles.emptyIcon}>🔍</div>
+              <div>אין ספקים באשכול "{clusterName}" שתואמים לחיפוש "{query}"</div>
+              <div className={styles.emptyHint}>
+                {supplierCountInCluster} ספקים באשכול הזה ללא חיפוש
+              </div>
+              <div style={{ marginTop: 16, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button className={styles.resetLink} onClick={() => setQuery('')}>✕ נקה רק חיפוש</button>
+                <button className={styles.resetLink} onClick={clearAll}>↺ נקה הכל</button>
+              </div>
+            </div>
+          )
+        }
+
+        // Case B: just search, no other filters
+        if (query.trim() && !clusterId && !specIds.size) {
+          return (
+            <div className={styles.empty}>
+              <div className={styles.emptyIcon}>🔍</div>
+              <div>לא נמצאו ספקים שתואמים ל-"{query}"</div>
+              <div className={styles.emptyHint}>החיפוש בודק שם ספק, התמחות, מק"ט, מנו"ף, ומספר הסכם</div>
+              <div style={{ marginTop: 16 }}>
+                <button className={styles.resetLink} onClick={() => setQuery('')}>✕ נקה חיפוש</button>
+              </div>
+            </div>
+          )
+        }
+
+        // Case C: generic empty
+        return (
+          <div className={styles.empty}>
+            <div className={styles.emptyIcon}>🔍</div>
+            <div>לא נמצאו ספקים בחיתוך זה</div>
+            <div className={styles.emptyHint}>נסה להרחיב את הסינון או נקה את כל הפילטרים</div>
+            <div style={{ marginTop: 16 }}>
+              <button className={styles.resetLink} onClick={clearAll}>↺ נקה הכל</button>
+            </div>
+          </div>
+        )
+      })()}
 
       <div className={styles.cards}>
         {pageItems.map(s => {
