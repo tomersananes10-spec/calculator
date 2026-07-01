@@ -28,7 +28,8 @@ export function Suppliers() {
   const [clusterId,   setClusterId]   = useState<string | null>(null)
   const [specIds,     setSpecIds]     = useState<Set<string>>(new Set())
   const [sizeFilter,  setSizeFilter]  = useState<SizeFilter>('all')
-  const [showAdv,     setShowAdv]     = useState(false)
+  const [specSearchQ, setSpecSearchQ] = useState('')
+  const [openGroups,  setOpenGroups]  = useState<Set<string>>(new Set())
   const [selectedSup, setSelectedSup] = useState<SupplierSummary | null>(null)
   const [page,        setPage]        = useState(1)
 
@@ -154,6 +155,30 @@ export function Suppliers() {
     return Array.from(map.values()).map(e => e.spec).sort((a, b) => a.name.localeCompare(b.name, 'he'))
   }, [rows, clusterId])
 
+  // Group visible specialties by cluster for sidebar accordion, filtered by search
+  const groupedSpecs = useMemo(() => {
+    const q = specSearchQ.trim().toLowerCase()
+    const filtered = q
+      ? specialties.filter(s => s.name.toLowerCase().includes(q))
+      : specialties
+    const byCluster = new Map<string, { cluster: Cluster; specs: Specialty[] }>()
+    filtered.forEach(s => {
+      const cluster = clusters.find(c => c.id === s.clusterId)
+      if (!cluster) return
+      if (!byCluster.has(cluster.id)) byCluster.set(cluster.id, { cluster, specs: [] })
+      byCluster.get(cluster.id)!.specs.push(s)
+    })
+    return Array.from(byCluster.values()).sort((a, b) => a.cluster.sort_order - b.cluster.sort_order)
+  }, [specialties, clusters, specSearchQ])
+
+  // On first cluster load, open all groups by default
+  useEffect(() => {
+    if (clusters.length > 0 && openGroups.size === 0) {
+      setOpenGroups(new Set(clusters.map(c => c.id)))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clusters.length])
+
   const filteredRows = useMemo(() => {
     const q = query.trim().toLowerCase()
     return rows.filter(r => {
@@ -233,7 +258,7 @@ export function Suppliers() {
     setClusterId(null)
     setSpecIds(new Set())
     setSizeFilter('all')
-    setShowAdv(false)
+    setSpecSearchQ('')
   }
 
   function toggleSpec(id: string) {
@@ -244,6 +269,21 @@ export function Suppliers() {
       return next
     })
   }
+
+  function toggleGroup(id: string) {
+    setOpenGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const specById = useMemo(() => {
+    const m = new Map<string, Specialty>()
+    specialties.forEach(s => m.set(s.id, s))
+    return m
+  }, [specialties])
 
   function validityBadge(s: SupplierSummary): { label: string; cls: string } {
     if (!s.valid_to) return { label: 'ללא תאריך', cls: styles.badgeGrey }
@@ -311,39 +351,98 @@ export function Suppliers() {
         ))}
       </div>
 
-      <button
-        className={`${styles.advToggle} ${(showAdv || specIds.size > 0) ? styles.advToggleActive : ''}`}
-        onClick={() => setShowAdv(s => !s)}
-      >
-        ⚙️ סינון התמחויות{specIds.size > 0 ? ` · ${specIds.size} נבחרו` : ''}
-      </button>
-
-      {showAdv && (
-        <div className={styles.advPanel}>
-          <div className={styles.advLabel}>
-            {clusterId ? 'התמחויות באשכול הנבחר' : 'כל ההתמחויות'}
-          </div>
-          <div className={styles.specChips}>
-            {specialties.map(s => (
+      <div className={styles.layout}>
+        <aside className={styles.sidebar}>
+          <div className={styles.sbTitle}>
+            <span>סינון התמחויות</span>
+            {(specIds.size > 0 || specSearchQ) && (
               <button
-                key={s.id}
-                className={`${styles.specChip} ${specIds.has(s.id) ? styles.specChipActive : ''}`}
-                onClick={() => toggleSpec(s.id)}
-                title={s.catalog_number ? `מק"ט ${s.catalog_number}` : undefined}
+                className={styles.sbClearAll}
+                onClick={() => { setSpecIds(new Set()); setSpecSearchQ('') }}
               >
-                <span>{s.name}</span>
-                <span className={styles.specChipN}>{s.supplierCount}</span>
+                נקה
               </button>
-            ))}
+            )}
           </div>
-          {specIds.size > 0 && (
-            <button className={styles.clearSpecsBtn} onClick={() => setSpecIds(new Set())}>
-              נקה התמחויות נבחרות
-            </button>
-          )}
-        </div>
-      )}
 
+          <div className={styles.sbSearchWrap}>
+            <input
+              className={styles.sbSearchInput}
+              placeholder="חפש התמחות…"
+              value={specSearchQ}
+              onChange={e => setSpecSearchQ(e.target.value)}
+            />
+            <span className={styles.sbSearchIcon}>🔍</span>
+          </div>
+
+          {specIds.size > 0 && (
+            <div className={styles.sbSelected}>
+              <div className={styles.sbSelectedLabel}>נבחרו {specIds.size}</div>
+              <div className={styles.sbTags}>
+                {Array.from(specIds).map(id => {
+                  const spec = specById.get(id)
+                  if (!spec) return null
+                  return (
+                    <span key={id} className={styles.sbTag}>
+                      {spec.name}
+                      <button
+                        className={styles.sbTagX}
+                        onClick={() => toggleSpec(id)}
+                        aria-label={`הסר ${spec.name}`}
+                      >×</button>
+                    </span>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className={styles.sbList}>
+            {groupedSpecs.length === 0 ? (
+              <div className={styles.sbEmpty}>לא נמצאו התמחויות</div>
+            ) : groupedSpecs.map(group => {
+              // Search auto-opens all matching groups; single group always open
+              const isOpen = specSearchQ.trim() !== '' || groupedSpecs.length === 1 || openGroups.has(group.cluster.id)
+              return (
+                <div
+                  key={group.cluster.id}
+                  className={`${styles.sbGroup} ${isOpen ? styles.sbGroupOpen : ''}`}
+                >
+                  <div
+                    className={styles.sbGroupHeader}
+                    onClick={() => toggleGroup(group.cluster.id)}
+                  >
+                    <span className={styles.sbGroupChev}>▶</span>
+                    <span className={styles.sbGroupName}>{group.cluster.name}</span>
+                    <span className={styles.sbGroupCount}>{group.specs.length}</span>
+                  </div>
+                  <div className={styles.sbGroupItems}>
+                    {group.specs.map(s => {
+                      const sel = specIds.has(s.id)
+                      return (
+                        <label
+                          key={s.id}
+                          className={`${styles.sbItem} ${sel ? styles.sbItemSelected : ''}`}
+                          title={s.catalog_number ? `מק"ט ${s.catalog_number}` : undefined}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={sel}
+                            onChange={() => toggleSpec(s.id)}
+                          />
+                          <span className={styles.sbItemName}>{s.name}</span>
+                          <span className={styles.sbItemCount}>{s.supplierCount}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </aside>
+
+        <div className={styles.main}>
       <div className={styles.resultsInfo}>
         <div className={styles.resultsCount}>
           <strong>{visibleStats.suppliers}</strong> ספקים זוכים
@@ -462,6 +561,8 @@ export function Suppliers() {
           <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>הבא ›</button>
         </div>
       )}
+        </div>
+      </div>
 
       {selectedSup && (
         <SupplierModal supplier={selectedSup} onClose={() => setSelectedSup(null)} />

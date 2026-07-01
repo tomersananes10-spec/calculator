@@ -152,99 +152,255 @@
   color: white;
 }
 
-/* Advanced toggle + panel */
-.advToggle {
-  display: block;
-  margin: 0 auto 16px;
-  padding: 6px 14px;
-  background: transparent;
-  border: 1px dashed var(--border2);
-  border-radius: 999px;
-  color: var(--text2);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 12px;
+/* Layout: sidebar + main */
+.layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
 }
 
-.advToggle:hover {
-  color: var(--primary);
-  border-color: var(--primary);
+.main {
+  flex: 1;
+  min-width: 0;
 }
 
-.advToggleActive {
-  color: var(--primary-dark);
-  border-color: var(--primary);
-  background: var(--primary-bg);
-}
-
-.advPanel {
+/* Sidebar — specialties filter */
+.sidebar {
+  width: 300px;
+  flex-shrink: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 18px 20px;
-  margin-bottom: 20px;
-}
-
-.advLabel {
-  font-size: 12px;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
-  font-weight: 700;
-}
-
-.specChips {
+  padding: 14px;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  max-height: 280px;
-  overflow-y: auto;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.specChip {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  padding: 5px 11px;
-  border-radius: 999px;
-  font-size: 12px;
+.sbTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--navy);
+  margin-bottom: 10px;
+}
+
+.sbClearAll {
+  background: none;
+  border: none;
+  color: var(--primary);
   cursor: pointer;
-  color: var(--text);
   font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sbClearAll:hover {
+  text-decoration: underline;
+}
+
+.sbSearchWrap {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.sbSearchInput {
+  width: 100%;
+  padding: 8px 32px 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.sbSearchInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-bg);
+  background: var(--surface);
+}
+
+.sbSearchIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text3);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.sbSelected {
+  background: var(--primary-bg);
+  border: 1px solid var(--primary-light);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+
+.sbSelectedLabel {
+  font-size: 11px;
+  color: var(--primary-dark);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.sbTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sbTag {
+  background: var(--primary);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
   display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.sbTagX {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.sbTagX:hover {
+  opacity: 1;
+}
+
+.sbList {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0 -4px;
+  padding: 0 4px;
+}
+
+.sbList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sbList::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 3px;
+}
+
+.sbGroup {
+  margin-bottom: 2px;
+}
+
+.sbGroupHeader {
+  display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.1s;
+  padding: 7px 6px;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  user-select: none;
 }
 
-.specChip:hover {
-  border-color: var(--primary);
+.sbGroupHeader:hover {
+  background: var(--bg);
 }
 
-.specChipActive {
-  background: var(--primary-bg);
-  border-color: var(--primary);
+.sbGroupChev {
+  display: inline-block;
+  width: 12px;
+  color: var(--text3);
+  font-size: 10px;
+  transition: transform 0.15s;
+}
+
+.sbGroupOpen .sbGroupChev {
+  transform: rotate(90deg);
+}
+
+.sbGroupName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sbGroupCount {
+  color: var(--text3);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.sbGroupItems {
+  padding: 2px 18px 4px;
+  display: none;
+}
+
+.sbGroupOpen .sbGroupItems {
+  display: block;
+}
+
+.sbItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.sbItem:hover {
+  background: var(--bg);
+}
+
+.sbItem input {
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.sbItemName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sbItemCount {
+  color: var(--text3);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.sbItemSelected {
   color: var(--primary-dark);
   font-weight: 600;
 }
 
-.specChipN {
-  font-size: 10px;
+.sbEmpty {
   color: var(--text3);
-}
-
-.specChipActive .specChipN {
-  color: var(--primary-dark);
-}
-
-.clearSpecsBtn {
-  margin-top: 12px;
-  background: transparent;
-  border: none;
-  color: var(--red);
-  font-family: inherit;
+  padding: 20px 10px;
+  text-align: center;
   font-size: 12px;
-  cursor: pointer;
 }
 
 /* Results info */
@@ -305,7 +461,7 @@
 /* Cards grid */
 .cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
 }
 
@@ -606,12 +762,16 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-@media (max-width: 980px) {
-  .cards { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 900px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    position: static;
+    max-height: 380px;
+  }
 }
 
 @media (max-width: 640px) {
-  .cards { grid-template-columns: 1fr; }
   .detailGrid { grid-template-columns: 1fr; }
   .searchBar { flex-direction: column; }
   .sizeSeg { width: 100%; justify-content: space-between; }
