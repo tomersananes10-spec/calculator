@@ -171,14 +171,6 @@ export function Suppliers() {
     return Array.from(byCluster.values()).sort((a, b) => a.cluster.sort_order - b.cluster.sort_order)
   }, [specialties, clusters, specSearchQ])
 
-  // On first cluster load, open all groups by default
-  useEffect(() => {
-    if (clusters.length > 0 && openGroups.size === 0) {
-      setOpenGroups(new Set(clusters.map(c => c.id)))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clusters.length])
-
   const filteredRows = useMemo(() => {
     const q = query.trim().toLowerCase()
     return rows.filter(r => {
