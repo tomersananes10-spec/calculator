@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>רובד 5 — סינון ספק</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Heebo',sans-serif;background:#f8fafc;color:#0f172a;font-size:14px;line-height:1.5}
+  .page{max-width:1400px;margin:0 auto;padding:24px}
+  .header{text-align:center;margin-bottom:18px}
+  .header h1{font-size:34px;font-weight:800;color:#0f172a;margin-bottom:4px}
+  .header p{color:#64748b;font-size:13px}
+  .nudge{max-width:760px;margin:0 auto 18px;background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:10px 14px;font-size:13px;text-align:center;color:#92400e}
+  .badge-title{display:inline-block;background:#7c3aed;color:#fff;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;margin-bottom:6px}
+
+  .top-search{background:#fff;border:1px solid #e2e8f0;border-radius:999px;padding:12px 22px;display:flex;align-items:center;gap:12px;margin:0 auto 14px;box-shadow:0 1px 3px rgba(0,0,0,.04);max-width:820px}
+  .top-search input{flex:1;border:none;outline:none;font-family:inherit;font-size:14px;background:transparent}
+  .top-chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:16px}
+  .chip{background:#fff;border:1px solid #e2e8f0;border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+  .chip.active{background:#0f172a;color:#fff;border-color:#0f172a}
+  .chip-num{background:#f1f5f9;color:#64748b;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:600}
+  .chip.active .chip-num{background:rgba(255,255,255,.2);color:#fff}
+
+  .layout{display:flex;gap:20px;align-items:flex-start}
+  .main{flex:1;min-width:0}
+
+  .sidebar{width:300px;flex-shrink:0;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px;position:sticky;top:20px;max-height:calc(100vh - 40px);display:flex;flex-direction:column;overflow:hidden}
+  .sb-title{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:14px;margin-bottom:10px}
+  .sb-clear{background:none;border:none;color:#7c3aed;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600}
+  .sb-search{position:relative;margin-bottom:10px}
+  .sb-search input{width:100%;padding:8px 32px 8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:#f8fafc}
+  .sb-search input:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1);background:#fff}
+  .sb-search::after{content:'🔍';position:absolute;right:10px;top:50%;transform:translateY(-50%);opacity:.5;font-size:13px}
+  .sb-selected{background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:8px;margin-bottom:10px}
+  .sb-selected-label{font-size:11px;color:#7c3aed;font-weight:700;margin-bottom:5px}
+  .sb-tags{display:flex;flex-wrap:wrap;gap:4px}
+  .sb-tag{background:#7c3aed;color:#fff;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:500;display:inline-flex;gap:4px;align-items:center;max-width:100%}
+  .sb-tag span.n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}
+  .sb-tag .x{cursor:pointer;font-weight:700;opacity:.85;font-size:13px;line-height:1;flex-shrink:0}
+  .sb-list{flex:1;overflow-y:auto;margin:0 -4px;padding:0 4px}
+  .sb-list::-webkit-scrollbar{width:6px}
+  .sb-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+  .sb-item{display:flex;align-items:center;gap:8px;padding:8px 6px;cursor:pointer;border-radius:5px;font-size:12.5px;color:#334155;border-bottom:1px solid #f1f5f9}
+  .sb-item:hover{background:#f8fafc}
+  .sb-item input{margin:0;cursor:pointer;accent-color:#7c3aed}
+  .sb-item-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+  .sb-item-count{color:#94a3b8;font-size:11px;font-weight:600;background:#f1f5f9;padding:1px 7px;border-radius:999px}
+  .sb-item.selected{color:#7c3aed;font-weight:700}
+  .sb-item.selected .sb-item-count{background:#7c3aed;color:#fff}
+
+  .results-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .results-count strong{font-size:24px;color:#0f172a;font-weight:800}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;cursor:pointer;transition:all .15s}
+  .card:hover{box-shadow:0 4px 12px rgba(0,0,0,.06);transform:translateY(-1px);border-color:#7c3aed}
+  .card-badges{display:flex;gap:6px;margin-bottom:8px}
+  .badge{padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700}
+  .badge-aws{background:#fef3c7;color:#92400e}
+  .badge-gcp{background:#dbeafe;color:#1e40af}
+  .badge-saas{background:#dcfce7;color:#166534}
+  .badge-non{background:#fee2e2;color:#991b1b}
+  .card-name{font-weight:700;font-size:15px;color:#0f172a;margin-bottom:4px;line-height:1.3}
+  .card-mfg{font-size:12px;color:#64748b;margin-bottom:6px}
+  .card-provider{font-size:11px;color:#7c3aed;font-weight:600}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <h1>רובד 5</h1>
+    <p>326 שירותי ענן מאושרים לרכישה</p>
+  </div>
+  <div class="nudge"><span class="badge-title">וריאציה B</span> Sidebar — סינון לפי <b>ספק</b> (73 ספקים) · רשימה שטוחה, ממוינת לפי מספר שירותים · שימושי לרכש נקודתי</div>
+
+  <div class="top-search">
+    <span>✨🔍</span>
+    <input placeholder='חיפוש חכם — למשל: "סריקת מסמכים", "אבטחה לדאטה רגיש"…'>
+  </div>
+  <div class="top-chips" id="topChips"></div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sb-title">
+        סינון ספק
+        <button class="sb-clear" id="clearAll">נקה</button>
+      </div>
+      <div class="sb-search"><input id="provSearch" placeholder="חפש ספק…"></div>
+      <div class="sb-selected" id="selectedBox" style="display:none">
+        <div class="sb-selected-label">נבחרו <span id="selCount">0</span></div>
+        <div class="sb-tags" id="selTags"></div>
+      </div>
+      <div class="sb-list" id="provList"></div>
+    </aside>
+
+    <main class="main">
+      <div class="results-bar">
+        <div class="results-count"><strong id="resCount">326</strong> שירותים</div>
+        <div style="font-size:12px;color:#64748b" id="resDetail"></div>
+      </div>
+      <div class="cards" id="cards"></div>
+    </main>
+  </div>
+</div>
+
+<script>
+let DATA=null, selectedProvs=new Set(), cloudFilter='all', typeFilter='all', provSearchQ=''
+fetch('data.json').then(r=>r.json()).then(d=>{ DATA=d; render() })
+
+function render(){ renderTopChips(); renderProvList(); renderCards() }
+
+function renderTopChips(){
+  const html=[]
+  const total=DATA.services.length
+  const aws=DATA.services.filter(s=>s.cloud==='AWS').length
+  const gcp=DATA.services.filter(s=>s.cloud==='GCP').length
+  const saas=DATA.services.filter(s=>s.type==='SaaS').length
+  const nonSaas=DATA.services.filter(s=>s.type==='non-SaaS').length
+  html.push(chipHtml('cloud','all','הכל',total))
+  html.push(chipHtml('cloud','AWS','AWS',aws))
+  html.push(chipHtml('cloud','GCP','GCP',gcp))
+  html.push('<span style="width:1px;background:#e2e8f0;margin:0 4px"></span>')
+  html.push(chipHtml('type','all','כל הסוגים',total))
+  html.push(chipHtml('type','SaaS','SaaS',saas))
+  html.push(chipHtml('type','non-SaaS','non-SaaS',nonSaas))
+  document.getElementById('topChips').innerHTML=html.join('')
+}
+function chipHtml(kind,val,label,num){
+  const active = (kind==='cloud'?cloudFilter:typeFilter)===val
+  return `<button class="chip ${active?'active':''}" onclick="setFilter('${kind}','${val}')"><span>${label}</span><span class="chip-num">${num}</span></button>`
+}
+function setFilter(kind,val){ if(kind==='cloud') cloudFilter=val; else typeFilter=val; render() }
+
+function renderProvList(){
+  const map=new Map()
+  DATA.services.forEach(s=>{
+    if(!s.provider) return
+    if(cloudFilter!=='all' && s.cloud!==cloudFilter) return
+    if(typeFilter!=='all' && s.type!==typeFilter) return
+    map.set(s.provider,(map.get(s.provider)||0)+1)
+  })
+  const q=provSearchQ.toLowerCase().trim()
+  const items=Array.from(map.entries()).map(([n,c])=>({name:n,count:c})).filter(m=>!q||m.name.toLowerCase().includes(q)).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name))
+
+  const html=[]
+  items.forEach(m=>{
+    const sel = selectedProvs.has(m.name)
+    html.push(`<label class="sb-item ${sel?'selected':''}"><input type="checkbox" ${sel?'checked':''} onchange="toggleProv('${m.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="sb-item-name" title="${m.name.replace(/"/g,'&quot;')}">${m.name}</span><span class="sb-item-count">${m.count}</span></label>`)
+  })
+  if(html.length===0) html.push('<div style="color:#94a3b8;padding:20px;text-align:center;font-size:12px">לא נמצאו ספקים</div>')
+  document.getElementById('provList').innerHTML=html.join('')
+
+  const sb=document.getElementById('selectedBox')
+  if(selectedProvs.size===0){ sb.style.display='none'; return }
+  sb.style.display='block'
+  document.getElementById('selCount').textContent=selectedProvs.size
+  document.getElementById('selTags').innerHTML=Array.from(selectedProvs).map(n=>`<span class="sb-tag"><span class="n">${n}</span><span class="x" onclick="toggleProv('${n.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">×</span></span>`).join('')
+}
+function toggleProv(name){ if(selectedProvs.has(name)) selectedProvs.delete(name); else selectedProvs.add(name); render() }
+
+function renderCards(){
+  const list = DATA.services.filter(s=>{
+    if(cloudFilter!=='all' && s.cloud!==cloudFilter) return false
+    if(typeFilter!=='all' && s.type!==typeFilter) return false
+    if(selectedProvs.size && !selectedProvs.has(s.provider)) return false
+    return true
+  })
+  document.getElementById('resCount').textContent=list.length
+  document.getElementById('resDetail').textContent = selectedProvs.size ? `סוננו לפי ${selectedProvs.size} ספקים` : ''
+  document.getElementById('cards').innerHTML=list.slice(0,30).map(s=>{
+    return `<div class="card">
+      <div class="card-badges">
+        <span class="badge badge-${s.cloud.toLowerCase()}">${s.cloud}</span>
+        <span class="badge ${s.type==='SaaS'?'badge-saas':'badge-non'}">${s.type}</span>
+      </div>
+      <div class="card-name">${s.name}</div>
+      <div class="card-mfg">${s.manufacturer||'—'}</div>
+      <div class="card-provider">${s.provider||'—'}</div>
+    </div>`
+  }).join('') || '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">אין תוצאות</div>'
+}
+
+document.getElementById('provSearch').addEventListener('input',e=>{ provSearchQ=e.target.value; renderProvList() })
+document.getElementById('clearAll').addEventListener('click',()=>{ selectedProvs=new Set(); provSearchQ=''; document.getElementById('provSearch').value=''; render() })
+</script>
+</body>
+</html>

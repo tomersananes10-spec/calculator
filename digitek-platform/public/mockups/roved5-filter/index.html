@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>רובד 5 — בחירת ציר סינון</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Heebo',sans-serif;background:linear-gradient(135deg,#f8fafc 0%,#eff6ff 100%);color:#0f172a;min-height:100vh;padding:40px 20px}
+  .wrap{max-width:1100px;margin:0 auto}
+  h1{font-size:36px;font-weight:800;text-align:center;margin-bottom:8px}
+  .sub{text-align:center;color:#64748b;font-size:15px;margin-bottom:40px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:22px;text-decoration:none;color:inherit;transition:all .2s;display:block;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .card:hover{transform:translateY(-4px);box-shadow:0 10px 25px rgba(30,64,175,.12)}
+  .badge{display:inline-block;color:#fff;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;margin-bottom:12px}
+  .badgeA{background:#1e40af}
+  .badgeB{background:#7c3aed}
+  .badgeC{background:#059669}
+  .name{font-size:20px;font-weight:800;margin-bottom:6px}
+  .desc{color:#64748b;font-size:13.5px;line-height:1.6;margin-bottom:14px}
+  .cta{margin-top:14px;font-weight:700;font-size:13px}
+  .ctaA{color:#1e40af}
+  .ctaB{color:#7c3aed}
+  .ctaC{color:#059669}
+  .nudge{background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:14px 18px;font-size:14px;text-align:center;color:#92400e;margin-bottom:30px;line-height:1.6}
+  .info{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;font-size:13px;color:#1e40af;margin-bottom:30px;line-height:1.7}
+  .info strong{font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>רובד 5 — 3 כיווני סינון</h1>
+  <p class="sub">כל מוקאפ בונה sidebar שונה על אותו הדף. לחץ כדי להתנסות עם נתונים אמיתיים</p>
+
+  <div class="info">
+    ✨ בעניין החיפוש: <strong>החיפוש הראשי (הקוביה בראש הדף)</strong> הוא AI חכם דרך Gemini — כמו שקיים היום ב-Production. שדות החיפוש הפנימיים ב-Sidebar (חפש יצרן/ספק) הם חיפוש טקסט רגיל.
+  </div>
+
+  <div class="nudge">
+    כל מוקאפ עובד עם <strong>326 השירותים</strong> ו-<strong>131 היצרנים / 73 הספקים</strong> האמיתיים מ-Supabase.
+  </div>
+
+  <div class="grid">
+    <a class="card" href="A.html">
+      <div class="badge badgeA">וריאציה A</div>
+      <div class="name">סינון יצרן</div>
+      <div class="desc">
+        131 יצרנים מקובצים ל-AWS ול-GCP באקורדיון. חיפוש בסייידבר, checkboxes, כל יצרן עם count שירותים. מקבילי מלא לסייידבר של Suppliers.
+      </div>
+      <div class="cta ctaA">פתח את A ←</div>
+    </a>
+
+    <a class="card" href="B.html">
+      <div class="badge badgeB">וריאציה B</div>
+      <div class="name">סינון ספק</div>
+      <div class="desc">
+        73 ספקים ברשימה שטוחה, ממוינת לפי מספר שירותים (הכי פעילים למעלה). שימושי כשמחפשים "מה יש לבייינט? מה יש ליבמ?".
+      </div>
+      <div class="cta ctaB">פתח את B ←</div>
+    </a>
+
+    <a class="card" href="C.html">
+      <div class="badge badgeC">וריאציה C</div>
+      <div class="name">קטגוריות + יצרן</div>
+      <div class="desc">
+        שני צירים בסייידבר אחד: 6 קטגוריות (multi-select) למעלה + 131 יצרנים למטה. הכי גמיש, אבל דורש יותר גובה מסך.
+      </div>
+      <div class="cta ctaC">פתח את C ←</div>
+    </a>
+  </div>
+</div>
+</body>
+</html>
