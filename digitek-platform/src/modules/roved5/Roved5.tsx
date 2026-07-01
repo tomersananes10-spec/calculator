@@ -42,7 +42,6 @@ function mapDbRow(r: DbRow): Roved5Service {
 
 type CloudFilter = 'all' | 'AWS' | 'GCP'
 type TypeFilter  = 'all' | 'SaaS' | 'non-SaaS'
-type CatFilter = 'all' | ServiceCategory
 
 const CAT_LABELS: Record<ServiceCategory, string> = {
   compute:   'Compute',
@@ -75,16 +74,15 @@ export function Roved5() {
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [cloudFilter,    setCloudFilter]    = useState<CloudFilter>('all')
   const [typeFilter,     setTypeFilter]     = useState<TypeFilter>('all')
-  const [catFilter,      setCatFilter]      = useState<CatFilter>(() => {
-    if (typeof window === 'undefined') return 'all'
+  const [selectedCats,   setSelectedCats]   = useState<Set<ServiceCategory>>(() => {
+    if (typeof window === 'undefined') return new Set()
     const c = new URLSearchParams(window.location.search).get('category')
-    const allowed: CatFilter[] = ['all', 'security', 'database', 'storage', 'compute', 'ai_ml', 'analytics']
-    return (allowed.includes(c as CatFilter) ? c : 'all') as CatFilter
+    const allowed: ServiceCategory[] = ['security', 'database', 'storage', 'compute', 'ai_ml', 'analytics']
+    return new Set(c && allowed.includes(c as ServiceCategory) ? [c as ServiceCategory] : [])
   })
-  const [showAdvanced,   setShowAdvanced]   = useState(() => {
-    if (typeof window === 'undefined') return false
-    return new URLSearchParams(window.location.search).get('category') !== null
-  })
+  const [selectedMfgs,   setSelectedMfgs]   = useState<Set<string>>(new Set())
+  const [mfgSearchQ,     setMfgSearchQ]     = useState('')
+  const [openMfgGroups,  setOpenMfgGroups]  = useState<Set<string>>(new Set())
   const [aiResults,      setAiResults]      = useState<AISearchResult[] | null>(null)
   const [aiLoading,      setAiLoading]      = useState(false)
   const [selected,       setSelected]       = useState<Roved5Service | null>(null)
@@ -166,7 +164,7 @@ export function Roved5() {
     return () => { controller.abort() }
   }, [debouncedQuery, services])
 
-  useEffect(() => { setPage(1) }, [debouncedQuery, cloudFilter, typeFilter, catFilter])
+  useEffect(() => { setPage(1) }, [debouncedQuery, cloudFilter, typeFilter, selectedCats, selectedMfgs])
 
   const serviceCategories = useMemo(() => {
     const map = new Map<string, ServiceCategory | null>()
@@ -174,11 +172,43 @@ export function Roved5() {
     return map
   }, [services])
 
+  // Category counts respect current cloud/type but NOT selectedCats itself
   const catCounts = useMemo(() => {
     const counts: Record<ServiceCategory, number> = { security: 0, database: 0, storage: 0, compute: 0, ai_ml: 0, analytics: 0 }
-    serviceCategories.forEach(cat => { if (cat) counts[cat]++ })
+    services.forEach(s => {
+      if (cloudFilter !== 'all' && s.cloud !== cloudFilter) return
+      if (typeFilter !== 'all' && s.type !== typeFilter) return
+      const cat = serviceCategories.get(s.id)
+      if (cat) counts[cat]++
+    })
     return counts
-  }, [serviceCategories])
+  }, [services, cloudFilter, typeFilter, serviceCategories])
+
+  // Manufacturer aggregation, grouped by cloud. Respects cloud/type/cat but NOT selectedMfgs itself.
+  const mfgGroups = useMemo(() => {
+    const q = mfgSearchQ.trim().toLowerCase()
+    const byCloud: Record<'AWS' | 'GCP', Map<string, number>> = { AWS: new Map(), GCP: new Map() }
+    services.forEach(s => {
+      if (!s.manufacturer) return
+      if (cloudFilter !== 'all' && s.cloud !== cloudFilter) return
+      if (typeFilter !== 'all' && s.type !== typeFilter) return
+      if (selectedCats.size > 0) {
+        const cat = serviceCategories.get(s.id)
+        if (!cat || !selectedCats.has(cat)) return
+      }
+      const map = byCloud[s.cloud as 'AWS' | 'GCP']
+      map.set(s.manufacturer, (map.get(s.manufacturer) ?? 0) + 1)
+    })
+    return (['AWS', 'GCP'] as const).map(cloud => ({
+      cloud,
+      items: Array.from(byCloud[cloud].entries())
+        .map(([name, count]) => ({ name, count }))
+        .filter(m => !q || m.name.toLowerCase().includes(q))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
+    }))
+  }, [services, cloudFilter, typeFilter, selectedCats, serviceCategories, mfgSearchQ])
+
+  const mfgTotal = useMemo(() => mfgGroups.reduce((a, g) => a + g.items.length, 0), [mfgGroups])
 
   const awsCount = useMemo(() => services.filter(s => s.cloud === 'AWS').length, [services])
   const gcpCount = useMemo(() => services.filter(s => s.cloud === 'GCP').length, [services])
@@ -193,7 +223,11 @@ export function Roved5() {
   }
   if (cloudFilter !== 'all') displayed = displayed.filter(s => s.cloud === cloudFilter)
   if (typeFilter  !== 'all') displayed = displayed.filter(s => s.type  === typeFilter)
-  if (catFilter   !== 'all') displayed = displayed.filter(s => serviceCategories.get(s.id) === catFilter)
+  if (selectedCats.size > 0) displayed = displayed.filter(s => {
+    const cat = serviceCategories.get(s.id)
+    return !!cat && selectedCats.has(cat)
+  })
+  if (selectedMfgs.size > 0) displayed = displayed.filter(s => !!s.manufacturer && selectedMfgs.has(s.manufacturer))
 
   const isAIMode = !!aiResults && query.trim().length >= 3
   const totalPages = Math.ceil(displayed.length / PAGE_SIZE)
@@ -205,9 +239,38 @@ export function Roved5() {
     setAiResults(null)
     setCloudFilter('all')
     setTypeFilter('all')
-    setCatFilter('all')
+    setSelectedCats(new Set())
+    setSelectedMfgs(new Set())
+    setMfgSearchQ('')
     setPage(1)
     setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  function toggleCat(id: ServiceCategory) {
+    setSelectedCats(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleMfg(name: string) {
+    setSelectedMfgs(prev => {
+      const next = new Set(prev)
+      if (next.has(name)) next.delete(name)
+      else next.add(name)
+      return next
+    })
+  }
+
+  function toggleMfgGroup(cloud: string) {
+    setOpenMfgGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(cloud)) next.delete(cloud)
+      else next.add(cloud)
+      return next
+    })
   }
 
   return (
@@ -266,34 +329,97 @@ export function Roved5() {
             {f}
           </button>
         ))}
-        <button
-          className={`${styles.advancedToggle} ${(showAdvanced || catFilter !== 'all') ? styles.advancedToggleActive : ''}`}
-          onClick={() => setShowAdvanced(s => !s)}
-        >
-          ⚙️ פילטרים מתקדמים{catFilter !== 'all' ? ` · ${CAT_LABELS[catFilter as ServiceCategory]}` : ''}
-        </button>
       </div>
 
-      {showAdvanced && (
-        <div className={styles.advancedPanel}>
-          <button
-            className={`${styles.chip} ${catFilter === 'all' ? styles.chipActive : ''}`}
-            onClick={() => setCatFilter('all')}
-          >
-            כל הקטגוריות
-          </button>
-          {(Object.keys(CAT_LABELS) as ServiceCategory[]).map(f => (
-            <button
-              key={f}
-              className={`${styles.chip} ${catFilter === f ? styles.chipActive : ''}`}
-              onClick={() => setCatFilter(prev => prev === f ? 'all' : f)}
-            >
-              {CAT_ICONS[f]} {CAT_LABELS[f]} ({catCounts[f]})
-            </button>
-          ))}
-        </div>
-      )}
+      <div className={styles.layout}>
+        <aside className={styles.sidebar}>
+          <section className={styles.sbSection}>
+            <div className={styles.sbTitle}>
+              <span>קטגוריות</span>
+              {selectedCats.size > 0 && (
+                <button className={styles.sbClear} onClick={() => setSelectedCats(new Set())}>נקה</button>
+              )}
+            </div>
+            <div className={styles.catGrid}>
+              {(Object.keys(CAT_LABELS) as ServiceCategory[]).map(cat => {
+                const sel = selectedCats.has(cat)
+                return (
+                  <button
+                    key={cat}
+                    className={`${styles.catChip} ${sel ? styles.catChipActive : ''}`}
+                    onClick={() => toggleCat(cat)}
+                  >
+                    <span className={styles.catChipIcon}>{CAT_ICONS[cat]}</span>
+                    <span className={styles.catChipLabel}>{CAT_LABELS[cat]}</span>
+                    <span className={styles.catChipNum}>{catCounts[cat]}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
 
+          <section className={styles.sbSection}>
+            <div className={styles.sbTitle}>
+              <span>יצרנים <span className={styles.sbTitleCount}>({mfgTotal})</span></span>
+              {(selectedMfgs.size > 0 || mfgSearchQ) && (
+                <button
+                  className={styles.sbClear}
+                  onClick={() => { setSelectedMfgs(new Set()); setMfgSearchQ('') }}
+                >נקה</button>
+              )}
+            </div>
+            <div className={styles.sbSearchWrap}>
+              <input
+                className={styles.sbSearchInput}
+                placeholder="חפש יצרן…"
+                value={mfgSearchQ}
+                onChange={e => setMfgSearchQ(e.target.value)}
+              />
+              <span className={styles.sbSearchIcon}>🔍</span>
+            </div>
+            <div className={styles.sbList}>
+              {mfgGroups.every(g => g.items.length === 0) ? (
+                <div className={styles.sbEmpty}>אין יצרנים בפילטר הנוכחי</div>
+              ) : mfgGroups.map(group => {
+                if (group.items.length === 0) return null
+                const isOpen = mfgSearchQ.trim() !== '' || openMfgGroups.has(group.cloud)
+                const dotClass = group.cloud === 'AWS' ? styles.sbGroupDotAws : styles.sbGroupDotGcp
+                return (
+                  <div key={group.cloud} className={`${styles.sbGroup} ${isOpen ? styles.sbGroupOpen : ''}`}>
+                    <div className={styles.sbGroupHeader} onClick={() => toggleMfgGroup(group.cloud)}>
+                      <span className={styles.sbGroupChev}>▶</span>
+                      <span className={dotClass}>●</span>
+                      <span>{group.cloud}</span>
+                      <span className={styles.sbGroupCount}>{group.items.length}</span>
+                    </div>
+                    <div className={styles.sbGroupItems}>
+                      {group.items.map(m => {
+                        const sel = selectedMfgs.has(m.name)
+                        return (
+                          <label
+                            key={m.name}
+                            className={`${styles.sbItem} ${sel ? styles.sbItemSelected : ''}`}
+                            title={m.name}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={sel}
+                              onChange={() => toggleMfg(m.name)}
+                            />
+                            <span className={styles.sbItemName}>{m.name}</span>
+                            <span className={styles.sbItemCount}>{m.count}</span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        </aside>
+
+        <div className={styles.main}>
       <div className={styles.resultsInfo}>
         {isAIMode && <span className={styles.aiResultsBadge}>✨ תוצאות חיפוש חכם</span>}
         {displayed.length > 0 && (
@@ -362,6 +488,8 @@ export function Roved5() {
           <button className={styles.pageBtn} disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>‹</button>
         </div>
       )}
+        </div>
+      </div>
 
       {selected && <ServiceModal service={selected} onClose={() => setSelected(null)} />}
     </div>
