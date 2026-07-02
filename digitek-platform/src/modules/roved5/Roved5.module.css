@@ -409,13 +409,15 @@
   font-size: 10.5px;
 }
 
-/* Results info — inside main */
+/* Results info — sits above the sidebar+main layout so sidebar and cardGrid tops align */
 .resultsInfo {
+  max-width: 1380px;
+  margin: 0 auto 12px;
+  padding: 0 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 14px;
 }
 .aiResultsBadge {
   background: linear-gradient(135deg, #f5f3ff 0%, #fdf4ff 100%);
@@ -928,6 +930,7 @@
   .pageTitle   { font-size: 32px; }
   .searchBar   { padding: 0 20px; }
   .filterRow   { padding: 0 20px; }
+  .resultsInfo { padding: 0 20px; }
   .layout      { padding: 0 20px; }
   .aiErrorBar  { margin: 0 20px 16px; }
 }
@@ -964,6 +967,7 @@
   }
 
   .filterRow   { padding: 0 14px; gap: 6px; }
+  .resultsInfo { padding: 0 14px; }
   .layout      { padding: 0 14px; }
   .aiErrorBar  { margin: 0 14px 16px; }
 

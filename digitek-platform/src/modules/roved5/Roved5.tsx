@@ -327,6 +327,15 @@ export function Roved5() {
         ))}
       </div>
 
+      <div className={styles.resultsInfo}>
+        {isAIMode && <span className={styles.aiResultsBadge}>✨ תוצאות חיפוש חכם</span>}
+        {displayed.length > 0 && (
+          <span className={styles.resultsCount}>
+            {displayed.length.toLocaleString()} תוצאות
+          </span>
+        )}
+      </div>
+
       <div className={styles.layout}>
         <aside className={styles.sidebar}>
           <section className={styles.sbSection}>
@@ -407,15 +416,6 @@ export function Roved5() {
         </aside>
 
         <div className={styles.main}>
-      <div className={styles.resultsInfo}>
-        {isAIMode && <span className={styles.aiResultsBadge}>✨ תוצאות חיפוש חכם</span>}
-        {displayed.length > 0 && (
-          <span className={styles.resultsCount}>
-            {displayed.length.toLocaleString()} תוצאות
-          </span>
-        )}
-      </div>
-
       {pageItems.length === 0 ? (
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>🔍</div>
