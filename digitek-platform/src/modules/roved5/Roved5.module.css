@@ -206,14 +206,14 @@
   min-width: 0;
 }
 
-/* Sidebar */
+/* Sidebar — compact */
 .sidebar {
-  width: 300px;
+  width: 240px;
   flex-shrink: 0;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
+  border-radius: 10px;
+  padding: 10px;
   position: sticky;
   top: 20px;
   max-height: calc(100vh - 40px);
@@ -222,8 +222,8 @@
   overflow: hidden;
 }
 .sbSection {
-  margin-bottom: 14px;
-  padding-bottom: 14px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
 }
 .sbSection:last-child {
@@ -234,21 +234,21 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  min-height: 200px;
+  min-height: 140px;
 }
 .sbTitle {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 800;
-  font-size: 13px;
-  margin-bottom: 8px;
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 6px;
   color: var(--navy, var(--text));
 }
 .sbTitleCount {
   font-weight: 500;
   color: var(--text3);
-  font-size: 11px;
+  font-size: 10.5px;
   margin-inline-start: 4px;
 }
 .sbClear {
@@ -257,28 +257,28 @@
   color: var(--primary);
   cursor: pointer;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
 }
 .sbClear:hover { text-decoration: underline; }
 
-/* Category multi-select grid */
+/* Category multi-select grid — compact */
 .catGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 4px;
 }
 .catChip {
   background: var(--bg);
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 7px;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   color: var(--text);
   text-align: right;
   transition: all 0.15s;
@@ -290,13 +290,13 @@
   color: var(--primary-dark);
   font-weight: 700;
 }
-.catChipIcon { font-size: 14px; line-height: 1; }
-.catChipLabel { flex: 1; }
+.catChipIcon { font-size: 12px; line-height: 1; }
+.catChipLabel { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .catChipNum {
   background: var(--surface);
-  padding: 1px 6px;
+  padding: 0 5px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 9.5px;
   color: var(--text3);
   font-weight: 600;
 }
@@ -343,15 +343,15 @@
 }
 .sbList::-webkit-scrollbar { width: 6px; }
 .sbList::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-.sbGroup { margin-bottom: 2px; }
+.sbGroup { margin-bottom: 1px; }
 .sbGroupHeader {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px;
+  gap: 5px;
+  padding: 5px;
   cursor: pointer;
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: 5px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--navy, var(--text));
   user-select: none;
@@ -359,9 +359,9 @@
 .sbGroupHeader:hover { background: var(--bg); }
 .sbGroupChev {
   display: inline-block;
-  width: 12px;
+  width: 10px;
   color: var(--text3);
-  font-size: 9px;
+  font-size: 8px;
   transition: transform 0.15s;
 }
 .sbGroupOpen .sbGroupChev { transform: rotate(90deg); }
@@ -370,22 +370,22 @@
 .sbGroupCount {
   margin-right: auto;
   color: var(--text3);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 500;
 }
 .sbGroupItems {
-  padding: 2px 18px 4px;
+  padding: 1px 16px 3px;
   display: none;
 }
 .sbGroupOpen .sbGroupItems { display: block; }
 .sbItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 6px;
+  gap: 6px;
+  padding: 3px 5px;
   cursor: pointer;
-  border-radius: 5px;
-  font-size: 12px;
+  border-radius: 4px;
+  font-size: 11.5px;
   color: var(--text);
 }
 .sbItem:hover { background: var(--bg); }
@@ -393,6 +393,8 @@
   margin: 0;
   cursor: pointer;
   accent-color: var(--primary);
+  width: 12px;
+  height: 12px;
 }
 .sbItemName {
   flex: 1;
@@ -402,7 +404,7 @@
 }
 .sbItemCount {
   color: var(--text3);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 500;
 }
 .sbItemSelected {
@@ -411,9 +413,9 @@
 }
 .sbEmpty {
   color: var(--text3);
-  padding: 15px;
+  padding: 12px;
   text-align: center;
-  font-size: 11px;
+  font-size: 10.5px;
 }
 
 /* Results info — inside main */
