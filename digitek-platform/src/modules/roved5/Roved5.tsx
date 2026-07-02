@@ -81,7 +81,6 @@ export function Roved5() {
     return new Set(c && allowed.includes(c as ServiceCategory) ? [c as ServiceCategory] : [])
   })
   const [selectedMfgs,   setSelectedMfgs]   = useState<Set<string>>(new Set())
-  const [mfgSearchQ,     setMfgSearchQ]     = useState('')
   const [openMfgGroups,  setOpenMfgGroups]  = useState<Set<string>>(new Set())
   const [aiResults,      setAiResults]      = useState<AISearchResult[] | null>(null)
   const [aiLoading,      setAiLoading]      = useState(false)
@@ -186,7 +185,6 @@ export function Roved5() {
 
   // Manufacturer aggregation, grouped by cloud. Respects cloud/type/cat but NOT selectedMfgs itself.
   const mfgGroups = useMemo(() => {
-    const q = mfgSearchQ.trim().toLowerCase()
     const byCloud: Record<'AWS' | 'GCP', Map<string, number>> = { AWS: new Map(), GCP: new Map() }
     services.forEach(s => {
       if (!s.manufacturer) return
@@ -203,10 +201,9 @@ export function Roved5() {
       cloud,
       items: Array.from(byCloud[cloud].entries())
         .map(([name, count]) => ({ name, count }))
-        .filter(m => !q || m.name.toLowerCase().includes(q))
         .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
     }))
-  }, [services, cloudFilter, typeFilter, selectedCats, serviceCategories, mfgSearchQ])
+  }, [services, cloudFilter, typeFilter, selectedCats, serviceCategories])
 
   const mfgTotal = useMemo(() => mfgGroups.reduce((a, g) => a + g.items.length, 0), [mfgGroups])
 
@@ -241,7 +238,6 @@ export function Roved5() {
     setTypeFilter('all')
     setSelectedCats(new Set())
     setSelectedMfgs(new Set())
-    setMfgSearchQ('')
     setPage(1)
     setTimeout(() => inputRef.current?.focus(), 50)
   }
@@ -361,28 +357,19 @@ export function Roved5() {
           <section className={styles.sbSection}>
             <div className={styles.sbTitle}>
               <span>יצרנים <span className={styles.sbTitleCount}>({mfgTotal})</span></span>
-              {(selectedMfgs.size > 0 || mfgSearchQ) && (
+              {selectedMfgs.size > 0 && (
                 <button
                   className={styles.sbClear}
-                  onClick={() => { setSelectedMfgs(new Set()); setMfgSearchQ('') }}
+                  onClick={() => setSelectedMfgs(new Set())}
                 >נקה</button>
               )}
-            </div>
-            <div className={styles.sbSearchWrap}>
-              <input
-                className={styles.sbSearchInput}
-                placeholder="חפש יצרן…"
-                value={mfgSearchQ}
-                onChange={e => setMfgSearchQ(e.target.value)}
-              />
-              <span className={styles.sbSearchIcon}>🔍</span>
             </div>
             <div className={styles.sbList}>
               {mfgGroups.every(g => g.items.length === 0) ? (
                 <div className={styles.sbEmpty}>אין יצרנים בפילטר הנוכחי</div>
               ) : mfgGroups.map(group => {
                 if (group.items.length === 0) return null
-                const isOpen = mfgSearchQ.trim() !== '' || openMfgGroups.has(group.cloud)
+                const isOpen = openMfgGroups.has(group.cloud)
                 const dotClass = group.cloud === 'AWS' ? styles.sbGroupDotAws : styles.sbGroupDotGcp
                 return (
                   <div key={group.cloud} className={`${styles.sbGroup} ${isOpen ? styles.sbGroupOpen : ''}`}>
