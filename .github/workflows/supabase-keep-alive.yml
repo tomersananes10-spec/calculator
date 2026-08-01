@@ -23,3 +23,17 @@ jobs:
             echo "::error::Unexpected status from digitek-dev: $response"
             exit 1
           fi
+      - name: Ping coe-hub
+        env:
+          SUPABASE_URL: https://aukflcgnzzppxnimyrcw.supabase.co
+          SUPABASE_ANON_KEY: sb_publishable_ZL-7JJ59y-eQLs_3N8O24g_OsKTLUz3
+        run: |
+          response=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/profiles?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "coe-hub ping status: $response"
+          if [ "$response" != "200" ] && [ "$response" != "206" ]; then
+            echo "::error::Unexpected status from coe-hub: $response"
+            exit 1
+          fi
