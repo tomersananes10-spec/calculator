@@ -1,0 +1,58 @@
+/* Shared look for the AI/ML live-total mockups — approximates LIBA theme */
+* { box-sizing: border-box; margin: 0; }
+body {
+  font-family: 'Heebo', sans-serif;
+  background: #f6f8fb;
+  color: #0f172a;
+  direction: rtl;
+  min-height: 200vh; /* force scroll so the sticky behavior is felt */
+}
+.page { max-width: 860px; margin: 0 auto; padding: 24px 20px 120px; }
+h1 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.sub { color: #64748b; font-size: 13px; margin-bottom: 20px; }
+.variantTag {
+  display: inline-block; background: #eef2ff; color: #4338ca; font-size: 12px; font-weight: 700;
+  padding: 4px 12px; border-radius: 999px; margin-bottom: 12px;
+}
+.backLink { font-size: 13px; color: #2563eb; text-decoration: none; display: inline-block; margin-bottom: 16px; }
+
+.card {
+  background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px;
+  padding: 16px 18px; margin-bottom: 12px;
+}
+.cardHead { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+.hdrRow, .szRow {
+  display: grid; grid-template-columns: 1fr 110px 110px 90px;
+  gap: 12px; align-items: center;
+}
+.hdrRow { padding: 0 12px 4px; font-size: 11px; font-weight: 600; color: #94a3b8; }
+.hdrRow span:not(:first-child) { text-align: center; }
+.hdrRow span:last-child { text-align: left; }
+.szRow {
+  border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; margin-bottom: 6px;
+  background: #fff; transition: all 0.15s;
+}
+.szRow.on { border-color: #2563eb; background: #eff6ff; }
+.szInfo { display: flex; flex-direction: column; }
+.szInfo b { font-size: 13px; }
+.szInfo small { font-size: 11px; color: #94a3b8; }
+.szTot { font-size: 13px; font-weight: 700; color: #2563eb; text-align: left; }
+
+.stp { display: flex; align-items: center; gap: 4px; justify-content: center; }
+.stp button {
+  width: 26px; height: 26px; border: 1.5px solid #e2e8f0; border-radius: 8px; background: #fff;
+  font-size: 14px; font-weight: 700; color: #475569; cursor: pointer; line-height: 1;
+}
+.stp button:hover:not(:disabled) { border-color: #2563eb; color: #2563eb; }
+.stp button:disabled { opacity: 0.35; cursor: default; }
+.stpVal { width: 34px; text-align: center; font-size: 14px; font-weight: 600; }
+
+@keyframes pulse { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 100% { transform: scale(1); } }
+.pulse { animation: pulse 0.35s ease; }
+
+@media (max-width: 640px) {
+  .hdrRow { display: none; }
+  .szRow { grid-template-columns: 1fr 1fr; }
+  .szInfo { grid-column: 1 / -1; }
+  .szTot { grid-column: 1 / -1; text-align: left; }
+}

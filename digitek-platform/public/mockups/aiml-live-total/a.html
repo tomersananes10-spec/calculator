@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מוקאפ A — בר עליון דביק</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .stickyBar {
+    position: sticky; top: 12px; z-index: 50;
+    background: #0f172a; color: #fff; border-radius: 14px;
+    padding: 14px 22px; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 18px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+  }
+  .sbGroup { display: flex; flex-direction: column; }
+  .sbLabel { font-size: 11px; color: #94a3b8; font-weight: 600; }
+  .sbValue { font-size: 20px; font-weight: 800; }
+  .sbTotal { font-size: 24px; font-weight: 800; color: #93c5fd; }
+  .sbBudget { display: flex; align-items: center; gap: 8px; }
+  .sbBudget input {
+    width: 110px; padding: 6px 10px; border-radius: 8px; border: 1px solid #334155;
+    background: #1e293b; color: #fff; font-family: inherit; font-size: 13px; text-align: center; outline: none;
+  }
+  .sbStatus { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+  .ok { background: #052e1b; color: #4ade80; }
+  .over { background: #3f0d0d; color: #f87171; }
+  @media (max-width: 640px) {
+    .stickyBar { flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+    .sbTotal { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="backLink" href="index.html">→ חזרה לגלריה</a>
+  <div class="variantTag">מוקאפ A — בר עליון דביק (Sticky Summary Bar)</div>
+  <h1>גודל וכמויות</h1>
+  <p class="sub">הבר הכהה הקיים נשאר צמוד לראש המסך בזמן גלילה. הסה"כ מתעדכן חי עם אנימציית פעימה, ואפשר להזין תקציב יעד — הבר מציג ✓ בתקציב / ⚠ חריגה.</p>
+
+  <div class="stickyBar">
+    <div class="sbGroup">
+      <span class="sbLabel">יחידות</span>
+      <span class="sbValue" id="units">0</span>
+    </div>
+    <div class="sbGroup">
+      <span class="sbLabel">סה"כ עלות מוערכת</span>
+      <span class="sbTotal" id="total">₪ 0</span>
+    </div>
+    <div class="sbBudget">
+      <div class="sbGroup">
+        <span class="sbLabel">תקציב יעד (אלפי ₪)</span>
+        <input type="number" id="budget" placeholder="למשל 500" oninput="refresh()">
+      </div>
+      <span class="sbStatus ok" id="status" style="display:none"></span>
+    </div>
+  </div>
+
+  <div id="cards"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  function refresh() {
+    const t = totals()
+    document.getElementById('units').textContent = t.units
+    const totalEl = document.getElementById('total')
+    totalEl.textContent = fmt(t.sum)
+    totalEl.classList.remove('pulse'); void totalEl.offsetWidth; totalEl.classList.add('pulse')
+    const budget = (+document.getElementById('budget').value || 0) * 1000
+    const st = document.getElementById('status')
+    if (budget > 0) {
+      st.style.display = 'inline-block'
+      const over = t.sum > budget
+      st.className = 'sbStatus ' + (over ? 'over' : 'ok')
+      st.textContent = over ? '⚠ חריגה של ' + fmt(t.sum - budget) : '✓ בתקציב — נותרו ' + fmt(budget - t.sum)
+    } else st.style.display = 'none'
+  }
+  window.onTotalsChange = refresh
+  renderCards(document.getElementById('cards'))
+  refresh()
+</script>
+</body>
+</html>

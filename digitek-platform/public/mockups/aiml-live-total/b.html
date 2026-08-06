@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מוקאפ B — בועה צפה</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .topBar {
+    background: #0f172a; color: #fff; border-radius: 14px; padding: 14px 22px; margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .topBar small { color: #94a3b8; font-size: 11px; display: block; }
+  .topBar b { font-size: 20px; }
+
+  .fab {
+    position: fixed; bottom: 24px; left: 24px; z-index: 60;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: #fff; border-radius: 18px; cursor: pointer; user-select: none;
+    box-shadow: 0 12px 32px rgba(79, 70, 229, 0.45);
+    transition: border-radius 0.2s;
+    min-width: 210px;
+  }
+  .fabHead { display: flex; align-items: center; gap: 12px; padding: 14px 18px; }
+  .fabIcon { font-size: 20px; }
+  .fabInfo { display: flex; flex-direction: column; }
+  .fabLabel { font-size: 11px; color: #c7d2fe; font-weight: 600; }
+  .fabTotal { font-size: 20px; font-weight: 800; }
+  .fabChevron { margin-inline-start: auto; font-size: 12px; color: #c7d2fe; transition: transform 0.2s; }
+  .fab.open .fabChevron { transform: rotate(180deg); }
+  .fabBody {
+    display: none; padding: 0 18px 16px; border-top: 1px solid rgba(255,255,255,0.15);
+  }
+  .fab.open .fabBody { display: block; }
+  .fabRow { display: flex; justify-content: space-between; font-size: 13px; padding: 7px 0; color: #e0e7ff; }
+  .fabRow b { color: #fff; }
+  .fabRow.grand { border-top: 1px solid rgba(255,255,255,0.15); font-weight: 800; font-size: 14px; color: #fff; }
+  @media (max-width: 640px) {
+    .fab { left: 12px; right: 12px; bottom: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="backLink" href="index.html">→ חזרה לגלריה</a>
+  <div class="variantTag">מוקאפ B — בועה צפה (Floating Total)</div>
+  <h1>גודל וכמויות</h1>
+  <p class="sub">בועה סגולה צפה בפינה התחתונה — תמיד על המסך, לא תלויה בגלילה. לחיצה פותחת פירוט: יחידות, סכום בסיס, מע"מ וסה"כ כולל. פועמת בכל שינוי.</p>
+
+  <div class="topBar">
+    <div><small>תוצרים שנבחרו</small><b id="units">0</b></div>
+    <div><small>סה"כ עלות מוערכת</small><b id="topTotal">₪ 0</b></div>
+  </div>
+
+  <div id="cards"></div>
+</div>
+
+<div class="fab" id="fab" onclick="this.classList.toggle('open')">
+  <div class="fabHead">
+    <span class="fabIcon">🧮</span>
+    <div class="fabInfo">
+      <span class="fabLabel">סה"כ נוכחי</span>
+      <span class="fabTotal" id="fabTotal">₪ 0</span>
+    </div>
+    <span class="fabChevron">▲</span>
+  </div>
+  <div class="fabBody">
+    <div class="fabRow"><span>יחידות</span><b id="fabUnits">0</b></div>
+    <div class="fabRow"><span>סכום בסיס</span><b id="fabBase">₪ 0</b></div>
+    <div class="fabRow"><span>מע"מ (18%)</span><b id="fabVat">₪ 0</b></div>
+    <div class="fabRow grand"><span>סה"כ כולל מע"מ</span><b id="fabGrand">₪ 0</b></div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  function refresh() {
+    const t = totals()
+    document.getElementById('units').textContent = t.units
+    document.getElementById('topTotal').textContent = fmt(t.sum)
+    document.getElementById('fabUnits').textContent = t.units
+    document.getElementById('fabBase').textContent = fmt(t.sum)
+    document.getElementById('fabVat').textContent = fmt(t.vat)
+    document.getElementById('fabGrand').textContent = fmt(t.sum + t.vat)
+    const el = document.getElementById('fabTotal')
+    el.textContent = fmt(t.sum)
+    const fab = document.getElementById('fab')
+    fab.classList.remove('pulse'); void fab.offsetWidth; fab.classList.add('pulse')
+  }
+  window.onTotalsChange = refresh
+  renderCards(document.getElementById('cards'))
+  refresh()
+</script>
+</body>
+</html>

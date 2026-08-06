@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מוקאפ C — כרטיס סיכום צמוד-צד</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .page { max-width: 1080px; }
+  .twoCol { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+  .sideCard {
+    position: sticky; top: 16px;
+    background: linear-gradient(160deg, #4f46e5, #7c3aed);
+    color: #fff; border-radius: 16px; padding: 22px;
+    box-shadow: 0 12px 32px rgba(79, 70, 229, 0.35);
+  }
+  .scLabel { font-size: 12px; color: #c7d2fe; font-weight: 600; }
+  .scTotal { font-size: 30px; font-weight: 800; margin: 2px 0 14px; }
+  .scRow { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; color: #e0e7ff; }
+  .scRow b { color: #fff; }
+  .scDivider { border-top: 1px solid rgba(255,255,255,0.25); margin: 10px 0; }
+  .scBudget input {
+    width: 100%; padding: 8px 12px; border-radius: 10px; border: none; outline: none;
+    font-family: inherit; font-size: 14px; text-align: center; margin-top: 6px;
+  }
+  .barWrap { background: rgba(255,255,255,0.2); border-radius: 999px; height: 10px; margin-top: 12px; overflow: hidden; }
+  .barFill { height: 100%; border-radius: 999px; background: #4ade80; width: 0%; transition: width 0.25s, background 0.25s; }
+  .barFill.warn { background: #fbbf24; }
+  .barFill.over { background: #f87171; }
+  .scStatus { font-size: 12px; font-weight: 700; margin-top: 8px; text-align: center; }
+  @media (max-width: 800px) {
+    .twoCol { grid-template-columns: 1fr; }
+    .sideCard { position: sticky; top: 8px; z-index: 50; padding: 14px 18px; }
+    .scTotal { font-size: 22px; margin-bottom: 6px; }
+    .scRow, .scDivider { display: none; } /* compact on mobile — total + bar only */
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="backLink" href="index.html">→ חזרה לגלריה</a>
+  <div class="variantTag">מוקאפ C — כרטיס סיכום צמוד-צד (Sticky Side Card)</div>
+  <h1>גודל וכמויות</h1>
+  <p class="sub">כרטיס סגול כמו בשלב 4, אבל כבר בשלב 3 — נדבק לצד וגולל איתך. כולל יעד תקציב עם progress bar: ירוק בתקציב, כתום מעל 85%, אדום בחריגה. במובייל מתכווץ לבר קומפקטי עליון.</p>
+
+  <div class="twoCol">
+    <div id="cards"></div>
+
+    <div class="sideCard">
+      <div class="scLabel">סה"כ עלות מוערכת</div>
+      <div class="scTotal" id="total">₪ 0</div>
+      <div class="scRow"><span>יחידות</span><b id="units">0</b></div>
+      <div class="scRow"><span>מע"מ (18%)</span><b id="vat">₪ 0</b></div>
+      <div class="scRow"><span>סה"כ כולל מע"מ</span><b id="grand">₪ 0</b></div>
+      <div class="scDivider"></div>
+      <div class="scBudget">
+        <span class="scLabel">תקציב יעד (אלפי ₪)</span>
+        <input type="number" id="budget" placeholder="למשל 500" oninput="refresh()">
+      </div>
+      <div class="barWrap"><div class="barFill" id="bar"></div></div>
+      <div class="scStatus" id="status"></div>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  function refresh() {
+    const t = totals()
+    const totalEl = document.getElementById('total')
+    totalEl.textContent = fmt(t.sum)
+    totalEl.classList.remove('pulse'); void totalEl.offsetWidth; totalEl.classList.add('pulse')
+    document.getElementById('units').textContent = t.units
+    document.getElementById('vat').textContent = fmt(t.vat)
+    document.getElementById('grand').textContent = fmt(t.sum + t.vat)
+
+    const budget = (+document.getElementById('budget').value || 0) * 1000
+    const bar = document.getElementById('bar')
+    const st = document.getElementById('status')
+    if (budget > 0) {
+      const pct = Math.min(100, (t.sum / budget) * 100)
+      bar.style.width = pct + '%'
+      bar.className = 'barFill ' + (t.sum > budget ? 'over' : pct > 85 ? 'warn' : '')
+      st.textContent = t.sum > budget
+        ? '⚠ חריגה של ' + fmt(t.sum - budget)
+        : '✓ ' + Math.round(pct) + '% מהתקציב — נותרו ' + fmt(budget - t.sum)
+    } else { bar.style.width = '0%'; st.textContent = '' }
+  }
+  window.onTotalsChange = refresh
+  renderCards(document.getElementById('cards'))
+  refresh()
+</script>
+</body>
+</html>
