@@ -1,40 +1,52 @@
 import { useEffect, useReducer, type Dispatch } from 'react'
 import { AIML_ITEMS } from './data'
-import type { AimlEntry, AimlPeriod, AimlSize, AimlState, AimlStep } from './types'
+import type { AimlEntry, AimlPeriod, AimlQty, AimlSize, AimlState, AimlStep } from './types'
 
-const STORAGE_KEY = 'aimlCalc:v4'
+const STORAGE_KEY = 'aimlCalc:v5'
 
-function emptyQty(): Record<AimlSize, number> {
-  return { small: 0, medium: 0, large: 0 }
+function emptyQty(): Record<AimlSize, AimlQty> {
+  return { small: { base: 0, extra: 0 }, medium: { base: 0, extra: 0 }, large: { base: 0, extra: 0 } }
 }
 
 function defaultEntry(itemId: string): AimlEntry {
-  return { itemId, checked: false, qty: { small: 0, medium: 1, large: 0 } }
+  const qty = emptyQty()
+  qty.medium.base = 1
+  return { itemId, checked: false, qty }
 }
 
-/** Migrates entries from the pre-v4 shape ({ size, baseQty, extraQty }) to per-size qty. */
+const SIZES: AimlSize[] = ['small', 'medium', 'large']
+
+/**
+ * Migrates entries from any older shape to per-size {base, extra}:
+ * v3 — { size, baseQty, extraQty }; v4 — { qty: Record<size, number> }.
+ */
 export function normalizeEntries(raw: unknown): Record<string, AimlEntry> {
   const entries: Record<string, AimlEntry> = {}
-  const src = (raw && typeof raw === 'object' ? raw : {}) as Record<string, Partial<AimlEntry> & { size?: AimlSize; baseQty?: number; extraQty?: number }>
+  const src = (raw && typeof raw === 'object' ? raw : {}) as Record<
+    string,
+    { checked?: boolean; qty?: Record<AimlSize, number | Partial<AimlQty>>; size?: AimlSize; baseQty?: number; extraQty?: number }
+  >
   AIML_ITEMS.forEach(item => {
     const e = src[item.id]
     if (!e) {
       entries[item.id] = defaultEntry(item.id)
       return
     }
-    if (e.qty && typeof e.qty === 'object') {
-      entries[item.id] = {
-        itemId: item.id,
-        checked: !!e.checked,
-        qty: { ...emptyQty(), ...e.qty },
-      }
-      return
-    }
-    // legacy shape — collapse baseQty+extraQty into the single chosen size
-    const size: AimlSize = e.size && ['small', 'medium', 'large'].includes(e.size) ? e.size : 'medium'
-    const total = Math.max(0, (e.baseQty ?? 1) + (e.extraQty ?? 0))
     const qty = emptyQty()
-    qty[size] = total
+    if (e.qty && typeof e.qty === 'object') {
+      SIZES.forEach(sz => {
+        const v = e.qty![sz]
+        if (typeof v === 'number') {
+          qty[sz] = { base: Math.max(0, v), extra: 0 } // v4: plain number per size
+        } else if (v && typeof v === 'object') {
+          qty[sz] = { base: Math.max(0, v.base ?? 0), extra: Math.max(0, v.extra ?? 0) }
+        }
+      })
+    } else {
+      // v3: single size + baseQty/extraQty
+      const size: AimlSize = e.size && SIZES.includes(e.size) ? e.size : 'medium'
+      qty[size] = { base: Math.max(0, e.baseQty ?? 1), extra: Math.max(0, e.extraQty ?? 0) }
+    }
     entries[item.id] = { itemId: item.id, checked: !!e.checked, qty }
   })
   return entries
@@ -59,8 +71,11 @@ function initialState(): AimlState {
 
 function loadFromStorage(): AimlState {
   try {
-    // v4 first; fall back to the old v3 key so in-flight work survives the upgrade
-    const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem('aimlCalc:v3')
+    // v5 first; fall back to older keys so in-flight work survives the upgrade
+    const raw =
+      localStorage.getItem(STORAGE_KEY) ??
+      localStorage.getItem('aimlCalc:v4') ??
+      localStorage.getItem('aimlCalc:v3')
     if (!raw) return initialState()
     const saved = JSON.parse(raw) as Partial<AimlState>
     const base = initialState()
@@ -84,7 +99,7 @@ export type AimlAction =
   | { type: 'SET_MINISTRY'; payload: string }
   | { type: 'SET_PERIOD'; payload: AimlPeriod }
   | { type: 'TOGGLE_CHECK'; payload: string }
-  | { type: 'SET_QTY'; payload: { itemId: string; size: AimlSize; qty: number } }
+  | { type: 'SET_QTY'; payload: { itemId: string; size: AimlSize; field: keyof AimlQty; qty: number } }
   | { type: 'GO_STEP'; payload: AimlStep }
   | { type: 'TOGGLE_MATCHING' }
   | { type: 'SET_MATCHING_PCT'; payload: number }
@@ -105,16 +120,19 @@ function reducer(state: AimlState, action: AimlAction): AimlState {
       const e = state.entries[action.payload]
       if (!e) return state
       const checked = !e.checked
-      // checking an item with zero quantities starts it at 1 medium unit
-      const totalQty = e.qty.small + e.qty.medium + e.qty.large
-      const qty = checked && totalQty === 0 ? { ...e.qty, medium: 1 } : e.qty
+      // checking an item with zero quantities starts it at 1 medium base unit
+      const totalQty = (['small', 'medium', 'large'] as AimlSize[])
+        .reduce((sum, sz) => sum + e.qty[sz].base + e.qty[sz].extra, 0)
+      const qty = checked && totalQty === 0 ? { ...e.qty, medium: { base: 1, extra: 0 } } : e.qty
       return { ...state, entries: { ...state.entries, [action.payload]: { ...e, checked, qty } } }
     }
     case 'SET_QTY': {
-      const e = state.entries[action.payload.itemId]
+      const { itemId, size, field, qty: value } = action.payload
+      const e = state.entries[itemId]
       if (!e) return state
-      const qty = { ...e.qty, [action.payload.size]: Math.max(0, Math.floor(action.payload.qty)) }
-      return { ...state, entries: { ...state.entries, [action.payload.itemId]: { ...e, qty } } }
+      const sizeQty = { ...e.qty[size], [field]: Math.max(0, Math.floor(value)) }
+      const qty = { ...e.qty, [size]: sizeQty }
+      return { ...state, entries: { ...state.entries, [itemId]: { ...e, qty } } }
     }
     case 'GO_STEP':
       return { ...state, currentStep: action.payload }

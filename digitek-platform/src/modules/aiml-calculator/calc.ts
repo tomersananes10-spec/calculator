@@ -4,13 +4,18 @@ export const VAT_RATE = 0.18
 
 export const AIML_SIZES: AimlSize[] = ['small', 'medium', 'large']
 
+export function sizeQtyTotal(entry: AimlEntry, size: AimlSize): number {
+  const q = entry.qty[size]
+  return q ? q.base + q.extra : 0
+}
+
 export function entryTotalQty(entry: AimlEntry): number {
-  return AIML_SIZES.reduce((sum, sz) => sum + (entry.qty[sz] || 0), 0)
+  return AIML_SIZES.reduce((sum, sz) => sum + sizeQtyTotal(entry, sz), 0)
 }
 
 export function rowTotal(entry: AimlEntry, item: AimlItem): number {
   if (!entry.checked) return 0
-  return AIML_SIZES.reduce((sum, sz) => sum + (entry.qty[sz] || 0) * item.prices[sz], 0)
+  return AIML_SIZES.reduce((sum, sz) => sum + sizeQtyTotal(entry, sz) * item.prices[sz], 0)
 }
 
 export function grandTotal(state: AimlState, items: AimlItem[]): number {

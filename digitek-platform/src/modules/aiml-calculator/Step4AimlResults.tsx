@@ -14,7 +14,8 @@ interface ResultRow {
   icon: string
   name: string
   sizeLabel: string
-  qty: number
+  baseQty: number
+  extraQty: number
   unitPrice: number
   total: number
 }
@@ -25,13 +26,15 @@ function buildRows(state: AimlState): ResultRow[] {
     const entry = state.entries[item.id]
     if (!entry?.checked) return
     AIML_SIZES.forEach(size => {
-      const qty = entry.qty[size] || 0
+      const q = entry.qty[size]
+      const qty = q ? q.base + q.extra : 0
       if (qty === 0) return
       rows.push({
         icon: item.icon,
         name: item.name,
         sizeLabel: AIML_SIZE_LABELS[size],
-        qty,
+        baseQty: q.base,
+        extraQty: q.extra,
         unitPrice: item.prices[size],
         total: qty * item.prices[size],
       })
@@ -72,25 +75,25 @@ export function Step4AimlResults({ state, dispatch }: Props) {
       ['פרויקט', state.project.name || ''],
       ['משרד', state.project.ministry || ''],
       [],
-      ['תוצר', 'גודל', 'כמות', 'מחיר ליחידה (₪)', 'סה"כ (₪)'],
-      ...rows.map(r => [r.name, r.sizeLabel, r.qty, r.unitPrice, r.total]),
+      ['תוצר', 'גודל', 'כמות בסיס', 'כמות נוספת', 'מחיר ליחידה (₪)', 'סה"כ (₪)'],
+      ...rows.map(r => [r.name, r.sizeLabel, r.baseQty, r.extraQty, r.unitPrice, r.total]),
       [],
-      ['סכום בסיס', '', '', '', Math.round(b.subtotal)],
+      ['סכום בסיס', '', '', '', '', Math.round(b.subtotal)],
     ]
     if (state.matchingOn && b.matchingDelta > 0) {
-      aoa.push([`מאצ'ינג (${state.matchingPct}%)`, '', '', '', Math.round(b.matchingDelta)])
+      aoa.push([`מאצ'ינג (${state.matchingPct}%)`, '', '', '', '', Math.round(b.matchingDelta)])
     }
     if (b.riskDelta > 0) {
-      aoa.push([`תוספת סיכון (${state.riskPct}%)`, '', '', '', Math.round(b.riskDelta)])
+      aoa.push([`תוספת סיכון (${state.riskPct}%)`, '', '', '', '', Math.round(b.riskDelta)])
     }
     aoa.push(
-      ['סה"כ לפני מע"מ', '', '', '', Math.round(b.beforeVat)],
-      ['מע"מ (18%)', '', '', '', Math.round(b.vat)],
-      ['סה"כ כולל מע"מ', '', '', '', Math.round(b.withVat)],
-      [`פריסה ל-${state.period} חודשים`, '', '', '', Math.round(b.perMonth)],
+      ['סה"כ לפני מע"מ', '', '', '', '', Math.round(b.beforeVat)],
+      ['מע"מ (18%)', '', '', '', '', Math.round(b.vat)],
+      ['סה"כ כולל מע"מ', '', '', '', '', Math.round(b.withVat)],
+      [`פריסה ל-${state.period} חודשים`, '', '', '', '', Math.round(b.perMonth)],
     )
     const ws = XLSX.utils.aoa_to_sheet(aoa)
-    ws['!cols'] = [{ wch: 40 }, { wch: 10 }, { wch: 8 }, { wch: 16 }, { wch: 16 }]
+    ws['!cols'] = [{ wch: 40 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 16 }, { wch: 16 }]
     const wb = XLSX.utils.book_new()
     wb.Workbook = { Views: [{ RTL: true }] }
     XLSX.utils.book_append_sheet(wb, ws, 'AI-ML')
@@ -127,7 +130,8 @@ export function Step4AimlResults({ state, dispatch }: Props) {
                   <tr>
                     <th>תוצר</th>
                     <th>גודל</th>
-                    <th>כמות</th>
+                    <th>כמות בסיס</th>
+                    <th>כמות נוספת</th>
                     <th>מחיר ליחידה</th>
                     <th>סה"כ</th>
                   </tr>
@@ -139,7 +143,8 @@ export function Step4AimlResults({ state, dispatch }: Props) {
                       <td>
                         <span className={s.levelBadge}>{r.sizeLabel}</span>
                       </td>
-                      <td>{r.qty}</td>
+                      <td>{r.baseQty}</td>
+                      <td>{r.extraQty > 0 ? `+${r.extraQty}` : '—'}</td>
                       <td>{fmtCurrency(r.unitPrice)}</td>
                       <td className={s.costCell}>{fmtCurrency(r.total)}</td>
                     </tr>

@@ -147,11 +147,13 @@ export function AimlAiAdvisorModal({ state, dispatch }: Props) {
 
   function addItem(rec: AiRec) {
     const entry = state.entries[rec.itemId]
-    const total = Math.max(1, rec.baseQty + rec.extraQty)
+    const base = Math.max(1, rec.baseQty)
     // set the recommended size's qty and zero the others before checking,
     // so TOGGLE_CHECK's default (1 medium) doesn't kick in on top
     ;(['small', 'medium', 'large'] as AimlSize[]).forEach(size => {
-      dispatch({ type: 'SET_QTY', payload: { itemId: rec.itemId, size, qty: size === rec.size ? total : 0 } })
+      const isRec = size === rec.size
+      dispatch({ type: 'SET_QTY', payload: { itemId: rec.itemId, size, field: 'base', qty: isRec ? base : 0 } })
+      dispatch({ type: 'SET_QTY', payload: { itemId: rec.itemId, size, field: 'extra', qty: isRec ? rec.extraQty : 0 } })
     })
     if (!entry?.checked) {
       dispatch({ type: 'TOGGLE_CHECK', payload: rec.itemId })
@@ -217,7 +219,7 @@ export function AimlAiAdvisorModal({ state, dispatch }: Props) {
                       const item = AIML_ITEMS.find(it => it.id === rec.itemId)
                       if (!item) return null
                       const entry = state.entries[rec.itemId]
-                      const isAdded = added.has(rec.itemId) || (entry?.checked && (entry.qty[rec.size] || 0) > 0)
+                      const isAdded = added.has(rec.itemId) || (entry?.checked && entry.qty[rec.size].base + entry.qty[rec.size].extra > 0)
                       return (
                         <div key={rec.itemId} className={s.aiRoleRow}>
                           <div className={s.aiRoleInfo}>

@@ -10,10 +10,15 @@ export interface AimlItem {
   scope: Record<AimlSize, string>
 }
 
+export interface AimlQty {
+  base: number
+  extra: number
+}
+
 export interface AimlEntry {
   itemId: string
   checked: boolean
-  qty: Record<AimlSize, number>
+  qty: Record<AimlSize, AimlQty>
 }
 
 export interface AimlState {
