@@ -1,7 +1,8 @@
+import { useRef } from 'react'
 import type { AimlState } from './types'
 import type { AimlDispatch } from './useAimlCalculator'
 import { AIML_ITEMS, AIML_SIZE_LABELS } from './data'
-import { computeBreakdown, fmtCurrency, rowTotal, countSelected } from './calc'
+import { AIML_SIZES, computeBreakdown, fmtCurrency, countSelected } from './calc'
 import s from '../takam-calculator/TakamCalculator.module.css'
 
 interface Props {
@@ -9,9 +10,40 @@ interface Props {
   dispatch: AimlDispatch
 }
 
+interface ResultRow {
+  icon: string
+  name: string
+  sizeLabel: string
+  qty: number
+  unitPrice: number
+  total: number
+}
+
+function buildRows(state: AimlState): ResultRow[] {
+  const rows: ResultRow[] = []
+  AIML_ITEMS.forEach(item => {
+    const entry = state.entries[item.id]
+    if (!entry?.checked) return
+    AIML_SIZES.forEach(size => {
+      const qty = entry.qty[size] || 0
+      if (qty === 0) return
+      rows.push({
+        icon: item.icon,
+        name: item.name,
+        sizeLabel: AIML_SIZE_LABELS[size],
+        qty,
+        unitPrice: item.prices[size],
+        total: qty * item.prices[size],
+      })
+    })
+  })
+  return rows
+}
+
 export function Step4AimlResults({ state, dispatch }: Props) {
-  const selected = AIML_ITEMS.filter(item => state.entries[item.id].checked)
+  const rows = buildRows(state)
   const b = computeBreakdown(state, AIML_ITEMS)
+  const printRef = useRef<HTMLDivElement>(null)
 
   function bumpRisk(delta: number) {
     dispatch({ type: 'SET_RISK_PCT', payload: state.riskPct + delta })
@@ -20,7 +52,53 @@ export function Step4AimlResults({ state, dispatch }: Props) {
     dispatch({ type: 'SET_MATCHING_PCT', payload: state.matchingPct + delta })
   }
 
+  async function downloadPDF() {
+    if (!printRef.current) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const html2pdf = (await import('html2pdf.js' as any)).default
+    html2pdf().set({
+      margin: 10,
+      filename: `aiml-${state.project.name || 'report'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    }).from(printRef.current).save()
+  }
+
+  async function downloadExcel() {
+    const XLSX = await import('xlsx')
+    const aoa: (string | number)[][] = [
+      ['מחשבון תוצרי AI/ML — סעיף 3.16'],
+      ['פרויקט', state.project.name || ''],
+      ['משרד', state.project.ministry || ''],
+      [],
+      ['תוצר', 'גודל', 'כמות', 'מחיר ליחידה (₪)', 'סה"כ (₪)'],
+      ...rows.map(r => [r.name, r.sizeLabel, r.qty, r.unitPrice, r.total]),
+      [],
+      ['סכום בסיס', '', '', '', Math.round(b.subtotal)],
+    ]
+    if (state.matchingOn && b.matchingDelta > 0) {
+      aoa.push([`מאצ'ינג (${state.matchingPct}%)`, '', '', '', Math.round(b.matchingDelta)])
+    }
+    if (b.riskDelta > 0) {
+      aoa.push([`תוספת סיכון (${state.riskPct}%)`, '', '', '', Math.round(b.riskDelta)])
+    }
+    aoa.push(
+      ['סה"כ לפני מע"מ', '', '', '', Math.round(b.beforeVat)],
+      ['מע"מ (18%)', '', '', '', Math.round(b.vat)],
+      ['סה"כ כולל מע"מ', '', '', '', Math.round(b.withVat)],
+      [`פריסה ל-${state.period} חודשים`, '', '', '', Math.round(b.perMonth)],
+    )
+    const ws = XLSX.utils.aoa_to_sheet(aoa)
+    ws['!cols'] = [{ wch: 40 }, { wch: 10 }, { wch: 8 }, { wch: 16 }, { wch: 16 }]
+    const wb = XLSX.utils.book_new()
+    wb.Workbook = { Views: [{ RTL: true }] }
+    XLSX.utils.book_append_sheet(wb, ws, 'AI-ML')
+    XLSX.writeFile(wb, `aiml-${state.project.name || 'report'}.xlsx`)
+  }
+
   return (
+    <div ref={printRef}>
     <div className={s.twoCol}>
       {/* LEFT: detailed breakdown */}
       <div className={s.leftPanel}>
@@ -40,7 +118,7 @@ export function Step4AimlResults({ state, dispatch }: Props) {
             </button>
           </div>
 
-          {selected.length === 0 ? (
+          {rows.length === 0 ? (
             <div className={s.emptyMsg}>לא נבחרו תוצרים</div>
           ) : (
             <div className={s.tableWrap}>
@@ -55,21 +133,17 @@ export function Step4AimlResults({ state, dispatch }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {selected.map(item => {
-                    const entry = state.entries[item.id]
-                    const qty = entry.baseQty + entry.extraQty
-                    return (
-                      <tr key={item.id}>
-                        <td>{item.icon} {item.name}</td>
-                        <td>
-                          <span className={s.levelBadge}>{AIML_SIZE_LABELS[entry.size]}</span>
-                        </td>
-                        <td>{qty}</td>
-                        <td>{fmtCurrency(item.prices[entry.size])}</td>
-                        <td className={s.costCell}>{fmtCurrency(rowTotal(entry, item))}</td>
-                      </tr>
-                    )
-                  })}
+                  {rows.map((r, i) => (
+                    <tr key={i}>
+                      <td>{r.icon} {r.name}</td>
+                      <td>
+                        <span className={s.levelBadge}>{r.sizeLabel}</span>
+                      </td>
+                      <td>{r.qty}</td>
+                      <td>{fmtCurrency(r.unitPrice)}</td>
+                      <td className={s.costCell}>{fmtCurrency(r.total)}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -183,7 +257,9 @@ export function Step4AimlResults({ state, dispatch }: Props) {
             <span>{fmtCurrency(b.withVat)}</span>
           </div>
 
-          <div className={s.summaryActions}>
+          <div className={s.summaryActions} data-html2canvas-ignore>
+            <button className={s.summaryBtn} onClick={downloadPDF}>📥 ייצוא PDF</button>
+            <button className={s.summaryBtn} onClick={downloadExcel}>📊 ייצוא Excel</button>
             <button
               className={s.summaryBtn}
               onClick={() => dispatch({ type: 'GO_STEP', payload: 3 })}
@@ -204,6 +280,7 @@ export function Step4AimlResults({ state, dispatch }: Props) {
           </div>
         </div>
       </div>
+    </div>
     </div>
   )
 }

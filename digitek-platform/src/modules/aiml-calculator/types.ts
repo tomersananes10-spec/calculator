@@ -13,9 +13,7 @@ export interface AimlItem {
 export interface AimlEntry {
   itemId: string
   checked: boolean
-  size: AimlSize
-  baseQty: number
-  extraQty: number
+  qty: Record<AimlSize, number>
 }
 
 export interface AimlState {

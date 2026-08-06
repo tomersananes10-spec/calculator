@@ -1,10 +1,16 @@
-import type { AimlEntry, AimlItem, AimlState } from './types'
+import type { AimlEntry, AimlItem, AimlSize, AimlState } from './types'
 
 export const VAT_RATE = 0.18
 
+export const AIML_SIZES: AimlSize[] = ['small', 'medium', 'large']
+
+export function entryTotalQty(entry: AimlEntry): number {
+  return AIML_SIZES.reduce((sum, sz) => sum + (entry.qty[sz] || 0), 0)
+}
+
 export function rowTotal(entry: AimlEntry, item: AimlItem): number {
   if (!entry.checked) return 0
-  return (entry.baseQty + entry.extraQty) * item.prices[entry.size]
+  return AIML_SIZES.reduce((sum, sz) => sum + (entry.qty[sz] || 0) * item.prices[sz], 0)
 }
 
 export function grandTotal(state: AimlState, items: AimlItem[]): number {

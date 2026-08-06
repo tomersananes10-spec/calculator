@@ -1,7 +1,7 @@
-import type { AimlState, AimlSize } from './types'
+import type { AimlState } from './types'
 import type { AimlDispatch } from './useAimlCalculator'
 import { AIML_ITEMS, AIML_SIZE_LABELS } from './data'
-import { fmtCurrency, grandTotal, rowTotal, countSelected } from './calc'
+import { AIML_SIZES, fmtCurrency, grandTotal, rowTotal, countSelected, entryTotalQty } from './calc'
 import s from '../takam-calculator/TakamCalculator.module.css'
 import aiml from './AimlCalculator.module.css'
 
@@ -9,8 +9,6 @@ interface Props {
   state: AimlState
   dispatch: AimlDispatch
 }
-
-const SIZES: AimlSize[] = ['small', 'medium', 'large']
 
 export function Step3AimlSizing({ state, dispatch }: Props) {
   const selected = AIML_ITEMS.filter(item => state.entries[item.id].checked)
@@ -24,7 +22,7 @@ export function Step3AimlSizing({ state, dispatch }: Props) {
     <div>
       <div className={s.stepHeader}>
         <h2>גודל וכמויות</h2>
-        <p>קבע לכל תוצר את הגודל לפי תכולת העבודה הצפויה — והכמות הנדרשת</p>
+        <p>קבע לכל תוצר כמה יחידות נדרשות מכל גודל — אפשר לשלב גדלים שונים באותו תוצר</p>
       </div>
 
       <div className={aiml.summaryBar}>
@@ -45,6 +43,7 @@ export function Step3AimlSizing({ state, dispatch }: Props) {
       ) : (
         selected.map(item => {
           const entry = state.entries[item.id]
+          const activeSizes = AIML_SIZES.filter(sz => (entry.qty[sz] || 0) > 0)
           return (
             <div key={item.id} className={aiml.sizingCard}>
               <div className={aiml.sizingCardHead}>
@@ -59,53 +58,64 @@ export function Step3AimlSizing({ state, dispatch }: Props) {
                 </button>
               </div>
 
-              <div className={aiml.sizePills}>
-                {SIZES.map(size => (
-                  <button
-                    key={size}
-                    className={`${aiml.sizePill} ${entry.size === size ? aiml.sizePillOn : ''}`}
-                    onClick={() => dispatch({ type: 'SET_SIZE', payload: { itemId: item.id, size } })}
-                  >
-                    {AIML_SIZE_LABELS[size]} · {fmtCurrency(item.prices[size])}
-                  </button>
-                ))}
+              <div className={aiml.sizeQtyRows}>
+                {AIML_SIZES.map(size => {
+                  const qty = entry.qty[size] || 0
+                  return (
+                    <div key={size} className={`${aiml.sizeQtyRow} ${qty > 0 ? aiml.sizeQtyRowOn : ''}`}>
+                      <div className={aiml.sizeQtyInfo}>
+                        <span className={aiml.sizeQtyName}>{AIML_SIZE_LABELS[size]}</span>
+                        <span className={aiml.sizeQtyPrice}>{fmtCurrency(item.prices[size])} / יח'</span>
+                      </div>
+                      <div className={aiml.qtyStepper}>
+                        <button
+                          className={aiml.qtyStepBtn}
+                          onClick={() => dispatch({ type: 'SET_QTY', payload: { itemId: item.id, size, qty: qty - 1 } })}
+                          disabled={qty === 0}
+                          aria-label="הפחת כמות"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="number"
+                          min={0}
+                          className={aiml.qtyInput}
+                          value={qty}
+                          onChange={e =>
+                            dispatch({ type: 'SET_QTY', payload: { itemId: item.id, size, qty: +e.target.value || 0 } })
+                          }
+                        />
+                        <button
+                          className={aiml.qtyStepBtn}
+                          onClick={() => dispatch({ type: 'SET_QTY', payload: { itemId: item.id, size, qty: qty + 1 } })}
+                          aria-label="הוסף כמות"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className={aiml.sizeQtyLineTotal}>
+                        {qty > 0 ? fmtCurrency(qty * item.prices[size]) : '—'}
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
 
-              <div className={aiml.scopeBlock}>
-                <span className={aiml.scopeTitle}>תכולת עבודה ({AIML_SIZE_LABELS[entry.size]}):</span>
-                <p className={aiml.scopeText}>{item.scope[entry.size]}</p>
-              </div>
-
-              <div className={aiml.qtyRow}>
-                <div className={aiml.qtyField}>
-                  <label className={aiml.qtyLabel}>כמות בסיס</label>
-                  <input
-                    type="number"
-                    min={0}
-                    className={aiml.qtyInput}
-                    value={entry.baseQty}
-                    onChange={e =>
-                      dispatch({ type: 'SET_BASE_QTY', payload: { itemId: item.id, qty: +e.target.value || 0 } })
-                    }
-                  />
+              {activeSizes.length > 0 && (
+                <div className={aiml.scopeBlock}>
+                  {activeSizes.map(sz => (
+                    <div key={sz}>
+                      <span className={aiml.scopeTitle}>תכולת עבודה ({AIML_SIZE_LABELS[sz]}):</span>
+                      <p className={aiml.scopeText}>{item.scope[sz]}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className={aiml.qtyField}>
-                  <label className={aiml.qtyLabel}>כמות נוספת</label>
-                  <input
-                    type="number"
-                    min={0}
-                    className={aiml.qtyInput}
-                    value={entry.extraQty}
-                    onChange={e =>
-                      dispatch({ type: 'SET_EXTRA_QTY', payload: { itemId: item.id, qty: +e.target.value || 0 } })
-                    }
-                  />
-                </div>
-              </div>
+              )}
 
               <div className={aiml.sizingFooter}>
                 <span className={aiml.sizingPrice}>
-                  ({entry.baseQty + entry.extraQty}) × {fmtCurrency(item.prices[entry.size])}
+                  {entryTotalQty(entry)} יחידות
+                  {activeSizes.length > 1 ? ` · ${activeSizes.map(sz => `${entry.qty[sz]} ${AIML_SIZE_LABELS[sz]}`).join(' + ')}` : ''}
                 </span>
                 <span className={aiml.itemRowTotal}>{fmtCurrency(rowTotal(entry, item))}</span>
               </div>

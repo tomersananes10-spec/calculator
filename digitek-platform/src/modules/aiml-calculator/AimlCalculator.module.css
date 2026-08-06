@@ -229,54 +229,82 @@
   }
 }
 
-/* ── Size pills (Step 3) ── */
-.sizePills {
+/* ── Per-size qty rows (Step 3) ── */
+.sizeQtyRows {
   display: flex;
+  flex-direction: column;
   gap: 6px;
   margin-bottom: 10px;
 }
-.sizePill {
-  flex: 1;
-  padding: 7px 12px;
-  border-radius: 8px;
+.sizeQtyRow {
+  display: grid;
+  grid-template-columns: 1fr auto 100px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
   border: 1.5px solid var(--border2);
+  border-radius: 10px;
+  background: var(--surface);
+  transition: border-color 0.15s, background 0.15s;
+}
+.sizeQtyRowOn {
+  border-color: var(--teal);
+  background: var(--teal-pale, var(--primary-bg));
+}
+.sizeQtyInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.sizeQtyName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.sizeQtyPrice {
+  font-size: 11px;
+  color: var(--text3);
+  font-variant-numeric: tabular-nums;
+}
+.sizeQtyLineTotal {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--teal);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Qty stepper ── */
+.qtyStepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.qtyStepBtn {
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
   background: var(--surface);
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--text2);
   cursor: pointer;
+  line-height: 1;
   transition: all 0.15s;
 }
-.sizePill:hover {
+.qtyStepBtn:hover:not(:disabled) {
   border-color: var(--teal);
   color: var(--teal);
 }
-.sizePillOn {
-  background: var(--teal);
-  border-color: var(--teal);
-  color: #fff;
-}
-
-/* ── Qty inputs (Step 3) ── */
-.qtyRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.qtyField {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.qtyLabel {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text3);
+.qtyStepBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 .qtyInput {
-  padding: 8px 10px;
+  width: 52px;
+  padding: 6px 4px;
   border: 1.5px solid var(--border2);
   border-radius: 8px;
   font-family: inherit;
@@ -289,6 +317,16 @@
 }
 .qtyInput:focus {
   border-color: var(--teal);
+}
+
+@media (max-width: 560px) {
+  .sizeQtyRow {
+    grid-template-columns: 1fr auto;
+  }
+  .sizeQtyLineTotal {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
 }
 
 /* ── Item scope text (under name) ── */
