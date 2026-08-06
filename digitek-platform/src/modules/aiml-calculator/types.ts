@@ -29,6 +29,7 @@ export interface AimlState {
   matchingOn: boolean
   matchingPct: number
   riskPct: number
+  budgetTarget: number
   calculationId: string | null
 }
 
@@ -41,6 +42,7 @@ export interface SavedAimlCalculation {
   matchingOn: boolean
   matchingPct: number
   riskPct: number
+  budgetTarget?: number
   grandTotal: number
   createdAt: number
   updatedAt: number

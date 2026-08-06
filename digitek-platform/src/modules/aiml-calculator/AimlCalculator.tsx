@@ -79,6 +79,7 @@ export function AimlCalculator() {
         matchingOn: calc.matchingOn,
         matchingPct: calc.matchingPct,
         riskPct: calc.riskPct,
+        budgetTarget: calc.budgetTarget ?? 0,
         calculationId: calc.id,
         currentStep: 4,
       },
@@ -86,7 +87,8 @@ export function AimlCalculator() {
     setHistoryOpen(false)
   }
 
-  const isResultsStep = state.currentStep === 4
+  // steps 3+4 use the wide layout — both render a sticky side summary column
+  const isWideStep = state.currentStep >= 3
 
   return (
     <div className={s.page}>
@@ -130,7 +132,7 @@ export function AimlCalculator() {
         </div>
       </div>
 
-      <div className={isResultsStep ? s.mainWide : s.main}>
+      <div className={isWideStep ? s.mainWide : s.main}>
         {state.currentStep === 1 && <Step1AimlSetup state={state} dispatch={dispatch} />}
         {state.currentStep === 2 && <Step2AimlSelect state={state} dispatch={dispatch} />}
         {state.currentStep === 3 && <Step3AimlSizing state={state} dispatch={dispatch} />}

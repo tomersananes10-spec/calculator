@@ -65,6 +65,7 @@ function initialState(): AimlState {
     matchingOn: false,
     matchingPct: 10,
     riskPct: 0,
+    budgetTarget: 0,
     calculationId: null,
   }
 }
@@ -87,6 +88,7 @@ function loadFromStorage(): AimlState {
       matchingOn: saved.matchingOn ?? base.matchingOn,
       matchingPct: saved.matchingPct ?? base.matchingPct,
       riskPct: saved.riskPct ?? base.riskPct,
+      budgetTarget: saved.budgetTarget ?? base.budgetTarget,
       calculationId: saved.calculationId ?? base.calculationId,
     }
   } catch {
@@ -104,6 +106,7 @@ export type AimlAction =
   | { type: 'TOGGLE_MATCHING' }
   | { type: 'SET_MATCHING_PCT'; payload: number }
   | { type: 'SET_RISK_PCT'; payload: number }
+  | { type: 'SET_BUDGET_TARGET'; payload: number }
   | { type: 'SET_CALC_ID'; payload: string | null }
   | { type: 'LOAD'; payload: Omit<AimlState, 'currentStep'> & { currentStep?: AimlStep } }
   | { type: 'RESET' }
@@ -142,6 +145,8 @@ function reducer(state: AimlState, action: AimlAction): AimlState {
       return { ...state, matchingPct: Math.max(0, Math.min(100, action.payload)) }
     case 'SET_RISK_PCT':
       return { ...state, riskPct: Math.max(0, Math.min(100, action.payload)) }
+    case 'SET_BUDGET_TARGET':
+      return { ...state, budgetTarget: Math.max(0, action.payload) }
     case 'SET_CALC_ID':
       return { ...state, calculationId: action.payload }
     case 'LOAD':

@@ -4,6 +4,7 @@ import type { AimlDispatch } from './useAimlCalculator'
 import { AIML_ITEMS, AIML_SIZE_LABELS } from './data'
 import { AIML_SIZES, computeBreakdown, fmtCurrency, countSelected } from './calc'
 import s from '../takam-calculator/TakamCalculator.module.css'
+import aiml from './AimlCalculator.module.css'
 
 interface Props {
   state: AimlState
@@ -261,6 +262,28 @@ export function Step4AimlResults({ state, dispatch }: Props) {
             <span>סה"כ כולל מע"מ</span>
             <span>{fmtCurrency(b.withVat)}</span>
           </div>
+
+          {state.budgetTarget > 0 && (
+            <div className={aiml.budgetBlock} style={{ marginBottom: 16 }}>
+              <div className={aiml.budgetBarWrap}>
+                <div
+                  className={`${aiml.budgetBarFill} ${
+                    b.beforeVat > state.budgetTarget
+                      ? aiml.budgetOver
+                      : (b.beforeVat / state.budgetTarget) * 100 > 85
+                        ? aiml.budgetWarn
+                        : ''
+                  }`}
+                  style={{ width: `${Math.min(100, (b.beforeVat / state.budgetTarget) * 100)}%` }}
+                />
+              </div>
+              <div className={aiml.budgetStatus}>
+                {b.beforeVat > state.budgetTarget
+                  ? `⚠ חריגה של ${fmtCurrency(b.beforeVat - state.budgetTarget)} מהתקציב (${fmtCurrency(state.budgetTarget)})`
+                  : `✓ בתקציב — נותרו ${fmtCurrency(state.budgetTarget - b.beforeVat)} מתוך ${fmtCurrency(state.budgetTarget)}`}
+              </div>
+            </div>
+          )}
 
           <div className={s.summaryActions} data-html2canvas-ignore>
             <button className={s.summaryBtn} onClick={downloadPDF}>📥 ייצוא PDF</button>

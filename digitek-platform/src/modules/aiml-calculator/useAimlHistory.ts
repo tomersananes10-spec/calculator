@@ -55,6 +55,7 @@ export function useAimlHistory() {
         matchingOn: state.matchingOn,
         matchingPct: state.matchingPct,
         riskPct: state.riskPct,
+        budgetTarget: state.budgetTarget,
         grandTotal: grand,
         updatedAt: now,
       }
@@ -74,6 +75,7 @@ export function useAimlHistory() {
       matchingOn: state.matchingOn,
       matchingPct: state.matchingPct,
       riskPct: state.riskPct,
+      budgetTarget: state.budgetTarget,
       grandTotal: grand,
       createdAt: now,
       updatedAt: now,
