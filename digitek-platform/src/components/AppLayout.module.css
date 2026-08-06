@@ -14,7 +14,9 @@
 .main {
   flex: 1;
   background: var(--bg);
-  overflow-y: auto;
+  /* no overflow here: the window is the scroll container (.layout is min-height,
+     so this element never scrolled) — any overflow value except visible silently
+     kills position:sticky for every descendant (step-3/4 summary cards, StageMap) */
   min-height: 0;
 }
 
