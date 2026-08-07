@@ -776,3 +776,78 @@
   .searchBar { flex-direction: column; }
   .sizeSeg { width: 100%; justify-content: space-between; }
 }
+
+/* ===== Domain toggle (tech / digital) — Mockup A ===== */
+/* theme.css has no purple accent, so the digital palette is module-local.
+   Overriding the primary vars here recolors every descendant that uses them. */
+.pageDigital {
+  --primary: #7c3aed;
+  --primary-light: #a78bfa;
+  --primary-bg: #ede9fe;
+  --primary-dark: #5b21b6;
+}
+
+.domainToggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 26px;
+}
+
+.domainSeg {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 5px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+}
+
+.domainBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 26px;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--text2);
+  transition: all 0.15s;
+}
+
+.domainBtnNum {
+  background: var(--bg);
+  color: var(--text2);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* Each active state carries its own accent so the inactive world keeps its color */
+.domainBtnActiveTech {
+  background: #1e40af;
+  color: white;
+}
+
+.domainBtnActiveDigital {
+  background: #7c3aed;
+  color: white;
+}
+
+.domainBtnActiveTech .domainBtnNum,
+.domainBtnActiveDigital .domainBtnNum {
+  background: rgba(255, 255, 255, 0.22);
+  color: white;
+}
+
+@media (max-width: 640px) {
+  .domainBtn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}

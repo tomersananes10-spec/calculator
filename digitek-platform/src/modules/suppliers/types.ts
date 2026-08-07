@@ -1,3 +1,6 @@
+// The two annexes of tender דיגטק 07-2023: ד2 = tech worlds, ד1 = digital worlds
+export type Domain = 'tech' | 'digital'
+
 // Row shape returned from public.v_winning_suppliers_flat view
 export interface FlatRow {
   qualification_id: string
@@ -17,8 +20,9 @@ export interface FlatRow {
   specialization_id: string
   specialization_name: string
   catalog_number: string | null
-  size: 'גדול' | 'קטן' | null
+  size: 'גדול' | 'קטן' | 'ל.ר' | null
   source_row: number | null
+  domain: Domain
 }
 
 export interface Cluster {
@@ -58,4 +62,4 @@ export interface SupplierSummary {
   undefinedCount: number
 }
 
-export type SizeFilter = 'all' | 'גדול' | 'קטן' | 'none'
+export type SizeFilter = 'all' | 'גדול' | 'קטן' | 'ל.ר' | 'none'

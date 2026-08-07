@@ -4,41 +4,70 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { decodeBase64 } from "jsr:@std/encoding@1/base64";
 
 // Winning Suppliers sync — receives an XLSX file as base64 in POST body, parses
-// the official tender annex (נספח ד2 — מכרז דיגטק 07-2023), and atomically
-// replaces all 4 tables (clusters, specializations, suppliers, qualifications).
+// the official tender annex, and atomically replaces that domain's rows
+// (clusters, specializations, suppliers, qualifications).
+//
+// Two annexes of tender דיגטק 07-2023 (הודעה 16.2.19):
+//   domain='tech'    — נספח ד2 "רשימת ספקים זוכים מעולמות הטק"   (first sheet)
+//   domain='digital' — נספח ד1, sheet "טבלה מסכמת שמית" inside "ספקים דיגיטל .xlsx"
 //
 // Not on pg_cron. Triggered manually when a new government tender concludes.
 // Auth via cron_secret in Authorization header.
 //
-// Request body: { "xlsx_base64": "<base64 of .xlsx file>" }
+// Request body: { "xlsx_base64": "<base64 of .xlsx file>", "domain": "tech" | "digital" }
 
-// Cluster slugs (transliteration of the 7 fixed clusters)
-const CLUSTER_SLUGS: Record<string, { slug: string; sort: number }> = {
-  "תיכנון ניתוח ופיתוח":                    { slug: "planning-analysis-development", sort: 1 },
-  "תשתיות והגירה לענן":                     { slug: "infra-cloud-migration",          sort: 2 },
-  "חדשנות טכנולוגית":                       { slug: "tech-innovation",                sort: 3 },
-  "אינטגרציה של פתרונות צד ג לענן":         { slug: "third-party-cloud-integration",  sort: 4 },
-  "הדרכה":                                  { slug: "training",                       sort: 5 },
-  "אבטחת מידע":                             { slug: "infosec",                        sort: 6 },
-  "בסיסי נתונים":                           { slug: "databases",                      sort: 7 },
+type Domain = "tech" | "digital";
+
+const CLUSTER_SLUGS: Record<Domain, Record<string, { slug: string; sort: number }>> = {
+  tech: {
+    "תיכנון ניתוח ופיתוח":                    { slug: "planning-analysis-development", sort: 1 },
+    "תשתיות והגירה לענן":                     { slug: "infra-cloud-migration",          sort: 2 },
+    "חדשנות טכנולוגית":                       { slug: "tech-innovation",                sort: 3 },
+    "אינטגרציה של פתרונות צד ג לענן":         { slug: "third-party-cloud-integration",  sort: 4 },
+    "הדרכה":                                  { slug: "training",                       sort: 5 },
+    "אבטחת מידע":                             { slug: "infosec",                        sort: 6 },
+    "בסיסי נתונים":                           { slug: "databases",                      sort: 7 },
+  },
+  digital: {
+    "תוכן":            { slug: "content",            sort: 1 },
+    "חווית משתמש":     { slug: "user-experience",    sort: 2 },
+    "דאטה":            { slug: "data",               sort: 3 },
+    "שינוי תהליכים":   { slug: "process-change",     sort: 4 },
+    "ניהול מוצר":      { slug: "product-management", sort: 5 },
+  },
 };
 
-// Column indices in the data section (A=0, B=1, ...)
-const COL = {
-  supplier:        0,  // A — שם המציע
-  manof:           1,  // B — מספר מנו"ף
-  sigmaSupplier:   2,  // C — מספר ספק סיגמה
-  sigmaAgreement:  3,  // D — מספר הסכם סיגמה
-  validFrom:       4,  // E — תחילת תוקף
-  validTo:         5,  // F — סיום תוקף
-  agreementName:   6,  // G — שם הסכם
-  cluster:         7,  // H — אשכול
-  specialty:       8,  // I — התמחות
-  size:            9,  // J — גודל
-  sku:            10,  // K — מק"ט
-  // Legend (off to the side, columns AK/AL — indices 36/37)
-  legendName:     36,
-  legendSku:      37,
+// Column indices per annex (A=0, B=1, ...). The two annexes use different layouts.
+const COLUMNS: Record<Domain, {
+  supplier: number; manof: number; sigmaSupplier: number; sigmaAgreement: number;
+  validFrom: number; validTo: number; agreementName: number;
+  cluster: number; specialty: number; size: number; sku: number;
+  legendName: number | null; legendSku: number | null;
+}> = {
+  // נספח ד2 — supplier, manof, sigma supplier, sigma agreement, dates, agreement, cluster, spec, size, sku
+  tech: {
+    supplier: 0, manof: 1, sigmaSupplier: 2, sigmaAgreement: 3,
+    validFrom: 4, validTo: 5, agreementName: 6,
+    cluster: 7, specialty: 8, size: 9, sku: 10,
+    legendName: 36, legendSku: 37, // spec→SKU legend off to the side
+  },
+  // נספח ד1 — supplier, dates, linkage/guarantee/insurance (3-5, unused), manof,
+  // sigma agreement, sigma supplier, agreement, cluster, spec, size, item name (13, unused), sku
+  digital: {
+    supplier: 0, manof: 6, sigmaSupplier: 8, sigmaAgreement: 7,
+    validFrom: 1, validTo: 2, agreementName: 9,
+    cluster: 10, specialty: 11, size: 12, sku: 14,
+    legendName: null, legendSku: null, // SKU is inline per row
+  },
+};
+
+// The digital annex lives in a workbook full of internal work sheets — only
+// this sheet is the official winners list.
+const DIGITAL_SHEET = "טבלה מסכמת שמית";
+
+// Data inconsistency in annex D1: the same specialty appears in two spellings.
+const SPEC_ALIASES: Record<string, string> = {
+  "תרגום שפות אחרות": "תרגום לשפה אחרת",
 };
 
 interface ClusterPayload {
@@ -84,10 +113,11 @@ function normSize(v: unknown): string | null {
   const s = norm(v);
   if (s === "גדול") return "גדול";
   if (s === "קטן")  return "קטן";
+  if (s === "ל.ר" || s === 'ל"ר' || s === "לר") return "ל.ר"; // annex D1 only
   return null;
 }
 
-// Excel serial date → ISO YYYY-MM-DD
+// Excel serial date / ISO string / dd.mm.yyyy (annex D1 uses the latter) → ISO YYYY-MM-DD
 function parseExcelDate(v: unknown): string | null {
   if (v === null || v === undefined || v === "") return null;
   if (typeof v === "number") {
@@ -95,16 +125,20 @@ function parseExcelDate(v: unknown): string | null {
     return new Date(ms).toISOString().slice(0, 10);
   }
   if (typeof v === "string") {
-    const d = new Date(v);
+    const s = norm(v);
+    const dmy = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (dmy) return `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
+    const d = new Date(s);
     return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
   }
   return null;
 }
 
-function findHeaderRow(rows: unknown[][]): number {
+function findHeaderRow(rows: unknown[][], supplierCol: number): number {
   for (let i = 0; i < Math.min(40, rows.length); i++) {
     const row = rows[i] || [];
-    if (row[COL.supplier] === "שם המציע" || (typeof row[COL.supplier] === "string" && row[COL.supplier].includes("שם המציע"))) {
+    const cell = row[supplierCol];
+    if (cell === "שם המציע" || (typeof cell === "string" && cell.includes("שם המציע"))) {
       return i;
     }
   }
@@ -118,23 +152,29 @@ interface ParseResult {
   qualifications: QualPayload[];
 }
 
-function parseWorkbook(buf: Uint8Array): ParseResult {
+function parseWorkbook(buf: Uint8Array, domain: Domain): ParseResult {
   const wb = XLSX.read(buf, { type: "array" });
-  const sheetName = wb.SheetNames[0];
+  const sheetName = domain === "digital"
+    ? wb.SheetNames.find((n: string) => norm(n) === DIGITAL_SHEET)
+    : wb.SheetNames[0];
+  if (!sheetName) throw new Error(`Sheet "${DIGITAL_SHEET}" not found in workbook (sheets: ${wb.SheetNames.join(", ")})`);
   const sheet = wb.Sheets[sheetName];
   if (!sheet) throw new Error("Workbook has no sheets");
 
+  const COL = COLUMNS[domain];
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false, defval: "" }) as unknown[][];
-  const headerIdx = findHeaderRow(rows);
+  const headerIdx = findHeaderRow(rows, COL.supplier);
   if (headerIdx < 0) throw new Error("Could not locate header row (expected column A = 'שם המציע')");
 
-  // 1. Build legend map: specialty_name → SKU (from columns AK/AL)
+  // 1. Legend map: specialty_name → SKU (annex D2 only; D1 carries the SKU inline)
   const legend = new Map<string, string>();
-  for (const row of rows.slice(headerIdx + 1)) {
-    const nm = norm(row[COL.legendName]);
-    const sk = norm(row[COL.legendSku]);
-    if (nm && sk && nm !== "שם התמחות = שם המק\"ט") {
-      legend.set(nm, sk);
+  if (COL.legendName !== null && COL.legendSku !== null) {
+    for (const row of rows.slice(headerIdx + 1)) {
+      const nm = norm(row[COL.legendName]);
+      const sk = norm(row[COL.legendSku]);
+      if (nm && sk && nm !== "שם התמחות = שם המק\"ט") {
+        legend.set(nm, sk);
+      }
     }
   }
 
@@ -149,29 +189,32 @@ function parseWorkbook(buf: Uint8Array): ParseResult {
     const supplierName = norm(row[COL.supplier]);
     if (!supplierName) continue;
 
-    const clusterName  = norm(row[COL.cluster]);
-    const specName     = norm(row[COL.specialty]);
+    const clusterName = norm(row[COL.cluster]);
+    let specName = norm(row[COL.specialty]);
     if (!clusterName || !specName) continue;
+    specName = SPEC_ALIASES[specName] ?? specName;
+
+    const rowSku = asTextOrNull(row[COL.sku]);
 
     // Cluster
     if (!clustersMap.has(clusterName)) {
-      const meta = CLUSTER_SLUGS[clusterName];
+      const meta = CLUSTER_SLUGS[domain][clusterName];
       clustersMap.set(clusterName, {
         name: clusterName,
-        slug: meta?.slug ?? `cluster-${clustersMap.size + 1}`,
+        slug: meta?.slug ?? `${domain}-cluster-${clustersMap.size + 1}`,
         sort_order: meta?.sort ?? (clustersMap.size + 100),
       });
     }
 
-    // Specialization (per cluster — same name can appear in multiple clusters,
-    // e.g. "פתרונות תוכנה חדשניים" exists in both תיכנון and חדשנות)
+    // Specialization (per cluster — same name can appear in multiple clusters).
+    // catalog_number: from the legend (D2) or the first inline SKU seen (D1).
     const specKey = `${clusterName}||${specName}`;
     if (!specsMap.has(specKey)) {
       specsMap.set(specKey, {
         cluster_name: clusterName,
         name: specName,
         name_normalized: specName,
-        catalog_number: legend.get(specName) ?? null,
+        catalog_number: legend.get(specName) ?? rowSku,
       });
     }
 
@@ -194,7 +237,7 @@ function parseWorkbook(buf: Uint8Array): ParseResult {
       cluster_name: clusterName,
       specialization_name: specName,
       size: normSize(row[COL.size]),
-      catalog_number: asTextOrNull(row[COL.sku]),
+      catalog_number: rowSku,
       source_row: i + 1, // 1-based for human reference
     });
   }
@@ -259,11 +302,13 @@ Deno.serve(async (req: Request) => {
 
   const start = Date.now();
   try {
-    const body = await req.json() as { xlsx_base64?: string };
+    const body = await req.json() as { xlsx_base64?: string; domain?: string };
     if (!body.xlsx_base64) throw new Error("Missing xlsx_base64 in request body");
+    const domain = (body.domain ?? "tech") as Domain;
+    if (domain !== "tech" && domain !== "digital") throw new Error("domain must be tech or digital");
 
     const buf = decodeBase64(body.xlsx_base64);
-    const parsed = parseWorkbook(buf);
+    const parsed = parseWorkbook(buf, domain);
 
     if (parsed.qualifications.length === 0) {
       throw new Error("Parsed 0 qualifications — refusing to wipe tables");
@@ -278,11 +323,12 @@ Deno.serve(async (req: Request) => {
       qualifications: unique,
     };
 
-    const { data, error } = await supabase.rpc("suppliers_replace_all", { p_data: payload });
+    const { data, error } = await supabase.rpc("suppliers_replace_all", { p_data: payload, p_domain: domain });
     if (error) throw error;
 
     return jsonResponse(200, {
       ok: true,
+      domain,
       parsed: {
         clusters: parsed.clusters.length,
         specializations: parsed.specializations.length,

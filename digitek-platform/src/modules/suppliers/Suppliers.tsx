@@ -1,19 +1,53 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { FlatRow, Cluster, Specialty, SupplierSummary, SizeFilter } from './types'
+import type { FlatRow, Cluster, Domain, Specialty, SupplierSummary, SizeFilter } from './types'
 import { SupplierModal } from './SupplierModal'
 import styles from './Suppliers.module.css'
 
-// Cluster color stripe (matches Mockup B). Order matches sort_order 1..7.
-const CLUSTER_COLOR: Record<number, string> = {
-  1: '#1e40af', // תיכנון — primary blue
-  2: '#7c3aed', // תשתיות — purple
-  3: '#ec4899', // חדשנות — pink
-  4: '#f97316', // אינטגרציה ענן — orange
-  5: '#059669', // הדרכה — green
-  6: '#dc2626', // אבטחת מידע — red
-  7: '#0d9488', // בסיסי נתונים — teal
+// Cluster color stripe, keyed per domain by sort_order.
+const CLUSTER_COLOR: Record<Domain, Record<number, string>> = {
+  tech: {
+    1: '#1e40af', // תיכנון — primary blue
+    2: '#7c3aed', // תשתיות — purple
+    3: '#ec4899', // חדשנות — pink
+    4: '#f97316', // אינטגרציה ענן — orange
+    5: '#059669', // הדרכה — green
+    6: '#dc2626', // אבטחת מידע — red
+    7: '#0d9488', // בסיסי נתונים — teal
+  },
+  digital: {
+    1: '#7c3aed', // תוכן — purple
+    2: '#ec4899', // חווית משתמש — pink
+    3: '#0ea5e9', // דאטה — sky
+    4: '#f97316', // שינוי תהליכים — orange
+    5: '#059669', // ניהול מוצר — green
+  },
 }
+
+const DOMAIN_META: Record<Domain, { icon: string; label: string; subtitle: string; sizes: SizeFilter[] }> = {
+  tech: {
+    icon: '🖥️',
+    label: 'ספקי טק',
+    subtitle: 'נספח ד2 — מעולמות הטק · מכרז דיגטק 07-2023',
+    sizes: ['all', 'גדול', 'קטן', 'none'],
+  },
+  digital: {
+    icon: '🎨',
+    label: 'ספקי דיגיטל',
+    subtitle: 'נספח ד1 — מעולמות הדיגיטל · מכרז דיגטק 07-2023',
+    sizes: ['all', 'גדול', 'קטן', 'ל.ר'],
+  },
+}
+
+interface DomainFilters {
+  query: string
+  clusterId: string | null
+  specIds: Set<string>
+  sizeFilter: SizeFilter
+  specSearchQ: string
+}
+
+const EMPTY_FILTERS: DomainFilters = { query: '', clusterId: null, specIds: new Set(), sizeFilter: 'all', specSearchQ: '' }
 
 const PAGE_SIZE = 24
 
@@ -21,6 +55,7 @@ export function Suppliers() {
   const [rows,        setRows]        = useState<FlatRow[]>([])
   const [loading,     setLoading]     = useState(true)
   const [loadError,   setLoadError]   = useState<string | null>(null)
+  const [domain,      setDomain]      = useState<Domain>('tech')
   const [query,       setQuery]       = useState(() => {
     if (typeof window === 'undefined') return ''
     return new URLSearchParams(window.location.search).get('search') ?? ''
@@ -33,19 +68,46 @@ export function Suppliers() {
   const [selectedSup, setSelectedSup] = useState<SupplierSummary | null>(null)
   const [page,        setPage]        = useState(1)
 
+  // Each domain keeps its own filter state so toggling back restores the view
+  const savedFilters = useRef<Record<Domain, DomainFilters>>({ tech: EMPTY_FILTERS, digital: EMPTY_FILTERS })
+  const restoringFilters = useRef(false)
+
+  function switchDomain(next: Domain) {
+    if (next === domain) return
+    savedFilters.current[domain] = { query, clusterId, specIds, sizeFilter, specSearchQ }
+    const f = savedFilters.current[next]
+    restoringFilters.current = true
+    setQuery(f.query)
+    setClusterId(f.clusterId)
+    setSpecIds(f.specIds)
+    setSizeFilter(f.sizeFilter)
+    setSpecSearchQ(f.specSearchQ)
+    setDomain(next)
+  }
+
   useEffect(() => {
     let cancelled = false
-    supabase
-      .from('v_winning_suppliers_flat')
-      .select('*')
-      .order('cluster_sort_order')
-      .order('supplier_name')
-      .then(({ data, error }) => {
-        if (cancelled) return
-        if (error) { setLoadError(error.message); setLoading(false); return }
-        setRows((data ?? []) as FlatRow[])
-        setLoading(false)
-      })
+    // Both domains together exceed PostgREST's 1000-row cap — page through the view.
+    async function fetchAll() {
+      const all: FlatRow[] = []
+      const chunk = 1000
+      for (let from = 0; ; from += chunk) {
+        const { data, error } = await supabase
+          .from('v_winning_suppliers_flat')
+          .select('*')
+          .order('cluster_sort_order')
+          .order('supplier_name')
+          .order('qualification_id')
+          .range(from, from + chunk - 1)
+        if (error) throw new Error(error.message)
+        all.push(...((data ?? []) as FlatRow[]))
+        if (!data || data.length < chunk) break
+      }
+      return all
+    }
+    fetchAll()
+      .then(all => { if (!cancelled) { setRows(all); setLoading(false) } })
+      .catch((e: Error) => { if (!cancelled) { setLoadError(e.message); setLoading(false) } })
     return () => { cancelled = true }
   }, [])
 
@@ -61,11 +123,11 @@ export function Suppliers() {
 
     if (clusterSlug) {
       const found = rows.find(r => r.cluster_slug === clusterSlug)
-      if (found) setClusterId(found.cluster_id)
+      if (found) { setDomain(found.domain); setClusterId(found.cluster_id) }
     }
     if (specName) {
       const found = rows.find(r => r.specialization_name === specName)
-      if (found) setSpecIds(new Set([found.specialization_id]))
+      if (found) { setDomain(found.domain); setSpecIds(new Set([found.specialization_id])) }
     }
 
     if (stepId) {
@@ -91,14 +153,26 @@ export function Suppliers() {
   }, [loading, rows])
 
   // Reset page on filter change
-  useEffect(() => { setPage(1) }, [query, clusterId, specIds, sizeFilter])
+  useEffect(() => { setPage(1) }, [query, clusterId, specIds, sizeFilter, domain])
 
-  // Reset specs when cluster changes
-  useEffect(() => { setSpecIds(new Set()) }, [clusterId])
+  // Reset specs when cluster changes (skip when restoring a saved domain state)
+  useEffect(() => {
+    if (restoringFilters.current) { restoringFilters.current = false; return }
+    setSpecIds(new Set())
+  }, [clusterId])
+
+  // Rows of the active domain only — all derived data below is per-domain
+  const domainRows = useMemo(() => rows.filter(r => r.domain === domain), [rows, domain])
+
+  // Supplier counts for the toggle buttons (both domains, unfiltered)
+  const domainCounts = useMemo(() => ({
+    tech:    new Set(rows.filter(r => r.domain === 'tech').map(r => r.supplier_id)).size,
+    digital: new Set(rows.filter(r => r.domain === 'digital').map(r => r.supplier_id)).size,
+  }), [rows])
 
   const clusters = useMemo<Cluster[]>(() => {
     const map = new Map<string, Cluster>()
-    rows.forEach(r => {
+    domainRows.forEach(r => {
       const c = map.get(r.cluster_id)
       if (c) {
         c.qualCount++
@@ -117,7 +191,7 @@ export function Suppliers() {
     // Suppliers per cluster (unique)
     const supByCluster = new Map<string, Set<string>>()
     const specByCluster = new Map<string, Set<string>>()
-    rows.forEach(r => {
+    domainRows.forEach(r => {
       if (!supByCluster.has(r.cluster_id)) supByCluster.set(r.cluster_id, new Set())
       supByCluster.get(r.cluster_id)!.add(r.supplier_id)
       if (!specByCluster.has(r.cluster_id)) specByCluster.set(r.cluster_id, new Set())
@@ -128,10 +202,10 @@ export function Suppliers() {
       c.specCount = specByCluster.get(c.id)?.size ?? 0
     })
     return Array.from(map.values()).sort((a, b) => a.sort_order - b.sort_order)
-  }, [rows])
+  }, [domainRows])
 
   const specialties = useMemo<Specialty[]>(() => {
-    const visibleRows = clusterId ? rows.filter(r => r.cluster_id === clusterId) : rows
+    const visibleRows = clusterId ? domainRows.filter(r => r.cluster_id === clusterId) : domainRows
     const map = new Map<string, { spec: Specialty; suppliers: Set<string> }>()
     visibleRows.forEach(r => {
       let entry = map.get(r.specialization_id)
@@ -153,7 +227,7 @@ export function Suppliers() {
     })
     map.forEach(e => e.spec.supplierCount = e.suppliers.size)
     return Array.from(map.values()).map(e => e.spec).sort((a, b) => a.name.localeCompare(b.name, 'he'))
-  }, [rows, clusterId])
+  }, [domainRows, clusterId])
 
   // Group visible specialties by cluster for sidebar accordion, filtered by search
   const groupedSpecs = useMemo(() => {
@@ -173,11 +247,12 @@ export function Suppliers() {
 
   const filteredRows = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return rows.filter(r => {
+    return domainRows.filter(r => {
       if (clusterId && r.cluster_id !== clusterId) return false
       if (specIds.size && !specIds.has(r.specialization_id)) return false
       if (sizeFilter === 'גדול' && r.size !== 'גדול') return false
       if (sizeFilter === 'קטן' && r.size !== 'קטן') return false
+      if (sizeFilter === 'ל.ר' && r.size !== 'ל.ר') return false
       if (sizeFilter === 'none' && r.size !== null) return false
       if (q) {
         const haystack = (
@@ -191,7 +266,7 @@ export function Suppliers() {
       }
       return true
     })
-  }, [rows, query, clusterId, specIds, sizeFilter])
+  }, [domainRows, query, clusterId, specIds, sizeFilter])
 
   const suppliers = useMemo<SupplierSummary[]>(() => {
     const map = new Map<string, SupplierSummary>()
@@ -229,12 +304,12 @@ export function Suppliers() {
     return Array.from(map.values()).sort((a, b) => b.quals.length - a.quals.length)
   }, [filteredRows])
 
-  // Aggregate stats for the count line
+  // Aggregate stats for the count line (active domain)
   const totals = useMemo(() => ({
-    suppliers: new Set(rows.map(r => r.supplier_id)).size,
-    specs: new Set(rows.map(r => r.specialization_id)).size,
+    suppliers: new Set(domainRows.map(r => r.supplier_id)).size,
+    specs: new Set(domainRows.map(r => r.specialization_id)).size,
     clusters: clusters.length,
-  }), [rows, clusters])
+  }), [domainRows, clusters])
 
   const visibleStats = useMemo(() => ({
     suppliers: suppliers.length,
@@ -286,7 +361,7 @@ export function Suppliers() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${domain === 'digital' ? styles.pageDigital : ''}`}>
       <header className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>ספקים זוכים</h1>
         <p className={styles.pageSub}>
@@ -294,9 +369,27 @@ export function Suppliers() {
             ? 'טוען קטלוג…'
             : loadError
               ? `שגיאת טעינה: ${loadError}`
-              : `נספח ד2 — מכרז דיגטק 07-2023 · ${totals.suppliers} ספקים · ${totals.specs} התמחויות · ${totals.clusters} אשכולות`}
+              : `${DOMAIN_META[domain].subtitle} · ${totals.suppliers} ספקים · ${totals.specs} התמחויות · ${totals.clusters} אשכולות`}
         </p>
       </header>
+
+      <div className={styles.domainToggle}>
+        <div className={styles.domainSeg}>
+          {(['tech', 'digital'] as Domain[]).map(d => (
+            <button
+              key={d}
+              className={[
+                styles.domainBtn,
+                domain === d ? (d === 'tech' ? styles.domainBtnActiveTech : styles.domainBtnActiveDigital) : '',
+              ].join(' ')}
+              onClick={() => switchDomain(d)}
+            >
+              <span>{DOMAIN_META[d].icon} {DOMAIN_META[d].label}</span>
+              {!loading && <span className={styles.domainBtnNum}>{domainCounts[d]}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className={styles.searchBar}>
         <div className={styles.searchPill}>
@@ -311,7 +404,7 @@ export function Suppliers() {
           {query && <button className={styles.clearBtn} onClick={() => setQuery('')}>✕</button>}
         </div>
         <div className={styles.sizeSeg}>
-          {(['all', 'גדול', 'קטן', 'none'] as SizeFilter[]).map(s => (
+          {DOMAIN_META[domain].sizes.map(s => (
             <button
               key={s}
               className={`${styles.sizeBtn} ${sizeFilter === s ? styles.sizeBtnActive : ''}`}
@@ -451,7 +544,7 @@ export function Suppliers() {
         // Smart empty state — explain WHICH filter is blocking and offer to clear just it
         const clusterName = clusterId ? clusters.find(c => c.id === clusterId)?.name : null
         const supplierCountInCluster = clusterId
-          ? new Set(rows.filter(r => r.cluster_id === clusterId).map(r => r.supplier_id)).size
+          ? new Set(domainRows.filter(r => r.cluster_id === clusterId).map(r => r.supplier_id)).size
           : totals.suppliers
 
         // Case A: search + cluster — search is the likely culprit
@@ -501,7 +594,7 @@ export function Suppliers() {
       <div className={styles.cards}>
         {pageItems.map(s => {
           const mainCluster = clusters.find(c => c.name === s.clusters[0])
-          const stripeColor = mainCluster ? CLUSTER_COLOR[mainCluster.sort_order] : '#cbd5e1'
+          const stripeColor = mainCluster ? CLUSTER_COLOR[domain][mainCluster.sort_order] : '#cbd5e1'
           const badge = validityBadge(s)
           return (
             <div
