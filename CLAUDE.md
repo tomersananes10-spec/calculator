@@ -303,12 +303,30 @@ CLAUDE_CODE_TOMER/
 | 06.08 | **chore(aiml-calc): 3 מוקאפים ל"סה"כ חי" בשלב 3**. המשתמש ביקש לראות את הסה"כ כל הזמן תוך כדי מילוי גדלים/כמויות (לבדוק חריגה). נבנו 3 מוקאפים HTML פונקציונליים ב-[public/mockups/aiml-live-total/](digitek-platform/public/mockups/aiml-live-total/) (סטפרים חיים, גלילה, תקציב יעד): (A) בר עליון דביק — ה-summary bar הקיים sticky + חיווי בתקציב/חריגה; (B) בועה צפה סגולה בפינה התחתונה, נפתחת לפירוט מלא; (C) כרטיס סיכום צמוד-צד כמו שלב 4 עם progress bar תקציב ירוק/כתום/אדום. index.html כגלריה. ממתין לבחירת המשתמש לפני מימוש. |
 | 06.08 | **feat(aiml-calc): כמות בסיס + כמות נוספת פר-גודל**. המשך לתיקון הקודם — המשתמש ביקש לראות גם את ההפרדה בסיס/נוספת בכל גודל. `AimlQty {base, extra}` חדש; `AimlEntry.qty` הפך ל-`Record<AimlSize, AimlQty>`. שלב 3: לכל גודל שני סטפרים ("כמות בסיס" / "כמות נוספת") עם שורת כותרות מיושרת grid; במובייל תוויות מוזרקות דרך `data-label`. שלב 4 + Excel: עמודות "כמות בסיס" ו-"כמות נוספת" (נוספת מוצגת כ-`+N`). מיגרציה תלת-שלבית: v3 (`size+baseQty+extraQty`) / v4 (מספר פר-גודל) / v5 — `normalizeEntries` מזהה צורה אוטומטית, localStorage עם fallback keys. יועץ AI מציב base+extra דרך `SET_QTY` עם `field`. `npx tsc --noEmit` עבר נקי. |
 | 06.08 | **fix(aiml-calc): כמות נפרדת לכל גודל + ייצוא PDF/Excel**. שני דיווחי משתמש: (1) אי אפשר היה לשלב גדלים באותו תוצר (למשל 2 מסמכי אפיון קטנים + 1 גדול) — `AimlEntry` שונה מ-`size+baseQty+extraQty` ל-`qty: Record<AimlSize, number>`; שלב 3 שוכתב לשורת כמות פר-גודל (stepper − / +, highlight לשורות פעילות, תכולות עבודה רק לגדלים שנבחרו); שלב 4 מציג שורה לכל שילוב תוצר×גודל; מיגרציה אוטומטית `normalizeEntries` מ-localStorage `aimlCalc:v3` ומחישובים שמורים ישנים (LOAD מנרמל). (2) לא היה שום ייצוא אחרי שמירה — נוספו "📥 ייצוא PDF" (html2pdf על printRef, כמו TAKAM) ו-"📊 ייצוא Excel" (xlsx עם RTL + שורות סיכום מלאות) בכרטיס הסיכום. יועץ ה-AI הותאם: `addItem` מאפס גדלים ומציב את ההמלצה דרך `SET_QTY` (הסכמה מול Gemini ללא שינוי). `npx tsc --noEmit` עבר נקי. |
+| 07.08 | **chore(suppliers): 3 מוקאפים לפיצול מודול ספקים זוכים — טק / דיגיטל**. התגלה שמכרז דיגיטק 07-2023 כולל שני נספחים: ד2 (מעולמות הטק — מה שכבר טעון ב-DB ומוצג ב-`/suppliers`, 148 ספקים) וד1 (מעולמות הדיגיטל — חדש: 202 ספקים, 5 אשכולות [תוכן/חווית משתמש/דאטה/שינוי תהליכים/ניהול מוצר], 25 התמחויות, 408 הסמכות, מתוך `ספקים דיגיטל .xlsx` גיליון "טבלה מסכמת שמית"; שאר 15 הגליונות = גליונות עבודה פנימיים עם סטטוסי מציעים — הוחלט להציג רק זוכים סופיים). הבדלי פורמט בד1 מול ד2: פריסת עמודות שונה, תאריכים `dd.mm.yyyy` (הפרסר הקיים לא תומך), גודל חדש "ל.ר" (22 שורות), שדות סל הצמדה/ערבות/ביטוח, מק"ט inline בעמודה 14 (בלי legend). נבנו 3 מוקאפים פונקציונליים ב-[public/mockups/suppliers-split/](digitek-platform/public/mockups/suppliers-split/) + `digital-data.json`: (A) Toggle עליון כמו דאטה/AI במחשבון — accent כחול/סגול פר עולם, state סינון נשמר פר-עולם; (B) קטלוג מאוחד — 330 ספקים ייחודיים, badge עולם פר כרטיס (חושף ספקים שזכו בשני העולמות, כמו דלויט), חיפוש חוצה-עולמות; (C) מסך כניסה מפוצל עם 2 hero cards + קטלוג ייעודי פר עולם עם טאבים. אומת ב-Playwright. ממתין לבחירת מוקאפ לפני מימוש (migration `domain` על clusters + הרחבת sync-suppliers + frontend). |
 | 01.08 | **fix(keep-alive): הוספת coe-hub ל-Supabase Keep-Alive**. התקבל מייל מ-Supabase ש-coe-hub (`aukflcgnzzppxnimyrcw`) עומד להיות מושהה מחוסר פעילות. ה-workflow היומי [supabase-keep-alive.yml](.github/workflows/supabase-keep-alive.yml) פינג רק את digitek-dev. נוסף step שני שמפנג את coe-hub (REST `profiles?limit=1` עם ה-publishable key). פינג ידני מיידי החזיר 200 — שעון ההשהיה התאפס. הקומיט נדחף גם ל-develop (`e2fc534`) וגם ל-main (`00441a6`, cherry-pick דרך worktree זמני) כי scheduled workflows רצים רק מ-main. |
 | 20.06 | **chore: ניקוי .gitignore**. ה-VSCode badge הציג 1518 קבצי untracked. הסתבר ש-`node_modules/` בשורש (785 קבצים) לא היה ב-`.gitignore`, וגם `.claude/`, `.playwright-mcp/`, `.superpowers/`, screenshots/mockups בשורש, env files, ופרויקטים נפרדים (COE, RUN OF MY LIFE, Calculator - AI ML, Tender generator, calculate-TAKAM, liba-pitch, אפיון, מורשי חתימה) — הכל נכנס ל-.gitignore. ירידה מ-1518 ל-35 רשומות. LIBA (`digitek-platform/`, `api/`, `package*.json`, `docs/superpowers/`) לא הושפע. commit `dd4d0d4`. |
 
 ---
 
 ## 10. שיחה אחרונה
+
+> **תאריך**: 07.08.2026
+> **נושא**: פיצול מודול ספקים זוכים לטק/דיגיטל — לימוד אקסלים + 3 מוקאפים
+
+### מה קרה
+- המשתמש ביקש לפצל את מודול הספקים ל-2 עולמות כמו המחשבון (דאטה/AI), אחרי שסיפק שני אקסלים ב-`digitek-platform/`
+- **לימוד הקבצים**: המודול הקיים = נספח ד2 (טק). החדש = נספח ד1 (דיגיטל) מתוך `ספקים דיגיטל .xlsx` גיליון "טבלה מסכמת שמית" — 202 ספקים, 5 אשכולות, 25 התמחויות, 408 הסמכות. פרטי פורמט מלאים בשורת ההיסטוריה של 07.08 ובתוכנית `C:\Users\tomer\.claude\plans\dreamy-booping-pearl.md`
+- **הוחלט** (אושר ע"י המשתמש): מציגים רק זוכים סופיים (לא סטטוסי ביניים מגליונות העבודה)
+- נבנו 3 מוקאפים + גלריה ב-`digitek-platform/public/mockups/suppliers-split/` — A (טוגל עליון), B (קטלוג מאוחד), C (מסך כניסה מפוצל). אומתו ב-Playwright
+
+### עוד לא בוצע
+- [ ] בחירת מוקאפ ע"י המשתמש
+- [ ] מימוש: migration `domain` על `service_clusters` + size "ל.ר" + replace פר-domain ב-`suppliers_replace_all`; הרחבת Edge Function `sync-suppliers` (COL map של ד1, תאריכי dd.mm.yyyy, בחירת גיליון); טעינת 202 ספקי דיגיטל; frontend לפי המוקאפ הנבחר + עדכון Sidebar
+
+---
+
+## (היסטוריית שיחה קודמת — מורשי חתימה)
 
 > **תאריך**: 20–21.06.2026
 > **נושא**: צוות מורשי חתימה פר-הליך — פיצ'ר חדש מלא (9 משימות)
