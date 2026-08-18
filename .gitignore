@@ -40,3 +40,7 @@ node_modules/
 /liba-pitch/
 /אפיון/
 /מורשי חתימה/
+
+# TripShare - separate project (own repo)
+tripshare/
+coe-recruit/

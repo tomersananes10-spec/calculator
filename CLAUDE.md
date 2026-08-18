@@ -3,6 +3,11 @@
 > קרא קובץ זה לפני כל פעולה. אל תשנה רכיבים ללא אישור מפורש.
 > **כל תשובה חייבת להיות בעברית.**
 
+## 0. מפת פרויקטים — PROJECTS/
+
+בתיקייה [PROJECTS/](PROJECTS/_INDEX.md) יש קובץ תפעולי לכל פרויקט (LIBA, COE-HUB, COE-RECRUIT, TRIPSHARE, ELIGIBILITY, MASTER-CONTRACTORS).
+**הנוהל המחייב**: כשתומר אומר "עבוד על X" — קרא קודם את `PROJECTS/X.md` (ומשם את ה-CLAUDE.md של אותו פרויקט). **בסוף כל סשן** — הוסף שורה ליומן בקובץ הפרויקט שנגעת בו (תאריך · מה נעשה · צעד הבא). הקובץ הזה (CLAUDE.md) ממשיך לשמש את LIBA עצמה.
+
 ---
 
 ## 1. מהי המערכת
@@ -306,11 +311,47 @@ CLAUDE_CODE_TOMER/
 | 07.08 | **feat(suppliers): פיצול המודול לטק/דיגיטל — מוקאפ A מומש end-to-end**. המשתמש בחר את מוקאפ A (טוגל עליון כמו דאטה/AI במחשבון). **migration 040** — עמודת `domain` (`tech`/`digital`) על `service_clusters` + `winning_suppliers` (קיים=tech כברירת מחדל), unique חדש `(domain, name)` על ספקים (ספק שזכה בשני העולמות = שתי שורות עם הסכם שונה), CHECK של `size` הורחב ב-`ל.ר`, view `v_winning_suppliers_flat` מחזיר `domain`, ו-`suppliers_replace_all(p_data, p_domain)` הפך ל-replace פר-domain (טעינת דיגיטל לא מוחקת את הטק). **Edge Function sync-suppliers v2** — פרמטר `domain` בגוף הבקשה, COL map נפרד לכל נספח (ד1 בפריסה שונה), בחירת גיליון "טבלה מסכמת שמית" בד1, `parseExcelDate` תומך `dd.mm.yyyy`, גודל `ל.ר`, מק"ט inline (בלי legend), איחוד איות "תרגום שפות אחרות"→"תרגום לשפה אחרת". **טעינה ראשונית**: 202 ספקים / 5 אשכולות / 25 התמחויות / 408 הסמכות ב-813ms; הטק נשאר שלם (148/43/7/694). **frontend**: טוגל pill בראש `/suppliers` ("🖥️ ספקי טק 148 / 🎨 ספקי דיגיטל 202"), פלטת סגול module-local (`.pageDigital` דורס את `--primary*` — כל הרכיבים מתחלפים אוטומטית), state סינון נשמר פר-עולם (ref + שחזור במעבר), כפתור גודל דינמי פר עולם (ל.ר בדיגיטל / "ללא גודל" בטק), צבעי stripe פר domain, subtitle לפי נספח. **באג שנתפס באימות Playwright**: אחרי הוספת הדיגיטל ה-view חצה את תקרת 1000 השורות של PostgREST וה-fetch נחתך (הטק הציג 136/4 אשכולות) — תוקן ב-fetch מדורג עם `.range()` בלולאה + tiebreaker `qualification_id`. `npx tsc --noEmit` נקי. אומת חי בדפדפן: שני העולמות, טוגל, מודאל עם ל.ר. |
 | 07.08 | **chore(suppliers): 3 מוקאפים לפיצול מודול ספקים זוכים — טק / דיגיטל**. התגלה שמכרז דיגיטק 07-2023 כולל שני נספחים: ד2 (מעולמות הטק — מה שכבר טעון ב-DB ומוצג ב-`/suppliers`, 148 ספקים) וד1 (מעולמות הדיגיטל — חדש: 202 ספקים, 5 אשכולות [תוכן/חווית משתמש/דאטה/שינוי תהליכים/ניהול מוצר], 25 התמחויות, 408 הסמכות, מתוך `ספקים דיגיטל .xlsx` גיליון "טבלה מסכמת שמית"; שאר 15 הגליונות = גליונות עבודה פנימיים עם סטטוסי מציעים — הוחלט להציג רק זוכים סופיים). הבדלי פורמט בד1 מול ד2: פריסת עמודות שונה, תאריכים `dd.mm.yyyy` (הפרסר הקיים לא תומך), גודל חדש "ל.ר" (22 שורות), שדות סל הצמדה/ערבות/ביטוח, מק"ט inline בעמודה 14 (בלי legend). נבנו 3 מוקאפים פונקציונליים ב-[public/mockups/suppliers-split/](digitek-platform/public/mockups/suppliers-split/) + `digital-data.json`: (A) Toggle עליון כמו דאטה/AI במחשבון — accent כחול/סגול פר עולם, state סינון נשמר פר-עולם; (B) קטלוג מאוחד — 330 ספקים ייחודיים, badge עולם פר כרטיס (חושף ספקים שזכו בשני העולמות, כמו דלויט), חיפוש חוצה-עולמות; (C) מסך כניסה מפוצל עם 2 hero cards + קטלוג ייעודי פר עולם עם טאבים. אומת ב-Playwright. ממתין לבחירת מוקאפ לפני מימוש (migration `domain` על clusters + הרחבת sync-suppliers + frontend). |
 | 01.08 | **fix(keep-alive): הוספת coe-hub ל-Supabase Keep-Alive**. התקבל מייל מ-Supabase ש-coe-hub (`aukflcgnzzppxnimyrcw`) עומד להיות מושהה מחוסר פעילות. ה-workflow היומי [supabase-keep-alive.yml](.github/workflows/supabase-keep-alive.yml) פינג רק את digitek-dev. נוסף step שני שמפנג את coe-hub (REST `profiles?limit=1` עם ה-publishable key). פינג ידני מיידי החזיר 200 — שעון ההשהיה התאפס. הקומיט נדחף גם ל-develop (`e2fc534`) וגם ל-main (`00441a6`, cherry-pick דרך worktree זמני) כי scheduled workflows רצים רק מ-main. |
+| 08.08 | **ops(auth): אבחון Google OAuth — LIBA משתמשת בסוד `****3g8u`, אסור למחוק אותו**. במהלך תיקון באג כניסת Google ב-COE Hub מופה ה-OAuth client המשותף `digitek` (פרויקט Google `digitek-492321`, client_id `317774654711-ping59...`): צרכנים = digitek-dev (LIBA, פעיל), coe-hub (COE), digitek-platform (מושהה, לא רלוונטי). מתוך 2 הסודות ב-Google Console, **LIBA משתמשת ב-`****3g8u`** (נוצר 5.4.2026 00:54) — הוכח בבדיקת disable הפיכה + לוג auth (`invalid_grant`=סוד תקין / `invalid_client`=פסול). הסוד השני `****D1F1` היה יתום ונמחק. **לקח קריטי**: Supabase Management API מחזיר את `external_google_secret` **מוצפן** (64-hex) — אסור להעתיק סוד בין פרויקטים דרך ה-API; ככה נשבר Google login ב-COE ב-05.08. ל-COE נוצר סוד חדש נפרד. |
 | 20.06 | **chore: ניקוי .gitignore**. ה-VSCode badge הציג 1518 קבצי untracked. הסתבר ש-`node_modules/` בשורש (785 קבצים) לא היה ב-`.gitignore`, וגם `.claude/`, `.playwright-mcp/`, `.superpowers/`, screenshots/mockups בשורש, env files, ופרויקטים נפרדים (COE, RUN OF MY LIFE, Calculator - AI ML, Tender generator, calculate-TAKAM, liba-pitch, אפיון, מורשי חתימה) — הכל נכנס ל-.gitignore. ירידה מ-1518 ל-35 רשומות. LIBA (`digitek-platform/`, `api/`, `package*.json`, `docs/superpowers/`) לא הושפע. commit `dd4d0d4`. |
 
 ---
 
 ## 10. שיחה אחרונה
+
+> **תאריך**: 18.08.2026
+> **נושא**: COE Recruit — הפיכת מערכת הסינון ל-web app רב-משתמשי מלא (לא קשור לקוד LIBA)
+
+### מה קרה
+- **ארכיטקטורת-על סופית (הוחלטה ובוצעה)**: **LIBA לבד על digitek-dev — לא נוגעים**. כל השאר על **coe-hub עם מחיצות סכמה של Postgres** (ניהול DBA מסודר): `public`=COE Hub, `recruit`=מערכת הגיוס, `trips`=שמור ל-TripShare (נוצרה ריקה). אין פרויקט Supabase שלישי לעולם (מגבלת 2 חינמיים). סכמת recruit נחשפה ל-Data API דרך `pgrst.db_schemas` על role authenticator (בלי dashboard!); ה-client עובד עם `db:{schema:'recruit'}` וטבלאות בלי prefix. בוצע migration 004 + deploy + QA מלא מחדש (עיוורון מראיין אומת גם על הסכמה החדשה).
+- **נבנה מאפס `coe-recruit/`** — אפליקציה נפרדת (React 19+Vite) על ה-DB של coe-hub עם טבלאות `recruit_*`: 3 migrations, seed מכרז 31-2026 + 29 מועמדים (ציונים+ראיות+יציבות+שאלות) + 29 קו"ח PDF ב-Storage. חילוץ ה-seed מה-HTML נעשה עם policy זמני ל-anon (נפתח ונסגר באותה דקה).
+- **3 תפקידים** עם RLS אמיתי: מנהל (הכל), מראיין (עיוור — בלי מפ"ל/החלטות/מבחנים/ראיונות אחרים; אומת ברמת REST ישיר: 0 שורות), צופה (הכל, קריאה בלבד). הרשמה חופשית → pending → אישור מנהל ב-⚙️ ניהול.
+- **מסכים**: login/signup/pending, מפ"ל (מלא — כולל fitScores והחלטות), מבחנים, ראיונות (מרובה מראיינים), סיכום משוקלל, ניהול (משתמשים/מועמדים/קו"ח/ייבוא JSON מהמערכת הישנה).
+- **Production**: https://coe-recruit-sigma.vercel.app — אומת חי (login, 29 שורות, מובייל 390px). ה-HTML הישן + העותק בשולחן העבודה נשארו כגיבוי.
+- פרטים מלאים: coe-recruit/CLAUDE.md. תוכנית: `C:\Users\tomer\.claude\plans\steady-honking-forest.md`.
+
+### נותר לתומר
+- [ ] כניסה ראשונה ב-https://coe-recruit-sigma.vercel.app — האימייל שלך כבר admin
+- [ ] אופציונלי: הוספת הכתובת ל-Redirect URLs ב-Supabase (Authentication → URL Configuration) כדי ש-magic link יחזור לאפליקציית הגיוס ולא ל-COE Hub
+- [ ] ייבוא הנתונים האישיים: ⬇ ייצוא הערות מה-HTML → ⚙️ ניהול → ייבוא JSON
+
+---
+
+## (היסטוריית שיחה קודמת — סינון מועמדים)
+
+> **תאריך**: 16.08.2026
+> **נושא**: סינון 29 מועמדים למשרת מנהל פרויקט דאטה ו-AI ב-CoE (מכרז 31-2026) — לא קשור לקוד LIBA
+
+### מה קרה
+- המשתמש סיפק 29 קו"ח בתיקיית `קוח/` למשרה ממשלתית ב-CoE של יחידת הדאטה וה-AI (פנייה 31-2026, מערך הדיגיטל הלאומי)
+- תנאי הסף חולצו מדף המשרה (Playwright על govextra); המפ"ל אושר ע"י המשתמש: 30% הובלת DATA/AI (תקצוב+גאנט) · 30% אפיון וייזום (BI/DWH/Data Lake/ETL) · 15% מטריציוני+ספקים · 10% ארכיטקטורה+ענן (יתרון AWS/GCP) · 15% בכירים. סף מעבר 70. הוחלט: אי-עמידה בתנאי סף = דגל אזהרה, לא פסילה
+- שני מעברים: (1) קריאת כל 29 ה-PDF ללמידה + הערות, (2) ניקוד ראייתי פר-קריטריון
+- **תוצר**: [קוח/screening-results.html](קוח/screening-results.html) — טבלה אינטראקטיבית עצמאית (RTL, Heebo): מיון, חיפוש, פילטרים, שורות נפתחות עם ראיות ושאלות ראיון, חברות מפנות + אנשי קשר. אומת ב-Playwright כולל מובייל 390px; כל 29 החישובים המשוקללים אומתו תכנותית
+- **תוצאה**: 11 עוברים (≥70), 18 נפסלים. צמרת: דרור ברדיצ'ב 85.3, ברק קורנט 80.3, הדס לוסטגרטן 80.1, דניאל בלאווט 78.9, נועם חלא 77.1
+- 5 קו"ח ללא זיהוי חברה מפנה בקובץ (מסומנים בטבלה); קובצי עזר זמניים נמחקו
+
+---
+
+## (היסטוריית שיחה קודמת — ספקים טק/דיגיטל)
 
 > **תאריך**: 07.08.2026
 > **נושא**: פיצול מודול ספקים זוכים לטק/דיגיטל — לימוד אקסלים + 3 מוקאפים
