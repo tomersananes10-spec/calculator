@@ -1,7 +1,9 @@
 # LIBA — ניהול רכש ממשלתי (דיגיטק)
 
 ## תעודת זהות
+> ✅ עומדת בתקן "ארכיטקטורה מלאה" ([_INDEX.md](_INDEX.md)) — GitHub + auto-deploy + Supabase/RLS + env ב-Vercel
 - **תיקייה**: `digitek-platform/` (+ `api/` בשורש) — הריפו הראשי, ענף עבודה `develop`
+- **GitHub**: https://github.com/tomersananes10-spec/calculator (develop→preview, main→production)
 - **מסמך מלא**: [CLAUDE.md](../CLAUDE.md) בשורש — חובה לקרוא לפני עבודה
 - **פרודקשן**: https://calculator-ashen-delta-32.vercel.app (develop→preview, main→production)
 - **DB**: Supabase `digitek-dev` (`ildwyncxoytvallkrqjo`) — בלעדי ל-LIBA

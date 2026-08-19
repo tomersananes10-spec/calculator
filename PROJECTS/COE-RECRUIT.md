@@ -1,7 +1,8 @@
 # COE Recruit — מערכת גיוס ובחינת מועמדים
 
 ## תעודת זהות
-- **תיקייה**: `coe-recruit/` — ריפו git מקומי נפרד
+> ✅ עומדת בתקן "ארכיטקטורה מלאה" ([_INDEX.md](_INDEX.md)) — GitHub + auto-deploy + Supabase/RLS + env ב-Vercel (מ-19.08.2026)
+- **תיקייה**: `coe-recruit/` — ריפו git נפרד
 - **מסמך מלא**: `coe-recruit/CLAUDE.md` — חובה לקרוא לפני עבודה
 - **פרודקשן**: https://coe-recruit-sigma.vercel.app (שים לב: בלי `-sigma` זה אתר של מישהו אחר!)
 - **DB**: Supabase `coe-hub` — **סכמת `recruit`** (client עם `db:{schema:'recruit'}`), bucket `recruit-cvs`
@@ -10,7 +11,7 @@
 - **מקור**: נולד מ-`קוח/screening-results.html` (נשאר כגיבוי + עותק בשולחן העבודה)
 
 ## איך עובדים
-- deploy: `npx vercel pull --yes --environment production && npx vercel build --prod && npx vercel deploy --prebuilt --prod --yes`
+- **GitHub**: https://github.com/tomersananes10-spec/coe-recruit (private) · **deploy אוטומטי**: push ל-main → production (כמו ליבה)
 - migrations דרך Supabase MCP על coe-hub — הכול בסכמת recruit בלבד
 - משתמשי QA: qa-admin/qa-interviewer/qa-viewer@recruit.test (מושבתים; הפעלה זמנית ב-⚙️ ניהול)
 

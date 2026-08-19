@@ -8,6 +8,8 @@
 בתיקייה [PROJECTS/](PROJECTS/_INDEX.md) יש קובץ תפעולי לכל פרויקט (LIBA, COE-HUB, COE-RECRUIT, TRIPSHARE, ELIGIBILITY, MASTER-CONTRACTORS).
 **הנוהל המחייב**: כשתומר אומר "עבוד על X" — קרא קודם את `PROJECTS/X.md` (ומשם את ה-CLAUDE.md של אותו פרויקט). **בסוף כל סשן** — הוסף שורה ליומן בקובץ הפרויקט שנגעת בו (תאריך · מה נעשה · צעד הבא). הקובץ הזה (CLAUDE.md) ממשיך לשמש את LIBA עצמה.
 
+**תקן "ארכיטקטורה מלאה" (19.08.2026, מוגדר ב-`PROJECTS/_INDEX.md`)**: כל מערכת חיה — וכל מערכת חדשה מיום 1 — חייבת: (1) ריפו GitHub פרטי, (2) deploy אוטומטי מ-push דרך Vercel git connect, (3) Supabase עם RLS (סכמה פר-אפליקציה בעולם COE), (4) env vars בכל סביבות Vercel, (5) תיעוד CLAUDE.md + PROJECTS/. נכון להיום עומדות בתקן: LIBA, COE Hub, COE Recruit.
+
 ---
 
 ## 1. מהי המערכת
