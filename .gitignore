@@ -44,3 +44,6 @@ node_modules/
 # TripShare - separate project (own repo)
 tripshare/
 coe-recruit/
+# חומרי גיוס — PII של מועמדים, לא עולה ל-GitHub
+מערכת גיוס/
+קוח/
