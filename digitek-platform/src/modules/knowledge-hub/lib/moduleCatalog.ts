@@ -36,7 +36,7 @@ export const SUPPLIER_CLUSTERS = [
 ] as const
 
 export interface ModuleDescriptor {
-  key: 'brief' | 'takam' | 'aiml' | 'tenders' | 'roved5' | 'suppliers'
+  key: 'brief' | 'takam' | 'aiml' | 'tenders' | 'roved5' | 'suppliers' | 'expertise'
   he_name: string
   purpose: string
   when_to_use: string
@@ -44,6 +44,14 @@ export interface ModuleDescriptor {
 }
 
 export const MODULE_CATALOG: ModuleDescriptor[] = [
+  {
+    key: 'expertise',
+    he_name: 'אשכולות והתמחויות',
+    purpose: 'מילון נספח ב\' של מכרז דיגיטק — 12 אשכולות ו-63 התמחויות עם תיאור, פעילויות ותוצרים. מסביר *מה* כוללת כל התמחות.',
+    when_to_use: 'כשלא ברור לאיזה אשכול/התמחות הצורך שייך, או כדי להבין מה בדיוק כלול בהתמחות לפני אפיון בריף. שלב ידע מקדים.',
+    prefill_schema: 'params: { cluster_id (1-12) }. cluster_id מהרשימה: ' +
+      BRIEF_CLUSTERS.map(c => `${c.id}=${c.name}`).join(', '),
+  },
   {
     key: 'brief',
     he_name: 'מחולל בריפים',

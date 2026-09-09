@@ -14,13 +14,14 @@ const EXAMPLE_PROMPTS = [
 export function KnowledgeHubPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const journeyId = searchParams.get('journey')
-  const [wish, setWish] = useState('')
+  const [wish, setWish] = useState(() => searchParams.get('wish') ?? '')
   const { create, creating, error } = useCreateJourney()
   const abortRef = useRef<AbortController | null>(null)
 
-  // Reset input when leaving result mode
+  // Reset input when leaving result mode; prefill from ?wish= (e.g. from the
+  // "build me a journey" button in the אשכולות והתמחויות module).
   useEffect(() => {
-    if (!journeyId) setWish('')
+    if (!journeyId) setWish(searchParams.get('wish') ?? '')
   }, [journeyId])
 
   async function handleSubmit(e: React.FormEvent) {

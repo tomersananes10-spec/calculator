@@ -18,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/calculator', label: 'מחשבון',     icon: '🧮', badgeKey: 'calculator' },
   { href: '/briefs',     label: 'בריפים',     icon: '📋', badgeKey: 'briefs' },
   { href: '/tenders',    label: 'מורשי חתימה', icon: '✅', badgeKey: 'tenders' },
+  { href: '/expertise',  label: 'אשכולות והתמחויות', icon: '🧩' },
   { href: '/layer5',     label: 'רובד 5',      icon: '⚖️' },
   { href: '/suppliers',  label: 'ספקים זוכים דיגיטק', icon: '🏢' },
   // { href: '/projects',   label: 'פרויקטים',   icon: '📊' },

@@ -14,6 +14,7 @@ import { TenderDetailPage } from './pages/TenderDetailPage'
 import { VendorPortalPage } from './pages/VendorPortalPage'
 import { TendersDashboardPage } from './pages/TendersDashboardPage'
 import { SuppliersPage }   from './pages/SuppliersPage'
+import { ExpertisePage }   from './pages/ExpertisePage'
 import { ProjectsPage }    from './pages/ProjectsPage'
 import { TestPage }        from './pages/TestPage'
 import { ApprovalPage }    from './pages/ApprovalPage'
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/approvals"      element={<Navigate to="/tenders" replace />} />
         <Route path="/approvals-old"  element={<Protected><ApprovalsPage /></Protected>} />
         <Route path="/suppliers"      element={<Protected><SuppliersPage /></Protected>} />
+        <Route path="/expertise"      element={<Protected><ExpertisePage /></Protected>} />
         <Route path="/projects"       element={<Protected><ProjectsPage /></Protected>} />
         <Route path="/profile"        element={<Protected><Profile /></Protected>} />
         <Route path="/admin"          element={<Protected><Admin /></Protected>} />

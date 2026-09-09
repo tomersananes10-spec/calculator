@@ -1,4 +1,4 @@
-export type ModuleKey = 'brief' | 'takam' | 'aiml' | 'tenders' | 'roved5' | 'suppliers'
+export type ModuleKey = 'brief' | 'takam' | 'aiml' | 'tenders' | 'roved5' | 'suppliers' | 'expertise'
 export type JourneyStatus = 'active' | 'completed' | 'archived'
 export type JourneyStepStatus = 'locked' | 'active' | 'done' | 'skipped'
 

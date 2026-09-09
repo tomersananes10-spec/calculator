@@ -23,6 +23,7 @@ const MODULE_ROUTES: Record<ModuleKey, { base: string; allowed: string[] }> = {
   tenders:   { base: '/tenders/new',   allowed: ['name', 'brief_id', 'calculation_id'] },
   roved5:    { base: '/layer5',        allowed: ['category', 'search'] },
   suppliers: { base: '/suppliers',     allowed: ['cluster', 'specialization', 'search'] },
+  expertise: { base: '/expertise',     allowed: ['cluster_id', 'search'] },
 }
 
 export function urlForStep(step: JourneyStep): string {
@@ -41,6 +42,7 @@ export const MODULE_HE_LABEL: Record<ModuleKey, string> = {
   tenders:   'מורשי חתימה',
   roved5:    'רובד 5',
   suppliers: 'ספקים זוכים',
+  expertise: 'אשכולות והתמחויות',
 }
 
 export const MODULE_ICON: Record<ModuleKey, string> = {
@@ -50,4 +52,5 @@ export const MODULE_ICON: Record<ModuleKey, string> = {
   tenders:   '✅',
   roved5:    '☁️',
   suppliers: '🏢',
+  expertise: '🧩',
 }
