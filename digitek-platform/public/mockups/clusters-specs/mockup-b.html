@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>אשכולות והתמחויות — מוקאפ B (מאסטר-דיטייל)</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#1e40af;--primary-light:#3b82f6;--primary-bg:#dbeafe;--primary-dark:#1e3a8a;
+  --secondary:#7c3aed;--secondary-bg:#ede9fe;
+  --navy:#0f172a;--text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --bg:#f8fafc;--surface:#fff;--border:#e2e8f0;--border2:#cbd5e1;
+  --green:#059669;--green-bg:#d1fae5;--amber:#d97706;--amber-bg:#fef3c7;
+  --radius:12px;--shadow:0 1px 3px rgba(0,0,0,.10);--shadow-lg:0 10px 30px rgba(15,23,42,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--text);direction:rtl;line-height:1.6}
+.page{max-width:1280px;margin:0 auto;padding:22px 20px 60px}
+.tag{position:fixed;top:12px;left:12px;z-index:99;background:#eff6ff;border:1px dashed #93c5fd;color:var(--primary);font-size:10.5px;font-weight:700;border-radius:8px;padding:3px 8px}
+
+/* header */
+.top{margin-bottom:18px}
+.top h1{font-size:28px;font-weight:800}
+.top p{color:var(--text2);font-size:14.5px;margin-top:2px}
+.aibar{background:linear-gradient(135deg,#faf5ff,#eff6ff);border:1px solid #ddd6fe;border-radius:16px;padding:14px 16px;margin-top:14px}
+.aibar .lead{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--secondary);font-size:13.5px;margin-bottom:9px}
+.aiInputRow{display:flex;gap:9px}
+.aiInputRow input{flex:1;padding:12px 15px;border-radius:11px;border:1px solid var(--border);font:inherit;font-size:14.5px;background:#fff}
+.aiInputRow input:focus{outline:none;border-color:var(--secondary);box-shadow:0 0 0 4px var(--secondary-bg)}
+.aiBtn{border:none;background:linear-gradient(135deg,var(--secondary),var(--primary));color:#fff;font-weight:700;font-size:13.5px;padding:0 18px;border-radius:11px;cursor:pointer;white-space:nowrap}
+.aiRes{margin-top:11px;display:none}.aiRes.show{display:block}
+.aiHit{background:#fff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 12px;margin-bottom:7px;cursor:pointer}
+.aiHit .t{font-weight:800;color:var(--secondary);font-size:13.5px}.aiHit .r{font-size:12.5px;color:var(--text2)}
+.aiJourney{background:var(--primary);color:#fff;border:none;border-radius:9px;padding:9px 15px;font-weight:700;font-size:13px;cursor:pointer;margin-top:3px}
+
+/* layout */
+.layout{display:grid;grid-template-columns:230px 300px 1fr;gap:16px;margin-top:18px;align-items:start}
+.col{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow)}
+.colHead{padding:13px 15px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;color:var(--text2);position:sticky;top:0;background:var(--surface);border-radius:16px 16px 0 0}
+.clist{padding:8px;max-height:78vh;overflow:auto}
+.citem{display:flex;align-items:center;gap:9px;padding:10px 11px;border-radius:11px;cursor:pointer;transition:.12s}
+.citem:hover{background:var(--bg)}
+.citem.active{background:var(--primary-bg)}
+.citem .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:18px;flex:none}
+.citem .nm{flex:1;font-weight:700;font-size:13.5px;line-height:1.25}
+.citem .ct{font-size:11.5px;color:var(--text2);font-weight:700;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:2px 8px}
+.citem.active .ct{background:#fff}
+
+.slist{padding:8px;max-height:78vh;overflow:auto}
+.sitem{padding:11px 12px;border-radius:11px;cursor:pointer;border:1px solid transparent}
+.sitem:hover{background:var(--bg)}
+.sitem.active{background:var(--bg);border-color:var(--accent)}
+.sitem h4{font-size:13.8px;font-weight:700;line-height:1.3}
+.sitem p{font-size:12px;color:var(--text2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:3px}
+
+/* detail */
+.detail{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:0;min-height:400px}
+.dHero{padding:22px 24px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--bg),#fff)}
+.dHero .crumb{font-size:12.5px;color:var(--text2);font-weight:600;margin-bottom:6px}
+.dHero h2{font-size:22px;font-weight:800}
+.dBody{padding:22px 24px}
+.desc{font-size:14.5px;line-height:1.7;color:var(--text)}
+.suppliersCard{display:flex;align-items:center;gap:12px;background:var(--primary-bg);border:1px solid #bfdbfe;border-radius:14px;padding:15px 18px;margin:18px 0;cursor:pointer}
+.suppliersCard .big{font-size:30px;font-weight:800;color:var(--primary-dark)}
+.suppliersCard .tx{flex:1}.suppliersCard .tx b{color:var(--primary-dark)}.suppliersCard .tx span{display:block;font-size:12.5px;color:var(--text2)}
+.suppliersCard .go{background:var(--primary);color:#fff;border-radius:9px;padding:9px 15px;font-weight:700;font-size:13px}
+.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px}
+.block h3{font-size:14px;font-weight:800;color:var(--primary);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.block ul{list-style:none;display:grid;gap:8px}
+.block li{position:relative;padding-inline-start:20px;font-size:13px;line-height:1.5}
+.block li::before{content:"";position:absolute;inset-inline-start:5px;top:8px;width:6px;height:6px;border-radius:50%;background:var(--primary-light)}
+.block.outs li::before{border-radius:2px;background:var(--secondary)}
+.empty{display:grid;place-items:center;height:400px;color:var(--text3);font-size:15px;text-align:center}
+.badge-note{display:inline-block;font-size:11.5px;font-weight:700;color:var(--amber);background:var(--amber-bg);border-radius:999px;padding:3px 10px;margin-top:6px}
+@media(max-width:1000px){.layout{grid-template-columns:1fr}.twoCol{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="tag">מוקאפ B · מאסטר-דיטייל</div>
+<div class="page">
+  <div class="top">
+    <h1>אשכולות והתמחויות</h1>
+    <p>מכרז מרכזי 07-2023 · נספח ב' — 12 אשכולות, 63 התמחויות</p>
+    <div class="aibar">
+      <div class="lead">✨ חיפוש חכם — תאר בעיה ואמצא לך אשכול והתמחות</div>
+      <div class="aiInputRow">
+        <input id="aiIn" placeholder="לדוגמה: להעביר מערכת ליבה ישנה לענן הממשלתי…">
+        <button class="aiBtn" onclick="runAI()">מצא לי</button>
+      </div>
+      <div class="aiRes" id="aiRes">
+        <div class="aiHit" onclick="pick(5,0)"><div class="t">☁️ תשתיות והגירה לענן › הגירת יישומים</div><div class="r">מתאים — תיארת העברת מערכת קיימת לענן.</div></div>
+        <div class="aiHit"><div class="t">🗄️ בסיסי נתונים › הגירת נתונים</div><div class="r">משלים — הגירה כוללת גם העברת ה-DB.</div></div>
+        <button class="aiJourney">🚀 בנה לי מסע מלא במרכז הידע →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="col"><div class="colHead">אשכולות</div><div class="clist" id="clusters"></div></div>
+    <div class="col"><div class="colHead" id="slistHead">התמחויות</div><div class="slist" id="specs"></div></div>
+    <div class="detail" id="detail"><div class="empty">בחר התמחות כדי לראות תיאור מלא, פעילויות, תוצרים וספקים זוכים</div></div>
+  </div>
+</div>
+
+<script>
+const hue=h=>`hsl(${h} 70% 45%)`, hbg=h=>`hsl(${h} 70% 96%)`;
+let DATA=[],ci=0,si=null;
+fetch('data.json').then(r=>r.json()).then(d=>{DATA=d;renderClusters();pickCluster(0)});
+function renderClusters(){
+  const el=document.getElementById('clusters');el.innerHTML='';
+  DATA.forEach((c,i)=>{
+    const d=document.createElement('div');d.className='citem'+(i===ci?' active':'');
+    d.innerHTML=`<div class="ic" style="background:${hbg(c.hue)};color:${hue(c.hue)}">${c.icon}</div>
+      <div class="nm">${c.cluster.replace('אשכול ','')}</div><div class="ct">${c.specs.length}</div>`;
+    d.onclick=()=>pickCluster(i);el.appendChild(d);
+  });
+}
+function pickCluster(i){ci=i;si=null;renderClusters();
+  document.getElementById('slistHead').textContent=DATA[i].cluster;
+  const el=document.getElementById('specs');el.innerHTML='';
+  DATA[i].specs.forEach((s,j)=>{
+    const d=document.createElement('div');d.className='sitem';d.style.setProperty('--accent',hue(DATA[i].hue));
+    d.innerHTML=`<h4>${s.name}</h4><p>${s.desc}</p>`;d.onclick=()=>pick(i,j);el.appendChild(d);
+  });
+  document.getElementById('detail').innerHTML='<div class="empty">בחר התמחות מהרשימה →</div>';
+}
+function pick(i,j){ci=i;si=j;pickClusterKeep();
+  document.querySelectorAll('#specs .sitem').forEach((e,k)=>e.classList.toggle('active',k===j));
+  const s=DATA[i].specs[j],c=DATA[i],supN=2+Math.floor(Math.random()*40);
+  document.getElementById('detail').innerHTML=`
+    <div class="dHero"><div class="crumb">${c.icon} ${c.cluster}</div><h2>${s.name}</h2>${c.note?`<span class="badge-note">⚠ ${c.note}</span>`:''}</div>
+    <div class="dBody">
+      <div class="desc">${s.desc}</div>
+      <div class="suppliersCard"><div class="big">${supN}</div><div class="tx"><b>ספקים זכו בהתמחות זו</b><span>לחץ כדי לראות את רשימת הזוכים במודול ספקים</span></div><div class="go">צפה בספקים ←</div></div>
+      <div class="twoCol">
+        ${s.acts&&s.acts.length?`<div class="block"><h3>⚙️ פעילויות עיקריות</h3><ul>${s.acts.map(a=>`<li>${a}</li>`).join('')}</ul></div>`:'<div></div>'}
+        ${s.outs&&s.outs.length?`<div class="block outs"><h3>📦 תוצרים</h3><ul>${s.outs.map(o=>`<li>${o}</li>`).join('')}</ul></div>`:''}
+      </div>
+    </div>`;
+}
+function pickClusterKeep(){renderClusters();}
+function runAI(){document.getElementById('aiRes').classList.add('show')}
+</script>
+</body>
+</html>
