@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>אשכולות והתמחויות — וריאציה 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#1e40af;--primary-light:#3b82f6;--primary-bg:#dbeafe;--primary-dark:#1e3a8a;
+  --secondary:#7c3aed;--secondary-bg:#ede9fe;
+  --navy:#0f172a;--text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --bg:#f8fafc;--surface:#fff;--border:#e2e8f0;--border2:#cbd5e1;
+  --green:#059669;--green-bg:#d1fae5;--amber:#d97706;--amber-bg:#fef3c7;
+  --radius:12px;--shadow:0 1px 3px rgba(0,0,0,.10);--shadow-lg:0 4px 6px rgba(0,0,0,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--text);direction:rtl;line-height:1.6;font-size:15px}
+.tag{position:fixed;top:10px;left:10px;z-index:99;background:var(--primary-bg);border:1px solid var(--primary-light);color:var(--primary-dark);font-size:11px;font-weight:700;border-radius:8px;padding:4px 9px}
+.page{max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+
+/* ===== LANDING (C) ===== */
+.landing{text-align:center}
+.pageTitle{font-size:40px;font-weight:800;color:var(--navy);margin-bottom:8px}
+.pageSub{color:var(--text2);font-size:15px;max-width:560px;margin:0 auto 26px}
+.bigSearch{max-width:640px;margin:0 auto;display:flex;gap:8px}
+.bigSearch input{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:999px;padding:14px 22px;font:inherit;font-size:15px;outline:none;transition:.15s}
+.bigSearch input:focus{border-color:var(--secondary);box-shadow:0 0 0 4px var(--secondary-bg)}
+.bigSearch button{background:var(--secondary);color:#fff;border:none;border-radius:999px;padding:0 26px;font:inherit;font-weight:700;font-size:14.5px;cursor:pointer}
+.exs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.exChip{background:var(--surface);border:1px solid var(--border);color:var(--text2);border-radius:999px;padding:8px 15px;font-size:13px;cursor:pointer}
+.exChip:hover{background:var(--secondary-bg);border-color:var(--secondary);color:var(--secondary)}
+
+.aiRes{max-width:720px;margin:18px auto 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;text-align:right;display:none}
+.aiRes.show{display:block}
+.aiRes h4{font-size:12.5px;color:var(--secondary);font-weight:800;margin-bottom:10px}
+.hit{display:flex;gap:11px;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin-bottom:8px;cursor:pointer}
+.hit:hover{border-color:var(--secondary)}.hit .hi{font-size:22px}
+.hit .cl{font-size:11.5px;color:var(--secondary);font-weight:700}.hit .t{font-weight:800;color:var(--navy);font-size:14px}.hit .r{font-size:12.5px;color:var(--text2);margin-top:2px}
+.journeyBtn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:11px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;margin-top:4px}
+
+.divider{display:flex;align-items:center;gap:14px;max-width:960px;margin:40px auto 22px;color:var(--text2)}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
+.divider span{font-weight:700;font-size:13.5px}
+
+/* heat grid — LIBA white cards w/ colored accent */
+.heat{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.hcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;cursor:pointer;position:relative;overflow:hidden;transition:.15s;text-align:right}
+.hcard::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:var(--accent)}
+.hcard:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);border-color:var(--accent)}
+.hcard .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:24px;background:var(--accentBg)}
+.hcard h3{font-size:16px;font-weight:800;color:var(--navy);margin-top:12px}
+.hcard .cnt{font-size:12.5px;color:var(--text2);font-weight:600;margin-top:2px}
+.hcard .arrow{position:absolute;left:16px;bottom:16px;font-size:16px;color:var(--accent)}
+
+/* ===== DETAIL (B) ===== */
+.detailView{display:none}
+.detailView.show{display:block}
+.backBar{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.backBtn{background:var(--primary-bg);border:none;color:var(--primary-dark);padding:9px 16px;border-radius:8px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.backBtn:hover{background:var(--primary-light);color:#fff}
+.miniSearch{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:999px;padding:4px 18px;max-width:420px}
+.miniSearch input{flex:1;border:none;outline:none;padding:9px 0;font:inherit;font-size:14px;background:transparent}
+.dvHead{display:flex;align-items:center;gap:13px;margin-bottom:16px}
+.dvIcon{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:26px;flex:none}
+.dvHead h2{font-size:22px;font-weight:800;color:var(--navy)}
+.dvHead .m{font-size:13px;color:var(--text2);font-weight:600}
+.note{display:inline-block;font-size:11.5px;font-weight:700;color:var(--amber);background:var(--amber-bg);border-radius:999px;padding:3px 10px;margin-inline-start:8px}
+
+.layout{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start}
+.col{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.colHead{padding:13px 16px;border-bottom:1px solid var(--border);font-weight:800;font-size:13.5px;color:var(--navy)}
+.slist{padding:8px;max-height:72vh;overflow:auto}
+.sitem{padding:11px 12px;border-radius:10px;cursor:pointer;border:1px solid transparent}
+.sitem:hover{background:var(--bg)}
+.sitem.active{background:var(--bg);border-color:var(--primary-light)}
+.sitem h4{font-size:13.8px;font-weight:700;line-height:1.3}
+.sitem p{font-size:12px;color:var(--text2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:3px}
+.detail{min-height:420px}
+.empty{display:grid;place-items:center;height:420px;color:var(--text3);font-size:14.5px;text-align:center;padding:0 30px}
+.dHero{padding:22px 24px;border-bottom:1px solid var(--border)}
+.crumb{font-size:12.5px;color:var(--text2);font-weight:700;margin-bottom:6px}
+.dHero h2{font-size:21px;font-weight:800;color:var(--navy)}
+.dBody{padding:22px 24px}
+.desc{font-size:14.5px;line-height:1.7}
+.supLink{display:flex;align-items:center;gap:12px;background:var(--primary-bg);border:1px solid var(--primary-light);border-radius:var(--radius);padding:14px 16px;margin:18px 0;cursor:pointer}
+.supLink .si{font-size:22px}.supLink .tx{flex:1}.supLink .tx b{color:var(--primary-dark);font-size:14px}.supLink .tx span{display:block;font-size:12.5px;color:var(--text2)}
+.supLink .go{background:var(--primary);color:#fff;border-radius:8px;padding:8px 14px;font-weight:700;font-size:13px;white-space:nowrap}
+.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:6px}
+.block h3{font-size:14px;font-weight:800;margin-bottom:10px}
+.block.acts h3{color:var(--primary)}.block.outs h3{color:var(--secondary)}
+.block ul{list-style:none;display:grid;gap:8px}
+.block li{position:relative;padding-inline-start:19px;font-size:13px;line-height:1.5}
+.block li::before{content:"";position:absolute;inset-inline-start:5px;top:8px;width:6px;height:6px;border-radius:50%}
+.block.acts li::before{background:var(--primary-light)}.block.outs li::before{background:var(--secondary);border-radius:2px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.twoCol{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="tag">וריאציה 2 · נחיתה→מאסטר-דיטייל</div>
+<div class="page">
+  <!-- LANDING -->
+  <div class="landing" id="landing">
+    <div class="pageTitle">אשכולות והתמחויות</div>
+    <div class="pageSub">לא בטוח לאיזה אשכול אתה שייך? תאר את הצורך שלך וה-AI ימצא את ההתמחות המדויקת מתוך 63 ההתמחויות של מכרז דיגיטק — או עיין בכל האשכולות למטה.</div>
+    <div class="bigSearch"><input id="aiIn" placeholder="תאר את הצורך שלך במילים שלך…"><button onclick="runAI()">מצא לי ✨</button></div>
+    <div class="exs">
+      <span class="exChip" onclick="ex(this)">לשפר חווית אזרח באתר</span>
+      <span class="exChip" onclick="ex(this)">להעביר מערכת לענן</span>
+      <span class="exChip" onclick="ex(this)">לבנות מודל AI</span>
+      <span class="exChip" onclick="ex(this)">להדריך עובדים</span>
+    </div>
+    <div class="aiRes" id="aiRes">
+      <h4>✨ ה-AI מצא עבורך (הדגמה):</h4>
+      <div class="hit" onclick="openCluster(0,0)"><div class="hi">🎨</div><div><div class="cl">אשכול עיצוב שירות</div><div class="t">תכנון חווית הלקוח (CX)</div><div class="r">מתאים כי תיארת שיפור חוויה מקצה-לקצה — כולל מחקר משתמשים ומיפוי מסעות לקוח.</div></div></div>
+      <div class="hit"><div class="hi">✍️</div><div><div class="cl">אשכול תוכן</div><div class="t">כתיבת תוכן דיגיטלי</div><div class="r">משלים — חוויה טובה דורשת תוכן נגיש וברור.</div></div></div>
+      <button class="journeyBtn">🚀 בנה לי מסע מלא במרכז הידע →</button>
+    </div>
+    <div class="divider"><span>או עיין בכל האשכולות</span></div>
+    <div class="heat" id="heat"></div>
+  </div>
+
+  <!-- DETAIL -->
+  <div class="detailView" id="detailView">
+    <div class="backBar">
+      <button class="backBtn" onclick="goHome()">← כל האשכולות</button>
+      <div class="miniSearch"><span>🔍</span><input placeholder="חיפוש בהתמחויות…"></div>
+    </div>
+    <div class="dvHead" id="dvHead"></div>
+    <div class="layout">
+      <div class="col"><div class="colHead" id="slistHead">התמחויות</div><div class="slist" id="specs"></div></div>
+      <div class="col detail" id="detail"><div class="empty">בחר התמחות מהרשימה →</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const hue=h=>`hsl(${h} 60% 48%)`,hbg=h=>`hsl(${h} 60% 96%)`;
+let DATA=[],ci=0;
+fetch('data.json').then(r=>r.json()).then(d=>{DATA=d;renderHeat()});
+function renderHeat(){const el=document.getElementById('heat');el.innerHTML='';
+  DATA.forEach((c,i)=>{const d=document.createElement('div');d.className='hcard';
+    d.style.setProperty('--accent',hue(c.hue));d.style.setProperty('--accentBg',hbg(c.hue));
+    d.innerHTML=`<div class="ic">${c.icon}</div><h3>${c.cluster.replace('אשכול ','')}</h3><div class="cnt">${c.specs.length} התמחויות</div><div class="arrow">←</div>`;
+    d.onclick=()=>openCluster(i);el.appendChild(d);});
+}
+function openCluster(i,pickFirst){ci=i;const c=DATA[i];
+  document.getElementById('landing').style.display='none';
+  document.getElementById('detailView').classList.add('show');
+  document.getElementById('dvHead').innerHTML=`<div class="dvIcon" style="background:${hbg(c.hue)};color:${hue(c.hue)}">${c.icon}</div><div><h2>${c.cluster}</h2><span class="m">${c.specs.length} התמחויות</span>${c.note?`<span class="note">⚠ ${c.note}</span>`:''}</div>`;
+  document.getElementById('slistHead').textContent='התמחויות · '+c.specs.length;
+  const el=document.getElementById('specs');el.innerHTML='';
+  c.specs.forEach((s,j)=>{const d=document.createElement('div');d.className='sitem';
+    d.innerHTML=`<h4>${s.name}</h4><p>${s.desc}</p>`;d.onclick=()=>pick(i,j);el.appendChild(d);});
+  document.getElementById('detail').innerHTML='<div class="empty">בחר התמחות מהרשימה →</div>';
+  if(pickFirst!==undefined)pick(i,pickFirst);
+  window.scrollTo(0,0);
+}
+function pick(i,j){document.querySelectorAll('#specs .sitem').forEach((e,k)=>e.classList.toggle('active',k===j));
+  const s=DATA[i].specs[j],c=DATA[i];
+  document.getElementById('detail').innerHTML=`
+    <div class="dHero"><div class="crumb">${c.icon} ${c.cluster}</div><h2>${s.name}</h2></div>
+    <div class="dBody"><div class="desc">${s.desc}</div>
+      <div class="supLink"><span class="si">🏆</span><div class="tx"><b>ספקים זוכים בהתמחות זו</b><span>צפה ברשימת הספקים שזכו בהתמחות במודול "ספקים זוכים"</span></div><span class="go">צפה בספקים ←</span></div>
+      <div class="twoCol">
+        ${s.acts&&s.acts.length?`<div class="block acts"><h3>⚙️ פעילויות עיקריות</h3><ul>${s.acts.map(a=>`<li>${a}</li>`).join('')}</ul></div>`:'<div></div>'}
+        ${s.outs&&s.outs.length?`<div class="block outs"><h3>📦 תוצרים</h3><ul>${s.outs.map(o=>`<li>${o}</li>`).join('')}</ul></div>`:''}
+      </div></div>`;
+}
+function goHome(){document.getElementById('detailView').classList.remove('show');document.getElementById('landing').style.display='block';window.scrollTo(0,0)}
+function ex(e){document.getElementById('aiIn').value=e.textContent;runAI()}
+function runAI(){document.getElementById('aiRes').classList.add('show')}
+</script>
+</body>
+</html>

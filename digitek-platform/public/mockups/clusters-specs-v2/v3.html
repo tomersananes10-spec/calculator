@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>אשכולות והתמחויות — וריאציה 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#1e40af;--primary-light:#3b82f6;--primary-bg:#dbeafe;--primary-dark:#1e3a8a;
+  --secondary:#7c3aed;--secondary-bg:#ede9fe;
+  --navy:#0f172a;--text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --bg:#f8fafc;--surface:#fff;--border:#e2e8f0;--border2:#cbd5e1;
+  --green:#059669;--green-bg:#d1fae5;--amber:#d97706;--amber-bg:#fef3c7;
+  --radius:12px;--shadow:0 1px 3px rgba(0,0,0,.10);--shadow-lg:0 4px 6px rgba(0,0,0,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Heebo',system-ui,sans-serif;background:var(--bg);color:var(--text);direction:rtl;line-height:1.6;font-size:15px}
+.tag{position:fixed;top:10px;left:10px;z-index:99;background:var(--primary-bg);border:1px solid var(--primary-light);color:var(--primary-dark);font-size:11px;font-weight:700;border-radius:8px;padding:4px 9px}
+.page{max-width:1180px;margin:0 auto;padding:32px 24px 80px}
+
+.pageHeader{text-align:center;margin-bottom:20px}
+.pageTitle{font-size:36px;font-weight:800;color:var(--navy);margin-bottom:8px}
+.pageSub{color:var(--text2);font-size:14px}
+
+/* AI hero band — soft, LIBA */
+.ai{max-width:760px;margin:0 auto 26px}
+.aiForm{display:flex;gap:8px}
+.aiForm input{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:999px;padding:13px 22px;font:inherit;font-size:15px;outline:none;transition:.15s}
+.aiForm input:focus{border-color:var(--secondary);box-shadow:0 0 0 4px var(--secondary-bg)}
+.aiForm button{background:var(--secondary);color:#fff;border:none;border-radius:999px;padding:0 24px;font:inherit;font-weight:700;font-size:14.5px;cursor:pointer}
+.exs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.exChip{background:var(--surface);border:1px solid var(--border);color:var(--text2);border-radius:999px;padding:7px 14px;font-size:12.5px;cursor:pointer}
+.exChip:hover{background:var(--secondary-bg);border-color:var(--secondary);color:var(--secondary)}
+.aiRes{margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;display:none}
+.aiRes.show{display:block}
+.aiRes h4{font-size:12.5px;color:var(--secondary);font-weight:800;margin-bottom:10px}
+.hit{display:flex;gap:11px;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin-bottom:8px;cursor:pointer}
+.hit:hover{border-color:var(--secondary)}.hit .hi{font-size:22px}
+.hit .cl{font-size:11.5px;color:var(--secondary);font-weight:700}.hit .t{font-weight:800;color:var(--navy);font-size:14px}.hit .r{font-size:12.5px;color:var(--text2);margin-top:2px}
+.journeyBtn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:11px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;margin-top:4px}
+
+/* compact heatmap rail (always visible cluster nav) */
+.railTitle{font-size:12.5px;font-weight:800;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin:0 0 10px}
+.rail{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:26px}
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:11px;box-shadow:var(--shadow);padding:12px 13px;cursor:pointer;position:relative;overflow:hidden;transition:.15s;display:flex;align-items:center;gap:10px}
+.rcard::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:var(--accent)}
+.rcard:hover{border-color:var(--accent);transform:translateY(-1px)}
+.rcard.active{background:var(--accentBg);border-color:var(--accent)}
+.rcard .ic{font-size:20px}
+.rcard .nm{flex:1;font-weight:700;font-size:13px;color:var(--navy);line-height:1.2}
+.rcard .ct{font-size:11px;font-weight:800;color:var(--accent)}
+
+/* cluster detail heading */
+.cHead{display:flex;align-items:center;gap:13px;margin-bottom:16px}
+.cIcon{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:26px;flex:none}
+.cHead h2{font-size:22px;font-weight:800;color:var(--navy)}
+.cHead .m{font-size:13px;color:var(--text2);font-weight:600}
+.note{display:inline-block;font-size:11.5px;font-weight:700;color:var(--amber);background:var(--amber-bg);border-radius:999px;padding:3px 10px;margin-inline-start:8px}
+
+/* accordion spec cards inline */
+.specs{display:grid;gap:11px}
+.spec{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;position:relative}
+.spec::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:var(--accent);opacity:.8}
+.specHdr{display:flex;align-items:center;gap:12px;padding:15px 18px;cursor:pointer}
+.specHdr .st{flex:1;min-width:0}
+.specHdr h3{font-size:15px;font-weight:700;color:var(--navy);line-height:1.35}
+.specHdr .teaser{font-size:12.5px;color:var(--text2);margin-top:4px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.spec.open .teaser{display:none}
+.plus{flex:none;width:34px;height:34px;border-radius:10px;border:none;cursor:pointer;background:var(--primary-bg);color:var(--primary);display:grid;place-items:center;font-size:22px;transition:.25s}
+.spec.open .plus{background:var(--primary);color:#fff;transform:rotate(45deg)}
+.body{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(.4,0,.2,1)}
+.bodyIn{padding:0 18px 18px}
+.desc{font-size:13.8px;line-height:1.65;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:13px 14px;margin-bottom:12px}
+.supLink{display:flex;align-items:center;gap:11px;background:var(--primary-bg);border:1px solid var(--primary-light);border-radius:11px;padding:12px 14px;margin-bottom:14px;cursor:pointer}
+.supLink .si{font-size:20px}.supLink .tx{flex:1}.supLink .tx b{color:var(--primary-dark);font-size:13.5px}.supLink .tx span{display:block;font-size:12px;color:var(--text2)}
+.supLink .go{background:var(--primary);color:#fff;border-radius:8px;padding:7px 13px;font-weight:700;font-size:12.5px;white-space:nowrap}
+.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.block h3{font-size:13.5px;font-weight:800;margin-bottom:9px}
+.block.acts h3{color:var(--primary)}.block.outs h3{color:var(--secondary)}
+.block ul{list-style:none;display:grid;gap:7px}
+.block li{position:relative;padding-inline-start:19px;font-size:12.8px;line-height:1.5}
+.block li::before{content:"";position:absolute;inset-inline-start:5px;top:8px;width:6px;height:6px;border-radius:50%}
+.block.acts li::before{background:var(--primary-light)}.block.outs li::before{background:var(--secondary);border-radius:2px}
+@media(max-width:800px){.twoCol{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="tag">וריאציה 3 · AI + מפת חום + אקורדיון</div>
+<div class="page">
+  <div class="pageHeader">
+    <div class="pageTitle">אשכולות והתמחויות</div>
+    <div class="pageSub">מכרז מרכזי 07-2023 · נספח ב' — 12 אשכולות, 63 התמחויות</div>
+  </div>
+
+  <div class="ai">
+    <div class="aiForm"><input id="aiIn" placeholder="✨ תאר בעיה וה-AI ימצא לך אשכול והתמחות…"><button onclick="runAI()">מצא לי</button></div>
+    <div class="exs">
+      <span class="exChip" onclick="ex(this)">לשפר חווית אזרח באתר</span>
+      <span class="exChip" onclick="ex(this)">להעביר מערכת לענן</span>
+      <span class="exChip" onclick="ex(this)">לבנות מודל AI</span>
+      <span class="exChip" onclick="ex(this)">להדריך עובדים</span>
+    </div>
+    <div class="aiRes" id="aiRes">
+      <h4>✨ ה-AI מצא עבורך (הדגמה):</h4>
+      <div class="hit" onclick="selectCluster(0)"><div class="hi">🎨</div><div><div class="cl">אשכול עיצוב שירות</div><div class="t">תכנון חווית הלקוח (CX)</div><div class="r">מתאים כי תיארת שיפור חוויה מקצה-לקצה — כולל מחקר משתמשים ומיפוי מסעות לקוח.</div></div></div>
+      <div class="hit"><div class="hi">✍️</div><div><div class="cl">אשכול תוכן</div><div class="t">כתיבת תוכן דיגיטלי</div><div class="r">משלים — חוויה טובה דורשת תוכן נגיש וברור.</div></div></div>
+      <button class="journeyBtn">🚀 בנה לי מסע מלא במרכז הידע →</button>
+    </div>
+  </div>
+
+  <div class="railTitle">אשכולות</div>
+  <div class="rail" id="rail"></div>
+
+  <div class="cHead" id="cHead"></div>
+  <div class="specs" id="specs"></div>
+</div>
+
+<script>
+const hue=h=>`hsl(${h} 60% 48%)`,hbg=h=>`hsl(${h} 60% 96%)`;
+let DATA=[],ci=0;
+fetch('data.json').then(r=>r.json()).then(d=>{DATA=d;renderRail();selectCluster(0)});
+function renderRail(){const el=document.getElementById('rail');el.innerHTML='';
+  DATA.forEach((c,i)=>{const d=document.createElement('div');d.className='rcard'+(i===ci?' active':'');
+    d.style.setProperty('--accent',hue(c.hue));d.style.setProperty('--accentBg',hbg(c.hue));
+    d.innerHTML=`<span class="ic">${c.icon}</span><span class="nm">${c.cluster.replace('אשכול ','')}</span><span class="ct">${c.specs.length}</span>`;
+    d.onclick=()=>selectCluster(i);el.appendChild(d);});
+}
+function selectCluster(i){ci=i;renderRail();const c=DATA[i];
+  document.getElementById('cHead').innerHTML=`<div class="cIcon" style="background:${hbg(c.hue)};color:${hue(c.hue)}">${c.icon}</div><div><h2>${c.cluster}</h2><span class="m">${c.specs.length} התמחויות</span>${c.note?`<span class="note">⚠ ${c.note}</span>`:''}</div>`;
+  const el=document.getElementById('specs');el.innerHTML='';
+  c.specs.forEach((s,j)=>{const d=document.createElement('div');d.className='spec';d.style.setProperty('--accent',hue(c.hue));
+    d.innerHTML=`<div class="specHdr"><div class="st"><h3>${s.name}</h3><div class="teaser">${s.desc}</div></div><button class="plus">+</button></div>
+      <div class="body"><div class="bodyIn">
+        <div class="desc">${s.desc}</div>
+        <div class="supLink"><span class="si">🏆</span><div class="tx"><b>ספקים זוכים בהתמחות זו</b><span>צפה ברשימת הספקים שזכו בהתמחות</span></div><span class="go">צפה בספקים ←</span></div>
+        <div class="twoCol">
+          ${s.acts&&s.acts.length?`<div class="block acts"><h3>⚙️ פעילויות עיקריות</h3><ul>${s.acts.map(a=>`<li>${a}</li>`).join('')}</ul></div>`:'<div></div>'}
+          ${s.outs&&s.outs.length?`<div class="block outs"><h3>📦 תוצרים</h3><ul>${s.outs.map(o=>`<li>${o}</li>`).join('')}</ul></div>`:''}
+        </div>
+      </div></div>`;
+    d.querySelector('.specHdr').onclick=()=>toggle(d);el.appendChild(d);});
+  window.scrollTo({top:document.querySelector('.railTitle').offsetTop-20,behavior:'smooth'});
+}
+function toggle(el){const b=el.querySelector('.body');const open=el.classList.toggle('open');b.style.maxHeight=open?b.scrollHeight+40+'px':'0'}
+function ex(e){document.getElementById('aiIn').value=e.textContent;runAI()}
+function runAI(){document.getElementById('aiRes').classList.add('show')}
+</script>
+</body>
+</html>
