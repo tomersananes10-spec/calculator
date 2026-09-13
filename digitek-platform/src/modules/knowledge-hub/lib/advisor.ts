@@ -1,5 +1,36 @@
 import { buildGeminiPayload } from './promptBuilder'
+import { SUPPLIER_CLUSTERS } from './moduleCatalog'
+import { EXPERTISE_TO_SUPPLIER_CLUSTER, domainLabel } from '../../expertise/clusterMapping'
 import type { AdvisorResponse } from '../types'
+
+const VALID_SUPPLIER_SLUGS = new Set<string>(SUPPLIER_CLUSTERS.map(c => c.slug))
+
+// Gemini לא תמיד בוחר את אשכול הספקים הנכון (הוא נטה להעתיק אשכול מדוגמה).
+// מיישרים דטרמיניסטית: אם יש שלב brief/expertise עם cluster_id, אשכול הספקים
+// (וגם הכותרת/תיאור) נגזרים ממנו דרך המיפוי אשכול→אשכול. כך היעד תמיד תואם
+// לאשכול שהמשתמש באמת ביקש.
+function normalizeSupplierClusters(resp: AdvisorResponse): AdvisorResponse {
+  const hintStep = resp.steps.find(
+    s => (s.module_key === 'brief' || s.module_key === 'expertise') &&
+         s.prefill_params?.cluster_id != null,
+  )
+  const hintId = hintStep ? Number(hintStep.prefill_params.cluster_id) : null
+  const mapped = hintId ? EXPERTISE_TO_SUPPLIER_CLUSTER[hintId] : null
+
+  for (const step of resp.steps) {
+    if (step.module_key !== 'suppliers') continue
+    const p = step.prefill_params ?? (step.prefill_params = {})
+    if (mapped) {
+      p.cluster = mapped.clusterSlug
+      step.title = `הכר ספקים זוכים באשכול ${mapped.clusterName}`
+      step.description = `ספקים שזכו באשכול ${mapped.clusterName} (${domainLabel(mapped.domain)}) במכרז דיגיטק 07/2023`
+    } else if (typeof p.cluster === 'string' && !VALID_SUPPLIER_SLUGS.has(p.cluster)) {
+      // slug לא תקין מה-AI — עדיף להציג את כל הספקים מאשר לשלוח לאשכול שגוי
+      delete p.cluster
+    }
+  }
+  return resp
+}
 
 export async function fetchAdvisorResponse(wish: string, signal?: AbortSignal): Promise<AdvisorResponse> {
   const trimmed = wish.trim()
@@ -34,7 +65,7 @@ export async function fetchAdvisorResponse(wish: string, signal?: AbortSignal): 
     if (!Array.isArray(parsed.steps) || parsed.steps.length === 0) {
       throw new Error('Gemini החזיר 0 שלבים')
     }
-    return parsed
+    return normalizeSupplierClusters(parsed)
   } catch (err) {
     throw new Error(`לא הצלחתי לפענח JSON מ-Gemini: ${(err as Error).message}`)
   }

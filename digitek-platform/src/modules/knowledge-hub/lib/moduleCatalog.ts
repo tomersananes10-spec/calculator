@@ -25,14 +25,23 @@ export const ROVED5_CATEGORIES = [
   'security', 'database', 'storage', 'compute', 'ai_ml', 'analytics',
 ] as const
 
+// כל 12 אשכולות הספקים (5 דיגיטל + 7 טק). מיושר 1:1 ל-BRIEF_CLUSTERS לפי סדר —
+// ה-slug כאן תואם ל-clusterSlug ב-expertise/clusterMapping.ts.
 export const SUPPLIER_CLUSTERS = [
-  'planning-analysis-development',
-  'infra-cloud-migration',
-  'tech-innovation',
-  'third-party-cloud-integration',
-  'training',
-  'infosec',
-  'databases',
+  // digital
+  { slug: 'user-experience',              name: 'חווית משתמש',                  domain: 'digital' },
+  { slug: 'content',                      name: 'תוכן',                         domain: 'digital' },
+  { slug: 'process-change',               name: 'שינוי תהליכים',                domain: 'digital' },
+  { slug: 'product-management',           name: 'ניהול מוצר',                   domain: 'digital' },
+  { slug: 'data',                         name: 'דאטה',                         domain: 'digital' },
+  // tech
+  { slug: 'infra-cloud-migration',        name: 'תשתיות והגירה לענן',           domain: 'tech' },
+  { slug: 'training',                     name: 'הדרכה',                        domain: 'tech' },
+  { slug: 'planning-analysis-development', name: 'תיכנון ניתוח ופיתוח',          domain: 'tech' },
+  { slug: 'databases',                    name: 'בסיסי נתונים',                 domain: 'tech' },
+  { slug: 'tech-innovation',              name: 'חדשנות טכנולוגית',             domain: 'tech' },
+  { slug: 'infosec',                      name: 'אבטחת מידע',                   domain: 'tech' },
+  { slug: 'third-party-cloud-integration', name: 'אינטגרציה של פתרונות צד ג לענן', domain: 'tech' },
 ] as const
 
 export interface ModuleDescriptor {
@@ -91,8 +100,8 @@ export const MODULE_CATALOG: ModuleDescriptor[] = [
   {
     key: 'suppliers',
     he_name: 'ספקים זוכים דיגיטק',
-    purpose: '148 ספקים שזכו במכרז דיגיטק 07/2023 — מסונן לפי אשכול שירותים.',
-    when_to_use: 'כדי לדעת מי הספקים שניתן להזמין הצעות מהם בהליך מכרז דיגיטק.',
-    prefill_schema: `params: { cluster, specialization, search }. cluster מהרשימה: ${SUPPLIER_CLUSTERS.join(', ')}. search = מילות מפתח עבריות מהבקשה (אופציונלי, חיפוש חופשי בשם הספק/התמחות)`,
+    purpose: '350 ספקים שזכו במכרז דיגיטק 07/2023 (148 טק + 202 דיגיטל) — מסונן לפי אשכול שירותים.',
+    when_to_use: 'כדי לדעת מי הספקים שניתן להזמין הצעות מהם בהליך מכרז דיגיטק. cluster חייב להיות אותו אשכול כמו הבריף/expertise שבמסע.',
+    prefill_schema: `params: { cluster, specialization, search }. cluster (slug=שם) מהרשימה: ${SUPPLIER_CLUSTERS.map(c => `${c.slug}=${c.name}`).join(', ')}. search = מילות מפתח עבריות מהבקשה (אופציונלי, חיפוש חופשי בשם הספק/התמחות)`,
   },
 ]
