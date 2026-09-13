@@ -28,6 +28,12 @@ function normalizeSupplierClusters(resp: AdvisorResponse): AdvisorResponse {
       // slug לא תקין מה-AI — עדיף להציג את כל הספקים מאשר לשלוח לאשכול שגוי
       delete p.cluster
     }
+    // כשיש אשכול מדויק, search/specialization מהמשאלה רק מסננים יתר על המידה
+    // (טקסט חופשי כמו "מנהל מוצר" לא תואם לשמות הספקים → 0 תוצאות). האשכול מספיק.
+    if (typeof p.cluster === 'string' && VALID_SUPPLIER_SLUGS.has(p.cluster)) {
+      delete p.search
+      delete p.specialization
+    }
   }
   return resp
 }
