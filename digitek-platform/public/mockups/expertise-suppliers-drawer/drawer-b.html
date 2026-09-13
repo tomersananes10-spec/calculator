@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מוקאפ B — מגירה עם סינון מובנה</title>
+<link rel="stylesheet" href="common.css">
+</head>
+<body style="--accent:#7c3aed;--accentBg:#f5f3ff">
+
+<div class="stage">
+  <div class="stageHead">
+    <div class="stageIcon">🧭</div>
+    <div>
+      <div class="stageTitle">אשכולות והתמחויות</div>
+      <div class="stageMeta">אשכול ניהול מוצר · נספח ב' דיגיטק</div>
+    </div>
+  </div>
+  <div class="crumb">🧭 אשכול ניהול מוצר › התמחות</div>
+  <div class="specCard">
+    <h2>ניהול מוצר</h2>
+    <p>ייעוץ לארגון בהפעלת מכרז זה לצורך ביצוע טרנספורמציה דיגיטלית והטמעת חשיבה מוצרית, לרבות ליווי ניהול השלבים השונים בחיי המוצר.</p>
+    <button class="supCta" onclick="openDrawer()">
+      <span class="ic">🏆</span>
+      <span class="tx"><b>ספקים זוכים בהתמחות זו</b><span>סנן ובחן את הספקים כאן — לפני שתעבור למודול המלא</span></span>
+      <span class="go">צפה בספקים ←</span>
+    </button>
+  </div>
+</div>
+
+<div class="overlay" id="ov" onclick="closeDrawer()"></div>
+<aside class="drawer" id="dw">
+  <div class="dwHead">
+    <div class="dwTopRow">
+      <div>
+        <div class="dwKicker">🏆 ספקים זוכים · ספקי דיגיטל</div>
+        <div class="dwTitle">אשכול ניהול מוצר</div>
+      </div>
+      <button class="dwClose" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="chips" id="chips"></div>
+
+    <!-- built-in mini filters: refine before jumping out -->
+    <div class="miniFilterRow" style="margin-top:14px;margin-bottom:0">
+      <span class="miniLabel">התמחות:</span>
+      <select id="specSel" onchange="onSpec(this.value)"
+        style="font-family:inherit;font-size:12.5px;font-weight:700;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)">
+        <option value="">הכל</option>
+      </select>
+      <span class="miniLabel">גודל:</span>
+      <div class="seg" id="seg">
+        <button class="on" onclick="onSize('all',this)">הכל</button>
+        <button onclick="onSize('large',this)">גדול</button>
+        <button onclick="onSize('small',this)">קטן</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dwBody">
+    <div class="countLine"><b id="cnt">8</b> ספקים בחיתוך הנוכחי</div>
+    <div id="list"></div>
+  </div>
+
+  <div class="dwFoot">
+    <button class="goModule" onclick="goModule()">
+      <span>גש למודול ספקים עם הסינון הזה</span><span>←</span>
+    </button>
+    <div class="goHint">האשכול, ההתמחות והגודל שבחרת יעברו למודול הספקים</div>
+  </div>
+</aside>
+
+<script src="data.js"></script>
+<script>
+const D=window.DATA
+let params={cluster:D.context.supplierClusterName,spec:null,size:'all'}
+
+function renderChips(){
+  const el=document.getElementById('chips'); el.innerHTML=''
+  const add=(label,key,val)=>{
+    if(!val) return
+    const c=document.createElement('span'); c.className='chip'
+    c.innerHTML=`${label}: ${val} <span class="x">✕</span>`
+    c.querySelector('.x').onclick=()=>{ params[key]= key==='size'?'all':null; if(key==='spec')document.getElementById('specSel').value=''; if(key==='size')resetSeg(); renderChips(); renderList() }
+    el.appendChild(c)
+  }
+  add('אשכול','cluster',params.cluster)
+  add('התמחות','spec',params.spec)
+  add('גודל','size',params.size==='all'?null:(params.size==='large'?'גדול':'קטן'))
+  if(params.cluster||params.spec||params.size!=='all'){
+    const cl=document.createElement('button'); cl.className='chipClear'; cl.textContent='נקה הכל'
+    cl.onclick=()=>{ params={cluster:null,spec:null,size:'all'}; document.getElementById('specSel').value=''; resetSeg(); renderChips(); renderList() }
+    el.appendChild(cl)
+  }
+}
+function resetSeg(){ const s=document.getElementById('seg'); [...s.children].forEach((b,i)=>b.classList.toggle('on',i===0)) }
+function onSpec(v){ params.spec=v||null; renderChips(); renderList() }
+function onSize(v,btn){ params.size=v; [...btn.parentElement.children].forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderChips(); renderList() }
+function match(v){
+  if(params.spec && !v.specs.includes(params.spec)) return false
+  if(params.size==='large' && v.large===0) return false
+  if(params.size==='small' && v.small===0) return false
+  return true
+}
+function badge(v){ const d=Math.floor((new Date(v.validTo)-Date.now())/864e5); return d<90?`<span class="badge amber">● פג בעוד ${d} ימים</span>`:`<span class="badge green">● בתוקף עד 2026</span>` }
+function renderList(){
+  const rows=D.suppliers.filter(match)
+  document.getElementById('cnt').textContent=rows.length
+  const el=document.getElementById('list')
+  if(!rows.length){ el.innerHTML='<div class="empty"><div class="ic">🔍</div><div>אין ספקים לחיתוך הזה</div></div>'; return }
+  el.innerHTML=rows.map(v=>`
+    <div class="vcard">
+      <div class="vcName">${v.name}</div>
+      <div class="vcMeta">מנו"ף ${v.manof} · הסכם ${v.agreement}</div>
+      <div class="vcTags">${v.specs.map(s=>`<span class="vcTag">${s}</span>`).join('')}</div>
+      <div class="vcFoot"><span class="vcSize">גדול <b>${v.large}</b></span><span class="vcSize">קטן <b>${v.small}</b></span>${badge(v)}</div>
+    </div>`).join('')
+}
+function initSpecs(){ const s=document.getElementById('specSel'); D.specs.forEach(sp=>{ const o=document.createElement('option'); o.value=sp.name; o.textContent=`${sp.name} (${sp.count})`; s.appendChild(o) }) }
+function openDrawer(){ renderChips(); renderList(); document.getElementById('ov').classList.add('on'); document.getElementById('dw').classList.add('on') }
+function closeDrawer(){ document.getElementById('ov').classList.remove('on'); document.getElementById('dw').classList.remove('on') }
+function goModule(){ const q=new URLSearchParams(); if(params.cluster)q.set('cluster',params.cluster); if(params.spec)q.set('specialization',params.spec); if(params.size!=='all')q.set('size',params.size); alert('מעבר ל: /suppliers?'+q.toString()+'\n\n(במימוש — הסינון עובר בשלמותו)') }
+initSpecs()
+</script>
+</body>
+</html>

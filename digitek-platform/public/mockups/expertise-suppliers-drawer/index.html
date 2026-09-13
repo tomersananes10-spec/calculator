@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מוקאפים — צפייה היברידית בספקים מתוך האשכולות</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  .wrap{max-width:900px;margin:0 auto;padding:40px 24px}
+  h1{font-size:28px;color:var(--navy);margin-bottom:6px}
+  .sub{color:var(--text2);margin-bottom:28px;line-height:1.7}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;text-decoration:none;
+    color:inherit;transition:.15s;display:flex;flex-direction:column;gap:8px}
+  .card:hover{border-color:#7c3aed;transform:translateY(-2px);box-shadow:0 8px 24px rgba(15,23,42,.1)}
+  .tag{display:inline-block;background:#f5f3ff;color:#7c3aed;font-weight:800;font-size:12px;padding:4px 10px;border-radius:8px;align-self:flex-start}
+  .card h3{font-size:17px;color:var(--navy)}
+  .card p{font-size:13px;color:var(--text2);line-height:1.6}
+  .card .go{margin-top:auto;color:#7c3aed;font-weight:800;font-size:13.5px}
+  .note{margin-top:26px;background:var(--amber-bg);border:1px solid #fde68a;border-radius:12px;padding:14px 16px;font-size:13px;color:#92400e;line-height:1.7}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>צפייה היברידית בספקים מתוך מודול האשכולות</h1>
+  <p class="sub">3 וריאציות של <b>מגירה צדדית</b> (Drawer). בכולן: "צפה בספקים" נשאר בתוך מודול האשכולות · הפרמטרים (אשכול · התמחות) נשמרים כ-chips ניתנים למחיקה · כפתור "גש למודול ספקים" מעביר החוצה עם הפילטרים.</p>
+  <div class="grid">
+    <a class="card" href="drawer-a.html">
+      <span class="tag">מוקאפ A</span>
+      <h3>מגירת רשימה קלאסית</h3>
+      <p>רשימת כרטיסי ספקים פשוטה ונקייה. הכי מהיר לסריקה. Chips של הפרמטרים בראש + CTA למודול המלא בתחתית.</p>
+      <span class="go">פתח ←</span>
+    </a>
+    <a class="card" href="drawer-b.html">
+      <span class="tag">מוקאפ B</span>
+      <h3>מגירה עם סינון מובנה</h3>
+      <p>מסננים קטנים בתוך המגירה (התמחות + גודל) — אפשר לחדד את הרשימה כאן, והחיתוך שנבחר עובר למודול המלא.</p>
+      <span class="go">פתח ←</span>
+    </a>
+    <a class="card" href="drawer-c.html">
+      <span class="tag">מוקאפ C</span>
+      <h3>מאסטר-דיטייל</h3>
+      <p>שני חלוניות: רשימת ספקים משמאל, פרטי ספק נבחר מימין (הסכם, איש קשר, התמחויות). בחינה מלאה בלי לצאת.</p>
+      <span class="go">פתח ←</span>
+    </a>
+  </div>
+  <div class="note">
+    ⚠ <b>הערה על הנתונים:</b> המוקאפים מציגים נתוני דוגמה. המיפוי בפועל הוא <b>אשכול→אשכול</b> (12 אשכולות נספח ב' → אשכולות ד1/ד2). לפני מימוש נגדיר את טבלת המיפוי המדויקת ואאשר אותה מולך.
+  </div>
+</div>
+</body>
+</html>

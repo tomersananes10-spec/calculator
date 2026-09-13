@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useExpertise } from './useExpertise'
 import { expertiseAiSearch } from './expertiseAI'
 import type { ExpertiseCluster, ExpertiseSpec, ExpertiseAiResponse } from './types'
+import { SuppliersDrawer } from './SuppliersDrawer'
+import type { SupplierClusterRef } from './clusterMapping'
 import styles from './Expertise.module.css'
 
 const hue = (h: number) => `hsl(${h} 60% 48%)`
@@ -24,6 +26,7 @@ export function Expertise() {
   const [activeCluster, setActiveCluster] = useState<number | null>(null) // cluster_id
   const [activeSpecId, setActiveSpecId] = useState<number | null>(null)
   const [specFilter, setSpecFilter] = useState('')
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   // AI state
   const [aiInput, setAiInput] = useState('')
@@ -105,8 +108,14 @@ export function Expertise() {
     navigate(`/?wish=${encodeURIComponent(wish)}`)
   }
 
-  function viewSuppliers(spec: ExpertiseSpec) {
-    navigate(`/suppliers?search=${encodeURIComponent(spec.name)}`)
+  // "צפה בספקים" — נשאר בתוך המודול: פותח מגירה של ספקי האשכול הממופה
+  function viewSuppliers(_spec: ExpertiseSpec) {
+    setDrawerOpen(true)
+  }
+
+  // מעבר יזום למודול הספקים המלא, עם האשכול הממופה כפרמטר ב-URL
+  function goToSuppliersModule(ref: SupplierClusterRef) {
+    navigate(`/suppliers?cluster=${encodeURIComponent(ref.clusterSlug)}`)
   }
 
   if (loading) {
@@ -287,6 +296,14 @@ export function Expertise() {
           )}
         </div>
       )}
+
+      <SuppliersDrawer
+        open={drawerOpen}
+        cluster={activeClusterObj}
+        specName={activeSpec?.name ?? null}
+        onClose={() => setDrawerOpen(false)}
+        onGoToModule={goToSuppliersModule}
+      />
     </div>
   )
 }

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מוקאפ C — מגירת מאסטר-דיטייל</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  .drawer.wide{width:min(760px,96vw)}
+  .md{display:flex;height:100%;min-height:0}
+  .mdList{width:44%;border-inline-start:1px solid var(--border);overflow-y:auto;padding:14px}
+  .mdDetail{flex:1;overflow-y:auto;padding:20px 22px;background:var(--bg)}
+  .mdvc{border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:9px;cursor:pointer;background:var(--surface);transition:.15s}
+  .mdvc:hover{border-color:var(--accent)}
+  .mdvc.sel{border-color:var(--accent);background:var(--accentBg);box-shadow:0 2px 8px rgba(124,58,237,.12)}
+  .mdvc .n{font-weight:800;color:var(--navy);font-size:14px}
+  .mdvc .m{font-size:11px;color:var(--text3);margin-top:2px;font-weight:600}
+  .dHero{font-size:20px;font-weight:800;color:var(--navy)}
+  .dSub{font-size:12.5px;color:var(--text2);margin-top:3px;font-weight:600}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin-top:16px;background:var(--surface);
+    border:1px solid var(--border);border-radius:12px;padding:16px}
+  .kv .k{font-size:12.5px;color:var(--text3);font-weight:700}
+  .kv .v{font-size:13.5px;color:var(--text);font-weight:600}
+  .secTitle{font-size:12px;font-weight:800;color:var(--accent);margin:18px 0 8px}
+  .placeholder{display:grid;place-items:center;height:100%;color:var(--text3);text-align:center;padding:20px}
+</style>
+</head>
+<body style="--accent:#7c3aed;--accentBg:#f5f3ff">
+
+<div class="stage">
+  <div class="stageHead">
+    <div class="stageIcon">🧭</div>
+    <div>
+      <div class="stageTitle">אשכולות והתמחויות</div>
+      <div class="stageMeta">אשכול ניהול מוצר · נספח ב' דיגיטק</div>
+    </div>
+  </div>
+  <div class="crumb">🧭 אשכול ניהול מוצר › התמחות</div>
+  <div class="specCard">
+    <h2>ניהול מוצר</h2>
+    <p>ייעוץ לארגון בהפעלת מכרז זה לצורך ביצוע טרנספורמציה דיגיטלית והטמעת חשיבה מוצרית, לרבות ליווי ניהול השלבים השונים בחיי המוצר.</p>
+    <button class="supCta" onclick="openDrawer()">
+      <span class="ic">🏆</span>
+      <span class="tx"><b>ספקים זוכים בהתמחות זו</b><span>עיין בפרטי כל ספק — הסכם, התמחויות, תוקף — בלי לצאת</span></span>
+      <span class="go">צפה בספקים ←</span>
+    </button>
+  </div>
+</div>
+
+<div class="overlay" id="ov" onclick="closeDrawer()"></div>
+<aside class="drawer wide" id="dw">
+  <div class="dwHead">
+    <div class="dwTopRow">
+      <div>
+        <div class="dwKicker">🏆 ספקים זוכים · ספקי דיגיטל</div>
+        <div class="dwTitle">אשכול ניהול מוצר</div>
+      </div>
+      <button class="dwClose" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="md">
+    <div class="mdList">
+      <div class="countLine" style="padding:0 2px 8px"><b id="cnt">8</b> ספקים</div>
+      <div id="list"></div>
+    </div>
+    <div class="mdDetail" id="detail">
+      <div class="placeholder"><div><div style="font-size:32px;opacity:.4">👈</div>בחר ספק מהרשימה לצפייה בפרטים</div></div>
+    </div>
+  </div>
+
+  <div class="dwFoot">
+    <button class="goModule" onclick="goModule()"><span>גש למודול ספקים המלא</span><span>←</span></button>
+    <div class="goHint">האשכול וההתמחות שנבחרו יעברו למודול הספקים</div>
+  </div>
+</aside>
+
+<script src="data.js"></script>
+<script>
+const D=window.DATA
+let params={cluster:D.context.supplierClusterName,spec:D.context.specName}
+let selected=null
+
+function renderChips(){
+  const el=document.getElementById('chips'); el.innerHTML=''
+  const add=(label,key)=>{ if(!params[key])return; const c=document.createElement('span'); c.className='chip'
+    c.innerHTML=`${label}: ${params[key]} <span class="x">✕</span>`
+    c.querySelector('.x').onclick=()=>{ params[key]=null; renderChips(); renderList() }; el.appendChild(c) }
+  add('אשכול','cluster'); add('התמחות','spec')
+  if(params.cluster||params.spec){ const cl=document.createElement('button'); cl.className='chipClear'; cl.textContent='נקה הכל'
+    cl.onclick=()=>{ params={cluster:null,spec:null}; renderChips(); renderList() }; el.appendChild(cl) }
+}
+function match(v){ if(params.spec && !v.specs.includes(params.spec))return false; return true }
+function renderList(){
+  const rows=D.suppliers.filter(match)
+  document.getElementById('cnt').textContent=rows.length
+  document.getElementById('list').innerHTML=rows.map(v=>`
+    <div class="mdvc ${selected===v.id?'sel':''}" onclick="pick('${v.id}')">
+      <div class="n">${v.name}</div><div class="m">מנו"ף ${v.manof} · ${v.specs.length} התמחויות</div>
+    </div>`).join('') || '<div class="empty"><div class="ic">🔍</div>אין ספקים</div>'
+  if(rows.length && !rows.find(v=>v.id===selected)){ selected=null; renderDetail() }
+}
+function pick(id){ selected=id; renderList(); renderDetail() }
+function renderDetail(){
+  const v=D.suppliers.find(x=>x.id===selected)
+  const el=document.getElementById('detail')
+  if(!v){ el.innerHTML='<div class="placeholder"><div><div style="font-size:32px;opacity:.4">👈</div>בחר ספק מהרשימה</div></div>'; return }
+  const d=Math.floor((new Date(v.validTo)-Date.now())/864e5)
+  const bt=d<90?`<span class="badge amber">● פג בעוד ${d} ימים</span>`:`<span class="badge green">● בתוקף עד 2026</span>`
+  el.innerHTML=`
+    <div class="dHero">${v.name}</div>
+    <div class="dSub">${bt}</div>
+    <div class="kv">
+      <span class="k">מנו"ף</span><span class="v">${v.manof}</span>
+      <span class="k">מספר הסכם</span><span class="v">${v.agreement}</span>
+      <span class="k">איש קשר</span><span class="v">${v.contact}</span>
+      <span class="k">הסמכות (גדול/קטן)</span><span class="v">${v.large} / ${v.small}</span>
+    </div>
+    <div class="secTitle">התמחויות באשכול זה</div>
+    <div class="vcTags">${v.specs.map(s=>`<span class="vcTag">${s}</span>`).join('')}</div>`
+}
+function openDrawer(){ renderChips(); renderList(); renderDetail(); document.getElementById('ov').classList.add('on'); document.getElementById('dw').classList.add('on') }
+function closeDrawer(){ document.getElementById('ov').classList.remove('on'); document.getElementById('dw').classList.remove('on') }
+function goModule(){ const q=new URLSearchParams(); if(params.cluster)q.set('cluster',params.cluster); if(params.spec)q.set('specialization',params.spec); alert('מעבר ל: /suppliers?'+q.toString()) }
+</script>
+</body>
+</html>
