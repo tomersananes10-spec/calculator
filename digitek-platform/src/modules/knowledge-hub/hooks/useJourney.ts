@@ -2,7 +2,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useAuth } from '../../../hooks/useAuth'
 import { fetchAdvisorResponse } from '../lib/advisor'
-import type { Journey, JourneyStep, JourneyWithSteps } from '../types'
+import type { AdvisorResponse, Journey, JourneyStep, JourneyWithSteps } from '../types'
+
+export type CreateResult =
+  | { kind: 'journey'; id: string }
+  | { kind: 'answer'; response: AdvisorResponse }
 
 export function useJourney(journeyId: string | null) {
   const [journey, setJourney] = useState<JourneyWithSteps | null>(null)
@@ -46,15 +50,21 @@ export function useCreateJourney() {
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const create = useCallback(async (wish: string, signal?: AbortSignal): Promise<string | null> => {
-    if (!user) {
-      setError('משתמש לא מחובר')
-      return null
-    }
+  const create = useCallback(async (wish: string, signal?: AbortSignal): Promise<CreateResult | null> => {
     setCreating(true)
     setError(null)
     try {
       const advisor = await fetchAdvisorResponse(wish, signal)
+
+      // Direct answer / download — not a journey. Rendered inline, not persisted.
+      if (advisor.kind === 'answer') {
+        return { kind: 'answer', response: advisor }
+      }
+
+      if (!user) {
+        setError('משתמש לא מחובר')
+        return null
+      }
 
       const { data: journey, error: jerr } = await supabase
         .from('journeys')
@@ -86,7 +96,7 @@ export function useCreateJourney() {
         throw new Error(`יצירת שלבים נכשלה: ${serr.message}`)
       }
 
-      return journey.id as string
+      return { kind: 'journey', id: journey.id as string }
     } catch (e) {
       const msg = (e as Error).message
       setError(msg)

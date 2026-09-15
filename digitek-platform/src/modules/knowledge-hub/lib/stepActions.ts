@@ -35,6 +35,25 @@ export function urlForStep(step: JourneyStep): string {
   return url
 }
 
+// Like urlForStep but for a standalone resource link (no journey_step_id).
+export function urlForModule(
+  moduleKey: ModuleKey,
+  prefill: Record<string, string | number | boolean> = {},
+): string {
+  const cfg = MODULE_ROUTES[moduleKey]
+  const params = new URLSearchParams()
+  for (const key of cfg.allowed) {
+    const v = prefill[key]
+    if (v === undefined || v === null || v === '') continue
+    params.set(key, String(v))
+  }
+  const qs = params.toString()
+  let url = qs ? `${cfg.base}?${qs}` : cfg.base
+  if (moduleKey === 'aiml') url += (qs ? '&' : '?') + 'mode=ai'
+  if (moduleKey === 'takam') url += (qs ? '&' : '?') + 'mode=data'
+  return url
+}
+
 export const MODULE_HE_LABEL: Record<ModuleKey, string> = {
   brief:     'מחולל בריפים',
   takam:     'מחשבון תכ"ם',

@@ -33,10 +33,17 @@ export interface JourneyWithSteps extends Journey {
   steps: JourneyStep[]
 }
 
-// Response shape from /api/journey-advisor
+// Response shape from /api/ai-advisor.
+// The advisor classifies each request as either a multi-step "journey"
+// or a direct "answer" (info reply + optional downloadable resources).
+export type AdvisorKind = 'journey' | 'answer'
+
 export interface AdvisorResponse {
+  kind: AdvisorKind
   summary: string
   tags: string[]
+  answer?: string
+  resources?: AdvisorResource[]
   steps: AdvisorStep[]
 }
 
@@ -45,4 +52,15 @@ export interface AdvisorStep {
   title: string
   description: string
   prefill_params: Record<string, string | number | boolean>
+}
+
+// A downloadable asset or quick module link attached to an "answer".
+export type PriceTableResourceKey = 'takam_price_table' | 'aiml_price_table'
+
+export interface AdvisorResource {
+  type: 'download' | 'link'
+  label: string
+  resource_key?: PriceTableResourceKey
+  module_key?: ModuleKey
+  prefill_params?: Record<string, string | number | boolean>
 }

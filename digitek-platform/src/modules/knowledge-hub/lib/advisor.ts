@@ -66,13 +66,30 @@ export async function fetchAdvisorResponse(wish: string, signal?: AbortSignal): 
     throw new Error('תגובה ריקה מ-Gemini')
   }
 
+  let parsed: AdvisorResponse
   try {
-    const parsed = JSON.parse(text) as AdvisorResponse
-    if (!Array.isArray(parsed.steps) || parsed.steps.length === 0) {
-      throw new Error('Gemini החזיר 0 שלבים')
-    }
-    return normalizeSupplierClusters(parsed)
+    parsed = JSON.parse(text) as AdvisorResponse
   } catch (err) {
     throw new Error(`לא הצלחתי לפענח JSON מ-Gemini: ${(err as Error).message}`)
   }
+
+  // Backward-compat: older responses had no "kind". If steps exist → journey.
+  if (parsed.kind !== 'answer' && parsed.kind !== 'journey') {
+    parsed.kind = Array.isArray(parsed.steps) && parsed.steps.length > 0 ? 'journey' : 'answer'
+  }
+  if (!Array.isArray(parsed.steps)) parsed.steps = []
+
+  if (parsed.kind === 'journey') {
+    if (parsed.steps.length === 0) {
+      throw new Error('Gemini החזיר מסע ללא שלבים')
+    }
+    return normalizeSupplierClusters(parsed)
+  }
+
+  // answer: no steps required; must have some answer text
+  if (!parsed.answer || !parsed.answer.trim()) {
+    parsed.answer = parsed.summary || 'לא הצלחתי להפיק תשובה לבקשה הזו.'
+  }
+  if (!Array.isArray(parsed.resources)) parsed.resources = []
+  return parsed
 }
