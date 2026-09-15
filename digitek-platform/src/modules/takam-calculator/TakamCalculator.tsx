@@ -241,7 +241,7 @@ export function TakamCalculator() {
             })}
           </div>
           <div className={s.wizardActions}>
-            <button className={s.historyBtn} onClick={() => setPriceOpen(true)}>
+            <button className={`${s.historyBtn} ${s.priceBtn}`} onClick={() => setPriceOpen(true)}>
               📋 טבלת תעריפים מהוראת התכ"ם להורדה
             </button>
             {user && !state.viewOnly && (

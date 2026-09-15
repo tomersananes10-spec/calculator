@@ -398,11 +398,19 @@
   .pageTitle  { font-size: 18px; }
   .pageSub    { font-size: 12px; }
 
-  /* Wizard progress: hide step text, keep numbers only */
-  .wizardProgress { padding: 0 6px; }
-  .step     { padding: 10px 6px; gap: 5px; }
+  /* Wizard progress on mobile: no horizontal scroll — stack into two rows.
+     Row 1 = compact numbered step dots (centered). Row 2 = action buttons that
+     wrap, with the long price-table button spanning full width. */
+  .wizardProgress { padding: 0 10px 4px; overflow-x: visible; }
+  .stepsRow { flex-direction: column; align-items: stretch; gap: 2px; }
+  .steps    { min-width: 0; width: 100%; justify-content: center; }
+  .step     { padding: 10px 4px; gap: 5px; }
   .stepInfo { display: none; }
   .stepSep  { padding: 0; font-size: 12px; }
+
+  .wizardActions { width: 100%; flex-wrap: wrap; justify-content: center; padding: 4px 0 10px; }
+  .saveHeaderBtn, .historyBtn { flex: 1 1 auto; justify-content: center; }
+  .priceBtn { flex: 1 1 100%; justify-content: center; }
 
   /* Main area */
   .main     { padding: 16px 12px 80px; }
