@@ -89,6 +89,10 @@
   border-collapse: collapse;
   font-family: Heebo, sans-serif;
 }
+/* Keep a role row (and category header) from splitting across PDF pages */
+.table tr { break-inside: avoid; page-break-inside: avoid; }
+.table thead { display: table-header-group; }
+.catRow { break-after: avoid; page-break-after: avoid; }
 .table th, .table td {
   text-align: right;
   padding: 8px 12px;

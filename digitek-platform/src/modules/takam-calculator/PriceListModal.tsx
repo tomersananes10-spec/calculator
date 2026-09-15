@@ -20,6 +20,7 @@ export function PriceListModal({ onClose }: { onClose: () => void }) {
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, backgroundColor: '#ffffff' },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' },
       }).from(printRef.current).save()
     } finally {
       setBusy(null)
