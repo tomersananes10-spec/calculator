@@ -22,6 +22,20 @@
   color: var(--text3);
   margin: 0;
 }
+.manageBtn {
+  margin-top: 14px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1.5px solid var(--primary);
+  background: var(--primary-bg);
+  color: var(--primary-dark);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.manageBtn:hover { background: var(--primary); color: #fff; }
 
 /* Search bar — unified pill */
 .searchBar {

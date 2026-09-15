@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../hooks/useAuth'
 import type { Roved5Service, AISearchResult } from './types'
 import { aiSearch, keywordSearch, categorizeService } from './roved5AI'
 import type { ServiceCategory } from './roved5AI'
@@ -64,6 +66,8 @@ const CAT_ICONS: Record<ServiceCategory, string> = {
 const PAGE_SIZE = 24
 
 export function Roved5() {
+  const navigate = useNavigate()
+  const { isAdmin } = useAuth()
   const [services,       setServices]       = useState<Roved5Service[]>([])
   const [loading,        setLoading]        = useState(true)
   const [loadError,      setLoadError]      = useState<string | null>(null)
@@ -280,6 +284,14 @@ export function Roved5() {
               ? `שגיאת טעינה: ${loadError}`
               : `${services.length.toLocaleString()} שירותי ענן מאושרים לרכישה`}
         </p>
+        {isAdmin && (
+          <button
+            className={styles.manageBtn}
+            onClick={() => navigate('/admin?tab=roved5')}
+          >
+            ⚙️ ניהול מוצרים
+          </button>
+        )}
       </div>
 
       <div className={styles.searchBar}>

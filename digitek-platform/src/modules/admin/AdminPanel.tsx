@@ -31,7 +31,11 @@ const TABS: { key: AdminTab; label: string; icon: string }[] = [
 
 export default function AdminPanel() {
   const { user, isAdmin } = useAuth()
-  const [activeTab, setActiveTab] = useState<AdminTab>('users')
+  const [activeTab, setActiveTab] = useState<AdminTab>(() => {
+    const t = new URLSearchParams(window.location.search).get('tab')
+    const valid = TABS.some(tab => tab.key === t)
+    return valid ? (t as AdminTab) : 'users'
+  })
   const adminData = useAdminData(isAdmin)
 
   const adminCount = useMemo(
