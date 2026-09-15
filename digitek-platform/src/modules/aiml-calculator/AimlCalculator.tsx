@@ -8,6 +8,7 @@ import { Step2AimlSelect } from './Step2AimlSelect'
 import { Step3AimlSizing } from './Step3AimlSizing'
 import { Step4AimlResults } from './Step4AimlResults'
 import { AimlAiAdvisorModal } from './AimlAiAdvisorModal'
+import { AimlPriceListModal } from './AimlPriceListModal'
 import type { AimlStep, SavedAimlCalculation } from './types'
 import { supabase } from '../../lib/supabase'
 import s from '../takam-calculator/TakamCalculator.module.css'
@@ -18,6 +19,7 @@ export function AimlCalculator() {
   const [state, dispatch] = useAimlCalculator()
   const history = useAimlHistory()
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [priceOpen, setPriceOpen] = useState(false)
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
   const [searchParams, setSearchParams] = useSearchParams()
   const journeyStepIdRef = useRef<string | null>(null)
@@ -119,6 +121,9 @@ export function AimlCalculator() {
           </div>
 
           <div className={s.wizardActions}>
+            <button className={s.historyBtn} onClick={() => setPriceOpen(true)}>
+              📋 מחירון מלא
+            </button>
             <button className={s.saveHeaderBtn} onClick={handleSave}>
               {saveMsg === 'נשמר!' ? '✓ נשמר!' : saveMsg ? `✕ ${saveMsg}` : '💾 שמור'}
             </button>
@@ -138,6 +143,8 @@ export function AimlCalculator() {
         {state.currentStep === 3 && <Step3AimlSizing state={state} dispatch={dispatch} />}
         {state.currentStep === 4 && <Step4AimlResults state={state} dispatch={dispatch} />}
       </div>
+
+      {priceOpen && <AimlPriceListModal onClose={() => setPriceOpen(false)} />}
 
       <AimlAiAdvisorModal state={state} dispatch={dispatch} />
 

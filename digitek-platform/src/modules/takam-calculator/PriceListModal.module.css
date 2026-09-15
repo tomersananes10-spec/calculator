@@ -1,0 +1,135 @@
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 400; cursor: pointer;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+.dialog {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border-radius: 16px;
+  width: 1000px; max-width: 94vw;
+  max-height: 90vh;
+  display: flex; flex-direction: column;
+  z-index: 401;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: popIn 0.2s ease;
+  overflow: hidden;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.96) }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1) }
+}
+
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.dialogTitle {
+  font-size: 18px; font-weight: 800; color: var(--text);
+  margin: 0;
+}
+.headerActions { display: flex; align-items: center; gap: 8px; }
+
+.exportBtn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--teal); color: #fff;
+  border: none; border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: Heebo, sans-serif;
+  transition: opacity 0.15s;
+}
+.exportBtn:hover { opacity: 0.9; }
+.exportBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.closeBtn {
+  background: var(--surface); border: 1.5px solid var(--border);
+  color: var(--text2);
+  width: 34px; height: 34px; border-radius: 10px;
+  font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.closeBtn:hover { border-color: var(--red); color: var(--red); }
+
+.scrollArea {
+  overflow: auto;
+  padding: 20px;
+  background: var(--bg);
+}
+
+/* The printable sheet — what gets exported */
+.printSheet {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+}
+.sheetHeader {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.sheetTitle {
+  font-size: 20px; font-weight: 800; color: var(--navy);
+  margin: 0 0 4px;
+}
+.sheetNote {
+  font-size: 12.5px; color: var(--text3);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Heebo, sans-serif;
+}
+.table th, .table td {
+  text-align: right;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-weight: 700;
+  border: 1px solid var(--navy);
+}
+.roleCol { width: 46%; }
+.rateCol { text-align: center; }
+
+.catRow td {
+  background: var(--teal-pale, #ccfbf1);
+  color: var(--navy);
+  font-weight: 800;
+  font-size: 13.5px;
+  border: 1px solid var(--border);
+  padding: 7px 12px;
+}
+.roleRow td {
+  border: 1px solid var(--border);
+}
+.roleName { color: var(--text); font-weight: 600; }
+.roleId {
+  display: inline-block;
+  color: var(--text3); font-size: 11px; font-weight: 700;
+  margin-left: 4px;
+}
+.rateCell {
+  text-align: center;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .header { flex-wrap: wrap; }
+  .dialogTitle { font-size: 15px; width: 100%; }
+  .exportBtn { padding: 7px 11px; font-size: 12px; }
+  .table th, .table td { padding: 6px 8px; font-size: 12px; }
+}

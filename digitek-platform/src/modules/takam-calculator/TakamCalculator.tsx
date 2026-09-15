@@ -9,6 +9,7 @@ import { Step3Mix }         from './Step3Mix'
 import { Step4Results }     from './Step4Results'
 import { AiAdvisorModal }   from './AiAdvisorModal'
 import { HistoryPanel }     from './HistoryPanel'
+import { PriceListModal }   from './PriceListModal'
 import { ROLES_DATA }       from './data'
 import type { MixEntry, Level } from './types'
 import type { SavedCalculation } from './useCalculationHistory'
@@ -21,6 +22,7 @@ export function TakamCalculator() {
   const { user } = useAuth()
   const history = useCalculationHistory(user?.id)
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [priceOpen, setPriceOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -238,23 +240,28 @@ export function TakamCalculator() {
               )
             })}
           </div>
-          {user && !state.viewOnly && (
-            <div className={s.wizardActions}>
-              <button
-                className={s.saveHeaderBtn}
-                onClick={handleSave}
-                disabled={saving}
-              >
-                {saving ? '💾 שומר...' : saveMsg === 'נשמר!' ? '✓ נשמר!' : saveMsg === 'שגיאה בשמירה' ? '✕ שגיאה' : '💾 שמור'}
-              </button>
-              <button className={s.historyBtn} onClick={() => setHistoryOpen(true)}>
-                📋 החישובים שלי
-                {history.calculations.length > 0 && (
-                  <span className={s.historyBadge}>{history.calculations.length}</span>
-                )}
-              </button>
-            </div>
-          )}
+          <div className={s.wizardActions}>
+            <button className={s.historyBtn} onClick={() => setPriceOpen(true)}>
+              📋 מחירון מלא
+            </button>
+            {user && !state.viewOnly && (
+              <>
+                <button
+                  className={s.saveHeaderBtn}
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? '💾 שומר...' : saveMsg === 'נשמר!' ? '✓ נשמר!' : saveMsg === 'שגיאה בשמירה' ? '✕ שגיאה' : '💾 שמור'}
+                </button>
+                <button className={s.historyBtn} onClick={() => setHistoryOpen(true)}>
+                  📋 החישובים שלי
+                  {history.calculations.length > 0 && (
+                    <span className={s.historyBadge}>{history.calculations.length}</span>
+                  )}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -274,6 +281,8 @@ export function TakamCalculator() {
           />
         )}
       </div>
+
+      {priceOpen && <PriceListModal onClose={() => setPriceOpen(false)} />}
 
       {!state.viewOnly && <AiAdvisorModal state={state} dispatch={dispatch} />}
 
