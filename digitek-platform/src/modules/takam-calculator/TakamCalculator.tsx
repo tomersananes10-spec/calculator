@@ -242,7 +242,7 @@ export function TakamCalculator() {
           </div>
           <div className={s.wizardActions}>
             <button className={s.historyBtn} onClick={() => setPriceOpen(true)}>
-              📋 מחירון מלא
+              📋 טבלת תעריפים מהוראת התכ"ם להורדה
             </button>
             {user && !state.viewOnly && (
               <>

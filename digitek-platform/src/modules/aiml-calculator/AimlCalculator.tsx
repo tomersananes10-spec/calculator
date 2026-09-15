@@ -122,7 +122,7 @@ export function AimlCalculator() {
 
           <div className={s.wizardActions}>
             <button className={s.historyBtn} onClick={() => setPriceOpen(true)}>
-              📋 מחירון מלא
+              📋 טבלת תעריפים מהוראת התכ"ם להורדה
             </button>
             <button className={s.saveHeaderBtn} onClick={handleSave}>
               {saveMsg === 'נשמר!' ? '✓ נשמר!' : saveMsg ? `✕ ${saveMsg}` : '💾 שמור'}
