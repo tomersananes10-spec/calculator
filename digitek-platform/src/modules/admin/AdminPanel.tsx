@@ -14,6 +14,7 @@ const HealthCheck = lazy(() => import('./components/HealthCheck'))
 const DataQuality = lazy(() => import('./components/DataQuality'))
 const SecurityMonitor = lazy(() => import('./components/SecurityMonitor'))
 const AppErrors = lazy(() => import('./components/AppErrors'))
+const Roved5Manager = lazy(() => import('./components/Roved5Manager'))
 
 const TABS: { key: AdminTab; label: string; icon: string }[] = [
   { key: 'analytics', label: 'לוח בקרה', icon: '📊' },
@@ -25,6 +26,7 @@ const TABS: { key: AdminTab; label: string; icon: string }[] = [
   { key: 'data-quality', label: 'איכות נתונים', icon: '🔍' },
   { key: 'security', label: 'אבטחת מידע', icon: '🔒' },
   { key: 'errors', label: 'שגיאות', icon: '⚠️' },
+  { key: 'roved5', label: 'קטלוג רובד 5', icon: '☁️' },
 ]
 
 export default function AdminPanel() {
@@ -118,6 +120,7 @@ export default function AdminPanel() {
         {activeTab === 'data-quality' && <DataQuality />}
         {activeTab === 'security' && <SecurityMonitor />}
         {activeTab === 'errors' && <AppErrors />}
+        {activeTab === 'roved5' && <Roved5Manager />}
       </Suspense>
     </div>
   )

@@ -8,6 +8,7 @@ export type AdminTab =
   | 'data-quality'
   | 'security'
   | 'errors'
+  | 'roved5'
 
 export interface AdminProfile {
   id: string
