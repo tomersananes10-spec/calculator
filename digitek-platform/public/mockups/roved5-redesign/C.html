@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>רובד 5 — מוקאפ C (קומפקטי/טבלאי)</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#2563eb; --primary-dark:#1d4ed8; --primary-bg:#eff6ff;
+  --navy:#0f172a; --text:#1e293b; --text2:#475569; --text3:#94a3b8;
+  --bg:#f1f5f9; --surface:#fff; --border:#e2e8f0; --border2:#cbd5e1;
+  --green:#16a34a; --green-bg:#dcfce7; --amber:#b45309; --amber-bg:#fef3c7;
+  --aws:#ff9900; --gcp:#4285f4; --radius:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);direction:rtl}
+.wrap{max-width:1360px;margin:0 auto;padding:18px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brandLogo{font-size:24px;font-weight:900;color:var(--primary)}
+.brandSub{font-size:13px;color:var(--text2)}
+/* Thin KPI strip */
+.kstrip{display:flex;gap:10px;flex-wrap:wrap}
+.kchip{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer}
+.kchip b{color:var(--navy);font-weight:900;font-size:15px}
+.kchip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+.kchip.on b{color:#fff}
+
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0}
+.searchWrap{position:relative;flex:1;min-width:220px}
+.searchWrap input{width:100%;padding:10px 38px 10px 12px;border:1.5px solid var(--border2);border-radius:10px;font-family:inherit;font-size:14px;background:var(--surface)}
+.searchWrap span{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--text3)}
+.tbtn{padding:8px 14px;border-radius:10px;border:1.5px solid var(--border2);background:var(--surface);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.tbtn.on{background:#f59e0b;border-color:#f59e0b;color:#fff}
+.viewToggle{display:flex;border:1.5px solid var(--border2);border-radius:10px;overflow:hidden}
+.viewToggle button{border:none;background:var(--surface);padding:8px 12px;cursor:pointer;font-size:15px}
+.viewToggle button.on{background:var(--primary);color:#fff}
+.count{font-size:13px;color:var(--text3);margin-bottom:8px}
+
+/* Table */
+table.tbl{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;font-size:13px}
+table.tbl th{background:#f8fafc;text-align:right;padding:11px 12px;font-weight:800;color:var(--navy);border-bottom:2px solid var(--border);position:sticky;top:0;cursor:pointer;white-space:nowrap}
+table.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+table.tbl tr:hover td{background:var(--primary-bg)}
+.rowName{font-weight:800;color:var(--navy);cursor:pointer}
+.rowName:hover{color:var(--primary)}
+.rowMfr{font-size:11px;color:var(--text3)}
+.sku{font-family:monospace;font-size:11px;color:var(--text2);cursor:pointer}
+.sku:hover{color:var(--primary)}
+.cloudBadge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;color:#fff}
+.cloudBadge.AWS{background:var(--aws)} .cloudBadge.GCP{background:var(--gcp)}
+.discount{font-size:12px;font-weight:900;color:var(--green);background:var(--green-bg);padding:2px 8px;border-radius:6px;white-space:nowrap}
+.discount.byol{color:var(--amber);background:var(--amber-bg)}
+.iconBtn{width:26px;height:26px;border:1px solid var(--border);border-radius:7px;background:var(--surface);cursor:pointer;font-size:13px;color:var(--text3)}
+.iconBtn.on{background:#fef3c7;border-color:#f59e0b;color:#f59e0b}
+.iconBtn.cmp.on{background:var(--primary-bg);border-color:var(--primary);color:var(--primary)}
+
+/* Grid (alt view) */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;display:flex;flex-direction:column;gap:7px;cursor:pointer}
+.card:hover{box-shadow:0 8px 24px rgba(15,23,42,.1)}
+.cardName{font-size:14px;font-weight:800;color:var(--navy)}
+.cardMfr{font-size:11px;color:var(--primary);font-weight:700}
+.cardDesc{font-size:12px;color:var(--text2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.cmpBar{position:fixed;bottom:20px;right:50%;transform:translateX(50%);background:var(--navy);color:#fff;border-radius:999px;padding:10px 18px;display:none;align-items:center;gap:14px;box-shadow:0 12px 40px rgba(0,0,0,.3);z-index:60}
+.cmpBar.show{display:flex}
+.cmpBar button{background:#fff;color:var(--navy);border:none;border-radius:999px;padding:7px 16px;font-weight:800;cursor:pointer;font-family:inherit}
+.cmpBar .clr{background:transparent;color:#cbd5e1;text-decoration:underline}
+
+.fab{position:fixed;bottom:22px;left:22px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;border:none;border-radius:999px;padding:13px 19px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 12px 30px rgba(37,99,235,.4);z-index:60}
+.chatPanel{position:fixed;bottom:22px;left:22px;width:380px;max-width:calc(100vw - 44px);height:520px;max-height:calc(100vh - 44px);background:var(--surface);border-radius:16px;box-shadow:0 20px 60px rgba(15,23,42,.3);display:none;flex-direction:column;overflow:hidden;z-index:61}
+.chatPanel.show{display:flex}
+.chatHead{background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;padding:14px 16px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+.chatHead button{background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer}
+.chatBody{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.msg{max-width:85%;padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.5}
+.msg.bot{background:var(--surface);border:1px solid var(--border);align-self:flex-start}
+.msg.user{background:var(--primary);color:#fff;align-self:flex-end}
+.miniCard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;margin-top:6px;cursor:pointer}
+.miniCard b{color:var(--navy)}
+.chatInput{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}
+.chatInput input{flex:1;padding:10px 12px;border:1.5px solid var(--border2);border-radius:999px;font-family:inherit;font-size:13px}
+.chatInput button{background:var(--primary);color:#fff;border:none;border-radius:999px;padding:0 18px;font-weight:800;cursor:pointer}
+
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:24px;z-index:70}
+.overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius);max-width:900px;width:100%;max-height:88vh;overflow:auto;padding:22px}
+.cmpTable{width:100%;border-collapse:collapse;font-size:13px}
+.cmpTable th,.cmpTable td{border:1px solid var(--border);padding:9px 11px;text-align:right;vertical-align:top}
+.cmpTable th{background:var(--bg);font-weight:800}
+.closeX{float:left;border:none;background:var(--bg);width:34px;height:34px;border-radius:50%;cursor:pointer}
+
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.hideM{display:none}}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><span class="brandLogo">LIBA</span><span class="brandSub">רובד 5 — קטלוג שירותי ענן</span></div>
+    <div class="kstrip" id="kstrip"></div>
+  </div>
+  <div class="toolbar">
+    <div class="searchWrap"><span>🔍</span><input id="search" placeholder="חיפוש: שם, יצרן, מק״ט, ספק..."></div>
+    <button class="tbtn" id="favBtn">🔖 מועדפים</button>
+    <button class="tbtn" id="exportBtn">📥 ייצוא</button>
+    <div class="viewToggle"><button data-v="table" class="on">▤ טבלה</button><button data-v="grid">▦ כרטיסים</button></div>
+  </div>
+  <div class="count" id="count"></div>
+  <div id="results"></div>
+</div>
+
+<div class="cmpBar" id="cmpBar"><span id="cmpCount"></span><button id="cmpOpen">השווה ←</button><button class="clr" id="cmpClear">נקה</button></div>
+<button class="fab" id="fab">✨ סייען AI</button>
+<div class="chatPanel" id="chatPanel">
+  <div class="chatHead"><span>✨ סייען רובד 5</span><button id="chatClose">✕</button></div>
+  <div class="chatBody" id="chatBody"><div class="msg bot">מה אתה מחפש? למשל "אבטחה", "גיבוי", "ETL".</div></div>
+  <div class="chatInput"><input id="chatText" placeholder="כתוב הודעה..."><button id="chatSend">שלח</button></div>
+</div>
+<div class="overlay" id="overlay"><div class="modal" id="modalContent"></div></div>
+
+<script>
+let DATA=[], fav=new Set(JSON.parse(localStorage.getItem('roved5m:fav')||'[]')), cmp=new Set();
+let cloud='all',type='all',favOnly=false,view='table',q='',sortK='name',sortDir=1;
+fetch('data.json').then(r=>r.json()).then(d=>{DATA=d;initStrip();render();});
+function fmtDiscount(s){if(typeof s==='number')return{t:Math.round(s*100)+'%',byol:false};if(!s||/לא רלוונטי/.test(s))return{t:'BYOL',byol:true};return{t:String(s),byol:false};}
+function initStrip(){
+  const aws=DATA.filter(s=>s.cloud==='AWS').length,saas=DATA.filter(s=>s.type==='SaaS').length;
+  const k=[['סה״כ',DATA.length,'all','c'],['AWS',aws,'AWS','c'],['GCP',DATA.length-aws,'GCP','c'],['SaaS',saas,'SaaS','t'],['Non',DATA.length-saas,'non-SaaS','t']];
+  document.getElementById('kstrip').innerHTML=k.map(x=>`<div class="kchip" data-k="${x[2]}" data-dim="${x[3]}"><b>${x[1]}</b> ${x[0]}</div>`).join('');
+  document.querySelectorAll('.kchip').forEach(el=>el.onclick=()=>{if(el.dataset.dim==='c'){cloud=cloud===el.dataset.k?'all':el.dataset.k;if(el.dataset.k==='all'){cloud='all';type='all';}}else{type=type===el.dataset.k?'all':el.dataset.k;}render();});
+}
+function filtered(){let r=DATA.filter(s=>{if(cloud!=='all'&&s.cloud!==cloud)return false;if(type!=='all'&&s.type!==type)return false;if(favOnly&&!fav.has(s.id))return false;if(q){const t=(s.name+s.manufacturer+s.description+s.id+s.provider).toLowerCase();if(!t.includes(q.toLowerCase()))return false;}return true;});
+  r.sort((a,b)=>{let x=(a[sortK]||'')+'',y=(b[sortK]||'')+'';return x.localeCompare(y,'he')*sortDir;});return r;}
+function render(){
+  document.querySelectorAll('.kchip').forEach(el=>el.classList.toggle('on',(el.dataset.dim==='c'&&el.dataset.k===cloud&&cloud!=='all')||(el.dataset.dim==='t'&&el.dataset.k===type&&type!=='all')));
+  document.getElementById('favBtn').classList.toggle('on',favOnly);
+  const list=filtered();document.getElementById('count').textContent=list.length+' תוצאות';
+  document.getElementById('results').innerHTML=view==='table'?tableHtml(list):'<div class="grid">'+list.map(cardHtml).join('')+'</div>';
+  bind();updCmpBar();
+}
+function tableHtml(list){return `<table class="tbl"><thead><tr>
+  <th data-s="id">מק״ט</th><th data-s="name">שם השירות</th><th data-s="manufacturer" class="hideM">יצרן</th>
+  <th data-s="cloud">ענן</th><th data-s="type" class="hideM">סוג</th><th>הנחה</th><th>פעולות</th></tr></thead><tbody>`+
+  list.map(s=>{const d=fmtDiscount(s.discount);return `<tr>
+    <td><span class="sku" data-copy="${s.id}">${s.id}</span></td>
+    <td><span class="rowName" data-id="${s.id}">${s.name}</span><div class="rowMfr">${s.manufacturer||''}</div></td>
+    <td class="hideM">${s.manufacturer||''}</td>
+    <td><span class="cloudBadge ${s.cloud}">${s.cloud}</span></td>
+    <td class="hideM">${s.type}</td>
+    <td><span class="discount ${d.byol?'byol':''}">${d.t}</span></td>
+    <td style="white-space:nowrap"><button class="iconBtn fav ${fav.has(s.id)?'on':''}" data-fav="${s.id}">${fav.has(s.id)?'★':'☆'}</button>
+      <button class="iconBtn cmp ${cmp.has(s.id)?'on':''}" data-cmp="${s.id}">⇄</button></td></tr>`;}).join('')+`</tbody></table>`;}
+function cardHtml(s){const d=fmtDiscount(s.discount);return `<div class="card" data-id="${s.id}">
+  <div style="display:flex;gap:6px;align-items:center"><span class="sku" data-copy="${s.id}">📋 ${s.id}</span>
+    <button class="iconBtn fav ${fav.has(s.id)?'on':''}" data-fav="${s.id}">${fav.has(s.id)?'★':'☆'}</button>
+    <button class="iconBtn cmp ${cmp.has(s.id)?'on':''}" data-cmp="${s.id}">⇄</button>
+    <span class="cloudBadge ${s.cloud}" style="margin-inline-start:auto">${s.cloud}</span></div>
+  <div class="cardName">${s.name}</div><div class="cardMfr">${s.manufacturer||''}</div>
+  <div class="cardDesc">${s.description||''}</div>
+  <div><span class="discount ${d.byol?'byol':''}">${d.t}</span></div></div>`;}
+function bind(){
+  document.querySelectorAll('[data-s]').forEach(th=>th.onclick=()=>{const k=th.dataset.s;if(sortK===k)sortDir*=-1;else{sortK=k;sortDir=1;}render();});
+  document.querySelectorAll('[data-copy]').forEach(el=>el.onclick=e=>{e.stopPropagation();navigator.clipboard&&navigator.clipboard.writeText(el.dataset.copy);const o=el.textContent;el.textContent='✓';setTimeout(()=>el.textContent=o,1000);});
+  document.querySelectorAll('[data-fav]').forEach(el=>el.onclick=e=>{e.stopPropagation();const id=el.dataset.fav;fav.has(id)?fav.delete(id):fav.add(id);localStorage.setItem('roved5m:fav',JSON.stringify([...fav]));render();});
+  document.querySelectorAll('[data-cmp]').forEach(el=>el.onclick=e=>{e.stopPropagation();const id=el.dataset.cmp;if(cmp.has(id))cmp.delete(id);else{if(cmp.size>=4){alert('עד 4');return;}cmp.add(id);}render();});
+  document.querySelectorAll('[data-id]').forEach(el=>el.onclick=e=>{if(e.target.closest('[data-fav],[data-cmp],[data-copy]'))return;openDetails(el.dataset.id);});
+}
+function updCmpBar(){document.getElementById('cmpBar').classList.toggle('show',cmp.size>0);document.getElementById('cmpCount').textContent=cmp.size+' נבחרו';}
+document.getElementById('cmpClear').onclick=()=>{cmp.clear();render();};
+document.getElementById('cmpOpen').onclick=()=>{const items=[...cmp].map(id=>DATA.find(s=>s.id===id));const rows=[['מק״ט','id'],['שם','name'],['יצרן','manufacturer'],['ספק','provider'],['ענן','cloud'],['סוג','type'],['הנחה','discount'],['הערות','notes']];let h=`<button class="closeX" onclick="closeModal()">✕</button><h3>השוואה (${items.length})</h3><table class="cmpTable"><tbody>`;rows.forEach(([l,k])=>{h+=`<tr><th>${l}</th>`+items.map(s=>{let v=s[k];if(k==='discount')v=fmtDiscount(v).t;return`<td>${v||'—'}</td>`;}).join('')+'</tr>';});h+='</tbody></table>';showModal(h);};
+function openDetails(id){const s=DATA.find(x=>x.id===id);if(!s)return;const d=fmtDiscount(s.discount);showModal(`<button class="closeX" onclick="closeModal()">✕</button><h3>${s.name}</h3><p style="color:var(--primary);font-weight:700">${s.manufacturer||''} · ${s.provider||''}</p><p style="color:var(--text2)">${s.description||''}</p><p><b>מק״ט:</b> ${s.id} · <b>הנחה:</b> ${d.t} · <b>אישור:</b> ${s.approval_date||'—'}</p>${s.notes?`<p style="background:var(--amber-bg);padding:10px;border-radius:8px;white-space:pre-wrap">${s.notes}</p>`:''}`);}
+function showModal(h){document.getElementById('modalContent').innerHTML=h;document.getElementById('overlay').classList.add('show');}
+function closeModal(){document.getElementById('overlay').classList.remove('show');}
+document.getElementById('overlay').onclick=e=>{if(e.target.id==='overlay')closeModal();};
+document.getElementById('search').oninput=e=>{q=e.target.value;render();};
+document.getElementById('favBtn').onclick=()=>{favOnly=!favOnly;render();};
+document.querySelectorAll('.viewToggle button').forEach(b=>b.onclick=()=>{view=b.dataset.v;document.querySelectorAll('.viewToggle button').forEach(x=>x.classList.toggle('on',x===b));render();});
+document.getElementById('exportBtn').onclick=()=>alert('ייצוא Excel/PDF — ימומש בקוד האמיתי');
+const fab=document.getElementById('fab'),panel=document.getElementById('chatPanel');
+fab.onclick=()=>{panel.classList.add('show');fab.style.display='none';};
+document.getElementById('chatClose').onclick=()=>{panel.classList.remove('show');fab.style.display='';};
+function chatSend(){const inp=document.getElementById('chatText'),body=document.getElementById('chatBody');const t=inp.value.trim();if(!t)return;body.innerHTML+=`<div class="msg user">${t}</div>`;inp.value='';setTimeout(()=>{const hits=DATA.filter(s=>(s.name+s.description+s.manufacturer).toLowerCase().includes(t.toLowerCase())).slice(0,3);let h=`<div class="msg bot">מצאתי ${hits.length} שירותים:`;hits.forEach(s=>h+=`<div class="miniCard" onclick="openDetails('${s.id}')"><b>${s.name}</b><br>${s.manufacturer||''} · ${s.cloud}</div>`);h+='</div>';body.innerHTML+=h;body.scrollTop=body.scrollHeight;},400);body.scrollTop=body.scrollHeight;}
+document.getElementById('chatSend').onclick=chatSend;
+document.getElementById('chatText').onkeydown=e=>{if(e.key==='Enter')chatSend();};
+</script>
+</body>
+</html>
