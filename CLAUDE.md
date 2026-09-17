@@ -327,10 +327,30 @@ CLAUDE_CODE_TOMER/
 | 09.09 | **feat(expertise): מודול חדש "אשכולות והתמחויות" (נספח ב' דיגיטק)**. מודול שמציג את 12 האשכולות ו-63 ההתמחויות של מכרז דיגיטק 07-2023 (נספח ב') עם תיאור מלא + פעילויות + תוצרים לכל התמחות — ה"מילון" שמסביר *מה* כוללת כל התמחות, משלים ל"ספקים זוכים" (שמראה *מי* זכה). **migration 041**: `expertise_clusters` (cluster_id 1-12, **מיושר ל-BRIEF_CLUSTERS**) + `expertise_specializations` (activities/outputs כ-jsonb), RLS read-לכולם. ה-seed נטען ישירות מהכתובת הציבורית של data.json דרך extension `http` (בלי לשכפל 53KB). **frontend** `src/modules/expertise/`: `useExpertise` (fetch+merge), `expertiseAI` (חיפוש חכם מול Gemini עם responseSchema — מחזיר אשכול+התמחות+הסבר *למה*), `Expertise.tsx` (וריאציית B+C שנבחרה: נחיתת מפת-חום + AI → מאסטר-דיטייל), CSS בצבעי ליבה בלבד. קישור לספקים זוכים מכל התמחות (deep-link, **מבנה הקישור הסופי טרם הובהר — ממתין להסבר המשתמש על מבנה ה"ספקים"**). **מרכז ידע**: `ModuleKey`/catalog/stepActions מכירים `expertise`; כפתור "בנה מסע" מעביר ל-KnowledgeHub דרך `?wish=`. Sidebar: פריט 🧩 route `/expertise`. אומת: tsc נקי, Playwright מקומי (נחיתה+detail עם נתונים חיים), וה-AI endpoint אומת חי מול preview (Gemini החזיר JSON תקין). 3+3 מוקאפים ב-`public/mockups/clusters-specs*/`. |
 | 20.06 | **chore: ניקוי .gitignore**. ה-VSCode badge הציג 1518 קבצי untracked. הסתבר ש-`node_modules/` בשורש (785 קבצים) לא היה ב-`.gitignore`, וגם `.claude/`, `.playwright-mcp/`, `.superpowers/`, screenshots/mockups בשורש, env files, ופרויקטים נפרדים (COE, RUN OF MY LIFE, Calculator - AI ML, Tender generator, calculate-TAKAM, liba-pitch, אפיון, מורשי חתימה) — הכל נכנס ל-.gitignore. ירידה מ-1518 ל-35 רשומות. LIBA (`digitek-platform/`, `api/`, `package*.json`, `docs/superpowers/`) לא הושפע. commit `dd4d0d4`. |
 | 15.09 | **feat(roved5/admin): ניהול קטלוג רובד 5 — עריכה/הוספה/מחיקה + העלאת אקסל**. בהשראת קטלוג של מתחרה (נימבוס). **החלטה מרכזית**: המערכת הופכת ל**מקור האמת** של רובד 5 — [migration 043](digitek-platform/supabase/migrations/043_roved5_admin_crud.sql) מבטל את ה-cron השבועי `roved5-weekly-sync` (ה-Edge Function `sync-roved5` + `roved5_replace_all` נשארים רדומים, ניתנים להחזרה). 2 RPCs חדשים SECURITY DEFINER עם גייט `profiles.is_admin`: `roved5_admin_upsert(jsonb)` (מיזוג לא-הורס לפי מק"ט — מוסיף חדשים/מעדכן קיימים) ו-`roved5_admin_delete(text)`. טאב חדש "☁️ קטלוג רובד 5" ב-`/admin`: [Roved5Manager](digitek-platform/src/modules/admin/components/Roved5Manager.tsx) (טבלה+חיפוש), [Roved5ProductModal](digitek-platform/src/modules/admin/components/Roved5ProductModal.tsx) (CRUD בודד, 13 שדות, ולידציית מק"ט), [Roved5ExcelModal](digitek-platform/src/modules/admin/components/Roved5ExcelModal.tsx) (drag-drop, פרסור בצד-לקוח עם תצוגה מקדימה חדשים/עדכונים), [roved5ExcelParser.ts](digitek-platform/src/modules/admin/lib/roved5ExcelParser.ts) (פורט מ-`parse-roved5.cjs`, ענן נגזר מקידומת המק"ט G/A). `npx tsc --noEmit` נקי. אומת ב-DB: admin מבצע insert/merge/delete, לא-admin נחסם (0 דליפה). **גילוי**: נוסף כפתור admin-only "⚙️ ניהול מוצרים" בראש דף `/layer5` שמנווט ל-`/admin?tab=roved5`; `AdminPanel` קורא `?tab=` ופותח את הטאב הנכון ישירות (כי המשתמש נכנס ל"רובד 5" בסיידבר וציפה לנהל משם). |
+| 17.09 | **feat(roved5): קישור ציבורי לצפייה ברובד 5 ללא התחברות**. המשתמש רצה לשתף את מודול רובד 5 עם גורמים שאינם מחוברים ל-LIBA, כך שהם נעולים על המודול הזה בלבד. route ציבורי חדש `/share/layer5` ב-[App.tsx](digitek-platform/src/App.tsx) **בלי `<Protected>` ובלי `AppLayout`** (כמו דפוס `/approve`). עמוד עצמאי חדש [PublicRoved5Page.tsx](digitek-platform/src/pages/PublicRoved5Page.tsx) + `.module.css` עם header מינימלי (LIBA + תגית + קישור "כניסה למערכת") שמרנדר `<Roved5 publicMode />` — **בלי Sidebar**, כך שאין ניווט למודולים מוגנים. prop חדש `publicMode` ב-[Roved5.tsx](digitek-platform/src/modules/roved5/Roved5.tsx) עוטף את כפתור "ניהול מוצרים" ב-`!publicMode`. **אין שינוי DB** — RLS של `roved5_services` כבר מתיר SELECT ל-anon (migration 035), ו-`/api/ai-advisor` proxy ללא auth, אז חיפוש AI עובד גם לאנונימיים. `npx tsc --noEmit` נקי. אומת חי ב-Playwright על preview במצב אנונימי: `/share/layer5` נטען (338 שירותים) ללא redirect, 0 שגיאות קונסול, חיפוש AI מחזיר תוצאות, כפתור admin נעדר, מובייל 390px נקי, ו-`/layer5` המוגן עדיין מפנה ל-login. commit `9d260ac`. |
 
 ---
 
 ## 10. שיחה אחרונה
+
+> **תאריך**: 17.09.2026
+> **נושא**: קישור ציבורי לצפייה ברובד 5 ללא התחברות
+
+### מה קרה
+- המשתמש רצה לתת לגורמים שאינם מחוברים ל-LIBA לצפות בקטלוג **רובד 5** דרך קישור, נעולים על המודול הזה בלבד.
+- **גילוי מהיר**: התשתית כבר כמעט מוכנה — RLS על `roved5_services` מתיר SELECT ל-anon (migration 035), `/api/ai-advisor` proxy ל-Gemini ללא auth, וקיים דפוס route ציבורי (`/approve`).
+- **החלטות שאושרו** (AskUserQuestion): קישור קבוע ופתוח (בלי טוקן/DB) · חיפוש AI נשאר פעיל · מעטפת מינימלית (בלי Sidebar).
+- **בוצע**: route ציבורי `/share/layer5` (בלי `<Protected>`/`AppLayout`), עמוד עצמאי [PublicRoved5Page.tsx](digitek-platform/src/pages/PublicRoved5Page.tsx) + CSS עם header מינימלי, prop `publicMode` ב-[Roved5.tsx](digitek-platform/src/modules/roved5/Roved5.tsx) שמסתיר את כפתור הניהול. אין שינוי DB.
+- **אימות חי (Playwright, preview, אנונימי)**: `/share/layer5` נטען (338 שירותים) בלי redirect, 0 שגיאות קונסול, חיפוש AI מחזיר תוצאות, בלי כפתור admin/Sidebar, מובייל 390px נקי, ו-`/layer5` המוגן עדיין מפנה ל-login.
+- **הקישור לשיתוף (production אחרי merge ל-main)**: `https://<domain>/share/layer5`. כרגע חי ב-preview של develop.
+- commit `9d260ac` נדחף ל-develop (עם retry אחרי שגיאת שרת חולפת של GitHub).
+
+### נותר / אופציונלי
+- [ ] merge ל-main כדי שהקישור יהיה יציב על דומיין הפרודקשן (הקישור הנוכחי הוא per-deploy preview).
+
+---
+
+## (היסטוריית שיחה קודמת — אשכולות והתמחויות)
 
 > **תאריך**: 09.09.2026
 > **נושא**: מודול חדש "אשכולות והתמחויות" בליבה (נספח ב' של מכרז דיגיטק)
