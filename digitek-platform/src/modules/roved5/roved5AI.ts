@@ -176,6 +176,16 @@ ${serviceList}
 export interface ChatMessage { role: 'user' | 'bot'; text: string }
 export interface ChatReply { answer: string; serviceIds: string[] }
 
+// Pull the first balanced {...} JSON object out of a model response that may
+// include ``` fences or surrounding prose.
+function extractJsonObject(text: string): string | null {
+  const cleaned = text.replace(/```json?/gi, '').replace(/```/g, '')
+  const start = cleaned.indexOf('{')
+  const end = cleaned.lastIndexOf('}')
+  if (start === -1 || end === -1 || end <= start) return null
+  return cleaned.slice(start, end + 1)
+}
+
 // Conversational assistant over the רובד 5 catalog. Reuses the /api/ai-advisor
 // Gemini proxy (no auth). Pre-filters candidates by the latest user message
 // (keyword + synonyms) to keep the prompt small and fast.
@@ -232,9 +242,11 @@ ${serviceList}
     if (!res.ok) return { answer: 'הסייען אינו זמין כרגע — נסה שוב בעוד רגע.', serviceIds: [] }
     const data = await res.json()
     if (data.error) return { answer: 'הסייען אינו זמין כרגע — נסה שוב בעוד רגע.', serviceIds: [] }
-    let raw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
-    raw = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '')
-    const parsed = JSON.parse(raw)
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+    // Robust extraction: grab the JSON object even if wrapped in prose or ``` fences
+    const jsonStr = extractJsonObject(raw)
+    if (!jsonStr) return { answer: raw.trim() || 'לא הצלחתי למצוא תשובה — נסו לנסח אחרת.', serviceIds: [] }
+    const parsed = JSON.parse(jsonStr)
     return { answer: parsed.answer || '', serviceIds: Array.isArray(parsed.ids) ? parsed.ids : [] }
   } catch {
     clearTimeout(timeoutId)
