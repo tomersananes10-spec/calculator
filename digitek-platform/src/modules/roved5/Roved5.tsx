@@ -1,11 +1,16 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import type { Roved5Service, AISearchResult } from './types'
+import type { Roved5Service, AISearchResult, CloudFilter, TypeFilter } from './types'
 import { aiSearch, keywordSearch, categorizeService } from './roved5AI'
 import type { ServiceCategory } from './roved5AI'
 import { ServiceModal } from './ServiceModal'
 import { Roved5ShareDialog } from './Roved5ShareDialog'
+import { Roved5Stats } from './Roved5Stats'
+import { Roved5CompareModal } from './Roved5CompareModal'
+import { Roved5Chat } from './Roved5Chat'
+import { copyToClipboard } from './Roved5ShareDialog'
+import { exportRoved5Excel, exportRoved5Pdf, formatDiscount } from './roved5Export'
 import { supabase } from '../../lib/supabase'
 import styles from './Roved5.module.css'
 
@@ -42,9 +47,6 @@ function mapDbRow(r: DbRow): Roved5Service {
     psServices: r.ps_services,
   }
 }
-
-type CloudFilter = 'all' | 'AWS' | 'GCP'
-type TypeFilter  = 'all' | 'SaaS' | 'non-SaaS'
 
 const CAT_LABELS: Record<ServiceCategory, string> = {
   compute:   'Compute',
@@ -92,6 +94,16 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
   const [aiLoading,      setAiLoading]      = useState(false)
   const [selected,       setSelected]       = useState<Roved5Service | null>(null)
   const [page,           setPage]           = useState(1)
+  const [favorites,      setFavorites]      = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set()
+    try { return new Set(JSON.parse(localStorage.getItem('roved5:favorites') || '[]')) }
+    catch { return new Set() }
+  })
+  const [favOnly,        setFavOnly]        = useState(false)
+  const [compareIds,     setCompareIds]     = useState<Set<string>>(new Set())
+  const [compareOpen,    setCompareOpen]    = useState(false)
+  const [updatedAt,      setUpdatedAt]      = useState<string | null>(null)
+  const [exporting,      setExporting]      = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Knowledge Hub deep-link — landing on the page with a journey_step_id
@@ -169,7 +181,20 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
     return () => { controller.abort() }
   }, [debouncedQuery, services])
 
-  useEffect(() => { setPage(1) }, [debouncedQuery, cloudFilter, typeFilter, selectedCats, selectedMfgs])
+  useEffect(() => { setPage(1) }, [debouncedQuery, cloudFilter, typeFilter, selectedCats, selectedMfgs, favOnly])
+
+  // "עודכן" — latest approval_date (format MM/YYYY) across the catalog
+  useEffect(() => {
+    let best = ''
+    let bestKey = -1
+    services.forEach(s => {
+      const m = /(\d{1,2})\/(\d{4})/.exec(s.approvalDate || '')
+      if (!m) return
+      const key = Number(m[2]) * 12 + Number(m[1])
+      if (key > bestKey) { bestKey = key; best = s.approvalDate }
+    })
+    setUpdatedAt(best || null)
+  }, [services])
 
   const serviceCategories = useMemo(() => {
     const map = new Map<string, ServiceCategory | null>()
@@ -215,6 +240,8 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
 
   const awsCount = useMemo(() => services.filter(s => s.cloud === 'AWS').length, [services])
   const gcpCount = useMemo(() => services.filter(s => s.cloud === 'GCP').length, [services])
+  const saasCount = useMemo(() => services.filter(s => s.type === 'SaaS').length, [services])
+  const nonSaasCount = useMemo(() => services.length - saasCount, [services, saasCount])
 
   let displayed: Roved5Service[]
   if (aiResults && query.trim().length >= 3) {
@@ -231,10 +258,15 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
     return !!cat && selectedCats.has(cat)
   })
   if (selectedMfgs.size > 0) displayed = displayed.filter(s => !!s.manufacturer && selectedMfgs.has(s.manufacturer))
+  if (favOnly) displayed = displayed.filter(s => favorites.has(s.id))
 
   const isAIMode = !!aiResults && query.trim().length >= 3
   const totalPages = Math.ceil(displayed.length / PAGE_SIZE)
   const pageItems  = displayed.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const compareServices = useMemo(
+    () => [...compareIds].map(id => services.find(s => s.id === id)).filter((s): s is Roved5Service => !!s),
+    [compareIds, services],
+  )
 
   function reset() {
     setQuery('')
@@ -244,8 +276,41 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
     setTypeFilter('all')
     setSelectedCats(new Set())
     setSelectedMfgs(new Set())
+    setFavOnly(false)
     setPage(1)
     setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  function toggleFavorite(id: string) {
+    setFavorites(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      localStorage.setItem('roved5:favorites', JSON.stringify([...next]))
+      return next
+    })
+  }
+
+  function toggleCompare(id: string) {
+    setCompareIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else {
+        if (next.size >= 4) return prev
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  async function handleExport(fmt: 'excel' | 'pdf') {
+    setExporting(true)
+    try {
+      if (fmt === 'excel') exportRoved5Excel(displayed)
+      else await exportRoved5Pdf(displayed)
+    } finally {
+      setExporting(false)
+    }
   }
 
   function toggleCat(id: ServiceCategory) {
@@ -277,36 +342,22 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>רובד 5</h1>
-        <p className={styles.pageSub}>
-          {loading
-            ? 'טוען קטלוג…'
-            : loadError
-              ? `שגיאת טעינה: ${loadError}`
-              : `${services.length.toLocaleString()} שירותי ענן מאושרים לרכישה`}
-        </p>
-        {!publicMode && (
-          <div className={styles.headerActions}>
-            <button
-              className={styles.shareBtn}
-              onClick={() => setShareOpen(true)}
-            >
-              🔗 שתף
-            </button>
-            {isAdmin && (
-              <button
-                className={styles.manageBtn}
-                onClick={() => navigate('/admin?tab=roved5')}
-              >
-                ⚙️ ניהול מוצרים
-              </button>
-            )}
-          </div>
-        )}
-      </div>
+      <Roved5Stats
+        total={services.length}
+        awsCount={awsCount}
+        gcpCount={gcpCount}
+        saasCount={saasCount}
+        nonSaasCount={nonSaasCount}
+        cloudFilter={cloudFilter}
+        typeFilter={typeFilter}
+        updated={updatedAt}
+        onCloud={setCloudFilter}
+        onType={setTypeFilter}
+      />
 
-      <div className={styles.searchBar}>
+      {loadError && <div className={styles.errorBar}>שגיאת טעינה: {loadError}</div>}
+
+      <div className={styles.toolbar}>
         <div className={styles.searchPill}>
           <div className={styles.searchInputWrap}>
             <span className={styles.searchIcon}>🔍</span>
@@ -314,7 +365,7 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
               ref={inputRef}
               className={styles.searchInput}
               type="text"
-              placeholder='✨ חיפוש חכם — למשל: "סריקת מסמכים", "אבטחה לדאטה רגיש", "ETL"...'
+              placeholder='✨ חיפוש חכם — למשל: "אבטחה לדאטה רגיש", "ETL"...'
               value={query}
               onChange={e => { setQuery(e.target.value) }}
             />
@@ -322,42 +373,35 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
             {query && !aiLoading && <button className={styles.clearBtn} onClick={reset}>✕</button>}
           </div>
         </div>
-      </div>
-
-      <div className={styles.filterRow}>
-        {(['all', 'AWS', 'GCP'] as CloudFilter[]).map(f => (
-          <button
-            key={f}
-            className={`${styles.chip} ${cloudFilter === f ? styles.chipActive : ''}`}
-            onClick={() => setCloudFilter(f)}
-          >
-            {f === 'all' ? `הכל (${services.length})` : f === 'AWS' ? `AWS (${awsCount})` : `GCP (${gcpCount})`}
-          </button>
-        ))}
         <button
-          className={`${styles.chip} ${typeFilter === 'all' ? styles.chipActive : ''}`}
-          onClick={() => setTypeFilter('all')}
+          className={`${styles.tbtn} ${favOnly ? styles.tbtnFav : ''}`}
+          onClick={() => setFavOnly(v => !v)}
         >
-          כל הסוגים
+          🔖 מועדפים{favorites.size > 0 ? ` (${favorites.size})` : ''}
         </button>
-        {(['SaaS', 'non-SaaS'] as TypeFilter[]).map(f => (
-          <button
-            key={f}
-            className={`${styles.chip} ${typeFilter === f ? styles.chipActive : ''}`}
-            onClick={() => setTypeFilter(prev => prev === f ? 'all' : f)}
-          >
-            {f}
-          </button>
-        ))}
+        <button className={styles.tbtn} disabled={exporting} onClick={() => handleExport('excel')}>
+          📊 Excel
+        </button>
+        <button className={styles.tbtn} disabled={exporting} onClick={() => handleExport('pdf')}>
+          📥 PDF
+        </button>
+        {!publicMode && (
+          <>
+            <button className={styles.tbtn} onClick={() => setShareOpen(true)}>🔗 שתף</button>
+            {isAdmin && (
+              <button className={styles.tbtn} onClick={() => navigate('/admin?tab=roved5')}>
+                ⚙️ ניהול
+              </button>
+            )}
+          </>
+        )}
       </div>
 
       <div className={styles.resultsInfo}>
         {isAIMode && <span className={styles.aiResultsBadge}>✨ תוצאות חיפוש חכם</span>}
-        {displayed.length > 0 && (
-          <span className={styles.resultsCount}>
-            {displayed.length.toLocaleString()} תוצאות
-          </span>
-        )}
+        <span className={styles.resultsCount}>
+          {loading ? 'טוען קטלוג…' : `${displayed.length.toLocaleString()} תוצאות`}
+        </span>
       </div>
 
       <div className={styles.layout}>
@@ -450,14 +494,37 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
         <div className={styles.cardGrid}>
           {pageItems.map(service => {
             const aiResult = aiResults?.find(r => r.id === service.id)
+            const isFav = favorites.has(service.id)
+            const isCmp = compareIds.has(service.id)
+            const disc = formatDiscount(service.discount)
+            const byol = disc.includes('BYOL')
+            const hasLink = !!service.priceLink && /^https?:\/\//.test(service.priceLink)
 
             return (
-              <div key={service.id} className={styles.card} onClick={() => setSelected(service)}>
-                <div className={styles.cardBadges}>
-                  <span className={`${styles.badge} ${service.type === 'SaaS' ? styles.badgeSaaS : styles.badgeNonSaaS}`}>
-                    {service.type}
-                  </span>
-                  <span className={`${styles.badge} ${service.cloud === 'GCP' ? styles.badgeGCP : styles.badgeAWS}`}>
+              <div key={service.id} className={`${styles.card} ${styles['card' + service.cloud]}`} onClick={() => setSelected(service)}>
+                <div className={styles.cardTop}>
+                  <button
+                    className={styles.skuChip}
+                    title="העתק מק״ט"
+                    onClick={e => { e.stopPropagation(); copyToClipboard(service.id, () => {}) }}
+                  >
+                    📋 {service.id}
+                  </button>
+                  <button
+                    className={`${styles.iconBtn} ${isFav ? styles.iconBtnFav : ''}`}
+                    title="מועדף"
+                    onClick={e => { e.stopPropagation(); toggleFavorite(service.id) }}
+                  >
+                    {isFav ? '★' : '☆'}
+                  </button>
+                  <button
+                    className={`${styles.iconBtn} ${isCmp ? styles.iconBtnCmp : ''}`}
+                    title="הוסף להשוואה"
+                    onClick={e => { e.stopPropagation(); toggleCompare(service.id) }}
+                  >
+                    ⇄
+                  </button>
+                  <span className={`${styles.cloudBadge} ${service.cloud === 'GCP' ? styles.cloudGCP : styles.cloudAWS}`}>
                     {service.cloud}
                   </span>
                 </div>
@@ -475,9 +542,26 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
                   </div>
                 )}
 
+                <div className={styles.cardInfoRow}>
+                  <span className={`${styles.discount} ${byol ? styles.discountByol : ''}`}>
+                    {byol ? disc : `הנחה ${disc}`}
+                  </span>
+                  <span className={styles.typeTag}>{service.type}</span>
+                </div>
+
                 <div className={styles.cardFooter}>
-                  <span className={styles.cardDate}>{service.approvalDate || '—'}</span>
-                  <span className={styles.cardProvider}>{service.provider}</span>
+                  {hasLink && (
+                    <a
+                      className={styles.footLink}
+                      href={service.priceLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      ⧉ מחירון
+                    </a>
+                  )}
+                  <span className={styles.detailsCta}>פרטים מלאים ←</span>
                 </div>
               </div>
             )
@@ -502,8 +586,29 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
         </div>
       </div>
 
+      {compareIds.size > 0 && (
+        <div className={styles.cmpBar}>
+          <span className={styles.cmpBarCount}>{compareIds.size} נבחרו להשוואה</span>
+          <button className={styles.cmpBarBtn} onClick={() => setCompareOpen(true)}>השווה ←</button>
+          <button className={styles.cmpBarClear} onClick={() => setCompareIds(new Set())}>נקה</button>
+        </div>
+      )}
+
       {selected && <ServiceModal service={selected} onClose={() => setSelected(null)} />}
       {!publicMode && <Roved5ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} />}
+      {compareOpen && (
+        <Roved5CompareModal
+          services={compareServices}
+          onClose={() => setCompareOpen(false)}
+          onRemove={id => {
+            const next = new Set(compareIds)
+            next.delete(id)
+            setCompareIds(next)
+            if (next.size === 0) setCompareOpen(false)
+          }}
+        />
+      )}
+      <Roved5Chat services={services} onOpenService={setSelected} />
     </div>
   )
 }

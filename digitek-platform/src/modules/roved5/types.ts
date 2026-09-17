@@ -19,3 +19,6 @@ export interface AISearchResult {
   score: number
   reason: string
 }
+
+export type CloudFilter = 'all' | 'AWS' | 'GCP'
+export type TypeFilter  = 'all' | 'SaaS' | 'non-SaaS'

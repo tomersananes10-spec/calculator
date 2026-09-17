@@ -3,7 +3,7 @@ import s from './Roved5.module.css'
 
 type ShareMode = 'full' | 'view'
 
-function copyToClipboard(text: string, onDone: () => void) {
+export function copyToClipboard(text: string, onDone: () => void) {
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(text).then(onDone).catch(() => fallbackCopy(text, onDone))
   } else {

@@ -173,6 +173,71 @@ ${serviceList}
   }
 }
 
+export interface ChatMessage { role: 'user' | 'bot'; text: string }
+export interface ChatReply { answer: string; serviceIds: string[] }
+
+// Conversational assistant over the רובד 5 catalog. Reuses the /api/ai-advisor
+// Gemini proxy (no auth). Pre-filters candidates by the latest user message
+// (keyword + synonyms) to keep the prompt small and fast.
+export async function roved5Chat(
+  messages: ChatMessage[],
+  services: Roved5Service[],
+  signal?: AbortSignal,
+): Promise<ChatReply> {
+  const lastUser = [...messages].reverse().find(m => m.role === 'user')?.text ?? ''
+  const keywordHits = keywordSearch(lastUser, services)
+  const candidates = keywordHits.length >= 5 ? keywordHits.slice(0, 60) : services.slice(0, 80)
+
+  const serviceList = candidates
+    .map(s => `[${s.id}] ${s.name} | ${s.manufacturer} | ${s.description} | ${s.cloud} | ${s.type}`)
+    .join('\n')
+
+  const history = messages
+    .map(m => `${m.role === 'user' ? 'משתמש' : 'סייען'}: ${m.text}`)
+    .join('\n')
+
+  const prompt = `אתה סייען חכם וידידותי לקטלוג שירותי הענן הממשלתיים ברובד 5.
+ענה בעברית, בקצרה וברור. עזור למשתמש למצוא שירותים מתאימים, הסבר הבדלים, וענה על שאלות.
+
+שיחה עד כה:
+${history}
+
+רשימת השירותים הרלוונטיים (מק"ט | שם | יצרן | תיאור | ענן | סוג):
+${serviceList}
+
+החזר JSON בלבד ללא markdown וללא קוד בלוקים:
+{"answer":"תשובה קצרה וברורה בעברית","ids":["מק\\"ט של שירות מומלץ",...]}
+
+ב-ids כלול עד 5 מק"טים של השירותים הרלוונטיים ביותר מהרשימה (או [] אם אין). ה-answer חייב להיות טקסט אנושי, לא JSON.`
+
+  const internalController = new AbortController()
+  const timeoutId = setTimeout(() => internalController.abort(), 30000)
+  if (signal) {
+    if (signal.aborted) internalController.abort()
+    else signal.addEventListener('abort', () => internalController.abort(), { once: true })
+  }
+
+  try {
+    const res = await fetch('/api/ai-advisor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      signal: internalController.signal,
+    })
+    clearTimeout(timeoutId)
+    if (!res.ok) return { answer: 'הסייען אינו זמין כרגע — נסה שוב בעוד רגע.', serviceIds: [] }
+    const data = await res.json()
+    if (data.error) return { answer: 'הסייען אינו זמין כרגע — נסה שוב בעוד רגע.', serviceIds: [] }
+    let raw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
+    raw = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '')
+    const parsed = JSON.parse(raw)
+    return { answer: parsed.answer || '', serviceIds: Array.isArray(parsed.ids) ? parsed.ids : [] }
+  } catch {
+    clearTimeout(timeoutId)
+    return { answer: 'הסייען אינו זמין כרגע — נסה שוב בעוד רגע.', serviceIds: [] }
+  }
+}
+
 export function keywordSearch(query: string, services: Roved5Service[]): Roved5Service[] {
   const cleanTerms = query.toLowerCase().trim().split(/\s+/)
     .filter(t => t.length >= 2 && !HEBREW_STOP_WORDS.has(t))
