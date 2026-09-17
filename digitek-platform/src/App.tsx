@@ -18,6 +18,7 @@ import { ExpertisePage }   from './pages/ExpertisePage'
 import { ProjectsPage }    from './pages/ProjectsPage'
 import { TestPage }        from './pages/TestPage'
 import { ApprovalPage }    from './pages/ApprovalPage'
+import { PublicRoved5Page } from './pages/PublicRoved5Page'
 import { ProtectedRoute }  from './components/ProtectedRoute'
 import { AppLayout }       from './components/AppLayout'
 
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/login"          element={<Login />} />
         <Route path="/auth/callback"  element={<AuthCallback />} />
         <Route path="/approve/:requestId" element={<ApprovalPage />} />
+        <Route path="/share/layer5"   element={<PublicRoved5Page />} />
         <Route path="/"               element={<Protected><KnowledgeHubPage /></Protected>} />
         <Route path="/knowledge-hub"  element={<Navigate to="/" replace />} />
         <Route path="/briefs"         element={<Protected><BriefGenerator /></Protected>} />

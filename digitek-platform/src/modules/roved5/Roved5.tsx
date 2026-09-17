@@ -65,7 +65,7 @@ const CAT_ICONS: Record<ServiceCategory, string> = {
 
 const PAGE_SIZE = 24
 
-export function Roved5() {
+export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
   const navigate = useNavigate()
   const { isAdmin } = useAuth()
   const [services,       setServices]       = useState<Roved5Service[]>([])
@@ -284,7 +284,7 @@ export function Roved5() {
               ? `שגיאת טעינה: ${loadError}`
               : `${services.length.toLocaleString()} שירותי ענן מאושרים לרכישה`}
         </p>
-        {isAdmin && (
+        {!publicMode && isAdmin && (
           <button
             className={styles.manageBtn}
             onClick={() => navigate('/admin?tab=roved5')}
