@@ -608,7 +608,20 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
           }}
         />
       )}
-      <Roved5Chat services={services} onOpenService={setSelected} />
+      <Roved5Chat
+        services={services}
+        onOpenService={setSelected}
+        onSearchInCatalog={q => {
+          setCloudFilter('all')
+          setTypeFilter('all')
+          setSelectedCats(new Set())
+          setSelectedMfgs(new Set())
+          setFavOnly(false)
+          setQuery(q)
+          setPage(1)
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }}
+      />
     </div>
   )
 }

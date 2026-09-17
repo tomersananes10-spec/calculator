@@ -185,8 +185,12 @@ export async function roved5Chat(
   signal?: AbortSignal,
 ): Promise<ChatReply> {
   const lastUser = [...messages].reverse().find(m => m.role === 'user')?.text ?? ''
+  // Send the FULL catalog so the assistant can find any relevant service.
+  // Keyword hits are surfaced first (better relevance), the rest follow.
+  // ~15k tokens for ~340 services — well within Gemini Flash limits (~15s).
   const keywordHits = keywordSearch(lastUser, services)
-  const candidates = keywordHits.length >= 5 ? keywordHits.slice(0, 60) : services.slice(0, 80)
+  const hitIds = new Set(keywordHits.map(s => s.id))
+  const candidates = [...keywordHits, ...services.filter(s => !hitIds.has(s.id))]
 
   const serviceList = candidates
     .map(s => `[${s.id}] ${s.name} | ${s.manufacturer} | ${s.description} | ${s.cloud} | ${s.type}`)

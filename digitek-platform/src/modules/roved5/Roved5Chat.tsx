@@ -6,6 +6,7 @@ import { roved5Chat, type ChatMessage } from './roved5AI'
 interface Props {
   services: Roved5Service[]
   onOpenService: (service: Roved5Service) => void
+  onSearchInCatalog: (query: string) => void
 }
 
 const GREETING: ChatMessage = {
@@ -13,10 +14,11 @@ const GREETING: ChatMessage = {
   text: 'שלום! ספרו לי מה אתם צריכים ואאתר עבורכם שירותי ענן מתאימים מרובד 5. למשל: "אבטחה לדאטה רגיש", "כלי ETL", או "גיבוי ושחזור".',
 }
 
-export function Roved5Chat({ services, onOpenService }: Props) {
+export function Roved5Chat({ services, onOpenService, onSearchInCatalog }: Props) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([GREETING])
   const [recos, setRecos] = useState<Record<number, Roved5Service[]>>({})
+  const [queries, setQueries] = useState<Record<number, string>>({})
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const bodyRef = useRef<HTMLDivElement>(null)
@@ -39,7 +41,13 @@ export function Roved5Chat({ services, onOpenService }: Props) {
       .map(id => services.find(sv => sv.id === id))
       .filter((sv): sv is Roved5Service => !!sv)
     if (found.length) setRecos(r => ({ ...r, [botIndex]: found }))
+    setQueries(q => ({ ...q, [botIndex]: text }))
     setLoading(false)
+  }
+
+  function openInCatalog(q: string) {
+    onSearchInCatalog(q)
+    setOpen(false)
   }
 
   return (
@@ -64,6 +72,11 @@ export function Roved5Chat({ services, onOpenService }: Props) {
                   <span>{sv.manufacturer || ''} · {sv.cloud}</span>
                 </div>
               ))}
+              {queries[i] && (
+                <button className={s.chatOpenCatalog} onClick={() => openInCatalog(queries[i])}>
+                  🔍 ראה עוד אפשרויות במסך הרגיל ←
+                </button>
+              )}
             </div>
           ))}
           {loading && <div className={`${s.chatMsg} ${s.chatBot}`}>✨ מחפש…</div>}
