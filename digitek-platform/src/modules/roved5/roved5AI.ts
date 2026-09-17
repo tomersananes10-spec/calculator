@@ -235,7 +235,15 @@ ${serviceList}
     const res = await fetch('/api/ai-advisor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        // thinkingBudget:0 keeps the full-catalog call fast (~2s vs ~58s);
+        // responseMimeType forces clean JSON (no ``` fences).
+        generationConfig: {
+          thinkingConfig: { thinkingBudget: 0 },
+          responseMimeType: 'application/json',
+        },
+      }),
       signal: internalController.signal,
     })
     clearTimeout(timeoutId)
