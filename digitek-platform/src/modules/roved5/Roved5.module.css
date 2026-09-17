@@ -37,6 +37,139 @@
 }
 .manageBtn:hover { background: var(--primary); color: #fff; }
 
+/* Header actions row (share + manage) */
+.headerActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.headerActions .manageBtn { margin-top: 0; }
+
+.shareBtn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.shareBtn:hover {
+  background: var(--primary-bg);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+/* ── Share dialog ── */
+.shareBox {
+  position: relative;
+  background: var(--surface);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+  animation: modalSlideUp 0.22s ease;
+  direction: rtl;
+  padding: 28px 26px 24px;
+}
+.shareTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--navy, var(--text));
+  margin: 0 0 4px;
+}
+.shareSub {
+  font-size: 13px;
+  color: var(--text3);
+  margin: 0 0 18px;
+}
+.shareOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.shareOpt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.shareOpt:hover { border-color: var(--primary-light, var(--primary)); }
+.shareOptActive {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+  box-shadow: 0 0 0 3px var(--primary-bg);
+}
+.shareOptTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.shareOptDesc {
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 1.4;
+}
+.shareLinkRow { margin-bottom: 14px; }
+.shareLinkInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  background: var(--bg);
+  color: var(--text2);
+  font-family: inherit;
+  font-size: 12px;
+  direction: ltr;
+  text-align: left;
+}
+.shareActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.shareActionPrimary,
+.shareAction {
+  flex: 1 1 auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.shareActionPrimary {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+.shareActionPrimary:hover { background: var(--primary-dark); }
+.shareAction:hover {
+  background: var(--primary-bg);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
 /* Search bar — unified pill */
 .searchBar {
   max-width: 720px;

@@ -5,6 +5,7 @@ import type { Roved5Service, AISearchResult } from './types'
 import { aiSearch, keywordSearch, categorizeService } from './roved5AI'
 import type { ServiceCategory } from './roved5AI'
 import { ServiceModal } from './ServiceModal'
+import { Roved5ShareDialog } from './Roved5ShareDialog'
 import { supabase } from '../../lib/supabase'
 import styles from './Roved5.module.css'
 
@@ -68,6 +69,7 @@ const PAGE_SIZE = 24
 export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
   const navigate = useNavigate()
   const { isAdmin } = useAuth()
+  const [shareOpen, setShareOpen] = useState(false)
   const [services,       setServices]       = useState<Roved5Service[]>([])
   const [loading,        setLoading]        = useState(true)
   const [loadError,      setLoadError]      = useState<string | null>(null)
@@ -284,13 +286,23 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
               ? `שגיאת טעינה: ${loadError}`
               : `${services.length.toLocaleString()} שירותי ענן מאושרים לרכישה`}
         </p>
-        {!publicMode && isAdmin && (
-          <button
-            className={styles.manageBtn}
-            onClick={() => navigate('/admin?tab=roved5')}
-          >
-            ⚙️ ניהול מוצרים
-          </button>
+        {!publicMode && (
+          <div className={styles.headerActions}>
+            <button
+              className={styles.shareBtn}
+              onClick={() => setShareOpen(true)}
+            >
+              🔗 שתף
+            </button>
+            {isAdmin && (
+              <button
+                className={styles.manageBtn}
+                onClick={() => navigate('/admin?tab=roved5')}
+              >
+                ⚙️ ניהול מוצרים
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -491,6 +503,7 @@ export function Roved5({ publicMode = false }: { publicMode?: boolean } = {}) {
       </div>
 
       {selected && <ServiceModal service={selected} onClose={() => setSelected(null)} />}
+      {!publicMode && <Roved5ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} />}
     </div>
   )
 }
