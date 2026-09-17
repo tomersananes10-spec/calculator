@@ -40,23 +40,6 @@
   text-overflow: ellipsis;
 }
 
-.loginLink {
-  flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--primary);
-  text-decoration: none;
-  padding: 6px 14px;
-  border: 1px solid var(--border2);
-  border-radius: 999px;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.loginLink:hover {
-  background: var(--primary-bg);
-  border-color: var(--primary);
-}
-
 .main {
   max-width: 1280px;
   margin: 0 auto;
