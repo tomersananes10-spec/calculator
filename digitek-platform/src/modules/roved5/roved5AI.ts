@@ -242,6 +242,16 @@ ${serviceList}
         generationConfig: {
           thinkingConfig: { thinkingBudget: 0 },
           responseMimeType: 'application/json',
+          // Structured output — guarantees valid, correctly-escaped JSON even
+          // when the answer text contains quotes (otherwise JSON.parse breaks).
+          responseSchema: {
+            type: 'object',
+            properties: {
+              answer: { type: 'string' },
+              ids: { type: 'array', items: { type: 'string' } },
+            },
+            required: ['answer', 'ids'],
+          },
         },
       }),
       signal: internalController.signal,
